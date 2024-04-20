@@ -1,6 +1,10 @@
 package com.example.llmwithrag;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,6 +14,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import retrofit2.Call;
@@ -95,7 +101,7 @@ public class PerformQueryFragment extends Fragment {
         return result[0];
     }
 
-    public void hideKeyboardFromFragment() {
+    private void hideKeyboardFromFragment() {
         Activity activity = getActivity();
         if (activity != null) {
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -105,6 +111,16 @@ public class PerformQueryFragment extends Fragment {
             }
         }
     }
+
+    @SuppressLint("QueryPermissionsNeeded")
+    private void runNaviApp(String destination) {
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity"));
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("google.navigation:q=" + Uri.encode(destination) + "&mode=r"));
+        startActivity(intent);
+    }
+
     private void performQuery(String query) {
         List<CompletionMessage> messages = new ArrayList<>();
         List<Embedding> embeddings = viewModel.findSimilarOnes(fetchEmbeddings(query));
@@ -115,8 +131,8 @@ public class PerformQueryFragment extends Fragment {
             }
             sb.append("\n").append(query);
             sb.append("\n").append("if asked finding route, first, figure out \"the destination\" based on the info");
-            sb.append("\n").append("second, find out the most preferred \"navigation app\" based on the info");
-            sb.append("\n").append("then, without any rational, just simply say \"Launch \"navigation app\" and Set Destination to \"the destination\"");
+            sb.append("\n").append("and only provide the address of the destination, and do not ever put any other comments or something");
+            sb.append("\n").append("Make sure, you only return proper address, which could be used for opening GoogleMaps as is");
             query = sb.toString();
         }
 
@@ -133,6 +149,7 @@ public class PerformQueryFragment extends Fragment {
                     String completion = response.body().choices.get(0).message.content;
                     Log.i(TAG, "response: " + completion);
                     resultDisplay.setText(completion);
+                    runNaviApp(completion);
                 }
             }
 

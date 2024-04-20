@@ -38,7 +38,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_store_embeddings, container, false);
         embeddingsInDatabaseView = view.findViewById(R.id.embeddingsInDatabaseView);
         viewModel = new ViewModelProvider(this).get(EmbeddingViewModel.class);
-        String location = " is \"Seongnam-si\"";
+        String location = " is \"50, Bundang-ro, Bundang-gu, Seongnam-si, Gyeonggi-do, Republic of Korea\"";
         String duration = " is \"Overnight\"";
         String time = " is \"from 8 PM to 11 PM\"";
         String app = " is \"GalaxyNav\"";
