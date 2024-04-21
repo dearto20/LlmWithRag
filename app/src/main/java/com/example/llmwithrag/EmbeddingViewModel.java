@@ -10,12 +10,8 @@ import com.example.llmwithrag.llm.EmbeddingDatabase;
 import com.example.llmwithrag.llm.EmbeddingRepository;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class EmbeddingViewModel extends ViewModel {
     private static final String TAG = EmbeddingViewModel.class.getSimpleName();
@@ -23,7 +19,7 @@ public class EmbeddingViewModel extends ViewModel {
 
     public EmbeddingViewModel() {
         mRepository = new EmbeddingRepository(Room.databaseBuilder(
-                LlmWithRagApplication.getInstance(), EmbeddingDatabase.class, "vector_db")
+                        LlmWithRagApplication.getInstance(), EmbeddingDatabase.class, "vector_db")
                 .fallbackToDestructiveMigration()
                 .build().getEmbeddingDao());
     }
@@ -61,11 +57,11 @@ public class EmbeddingViewModel extends ViewModel {
             elements.add(element);
         }
 
-        elements.sort(Comparator.comparingDouble(element -> element.distance));
+        elements.sort(Comparator.comparingDouble((Element element) -> element.distance).reversed());
 
         Log.i(TAG, "sorted");
         for (Element element : elements) {
-            Log.i(TAG, "* " + element.distance);
+            Log.i(TAG, "* " + element.distance + " : " + element.embedding.text);
             result.add(element.embedding);
         }
         return result;
