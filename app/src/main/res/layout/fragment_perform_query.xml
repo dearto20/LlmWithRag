@@ -10,9 +10,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp"
-        android:text="@string/query_llm_with_rag"
-        android:textStyle="bold"
-        android:textSize="20sp" />
+        android:text="@string/speak_to_galaxyautonav"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/startVoiceRecognitionButton"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:text="@string/start_with_voice" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:text="@string/write_to_galaxyautonav"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <EditText
         android:id="@+id/queryInput"
@@ -25,12 +41,12 @@
         tools:ignore="LabelFor" />
 
     <Button
-        android:id="@+id/queryButton"
+        android:id="@+id/performQueryButton"
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:layout_gravity="center"
         android:layout_marginTop="10dp"
-        android:text="@string/perform_query" />
+        android:text="@string/start_with_text" />
 
     <TextView
         android:id="@+id/resultDisplay"

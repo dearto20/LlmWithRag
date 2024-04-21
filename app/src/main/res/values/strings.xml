@@ -1,16 +1,18 @@
 <resources>
-    <string name="app_name">LlmWithRag</string>
+    <string name="app_name">Galaxy AutoNav</string>
     <string name="store_embeddings">Store Embeddings</string>
     <string name="perform_query">Perform Query</string>
     <string name="overnight_location">The Most Visited Location Overnight</string>
     <string name="weekends_location">The Most Visited Location During the Weekends</string>
     <string name="stationary_time">The Most Frequent Time to Stay Stationary</string>
     <string name="public_wifi">The Most Frequent Time for Using Public Wi-Fi</string>
-    <string name="preferred_navigation">The Most Frequently Used Navigation App</string>
     <string name="add_to_database">Add</string>
     <string name="remove_from_database">Remove</string>
     <string name="reset_database">Reset Database</string>
     <string name="title_embeddings_in_database">Embeddings in the Database</string>
     <string name="wait_answer">Waiting for the Answer…</string>
-    <string name="query_llm_with_rag">Query the LLM with RAG</string>
+    <string name="speak_to_galaxyautonav">Speak to Galaxy AutoNav</string>
+    <string name="write_to_galaxyautonav">Write to Galaxy AutoNav</string>
+    <string name="start_with_voice">Start with Voice</string>
+    <string name="start_with_text">Start with Text</string>
 </resources>

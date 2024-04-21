@@ -1,11 +1,16 @@
 package com.example.llmwithrag;
 
+import static android.Manifest.permission.RECORD_AUDIO;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,9 +21,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.llmwithrag.llm.CompletionMessage;
@@ -34,7 +43,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import retrofit2.Call;
@@ -45,6 +53,8 @@ public class PerformQueryFragment extends Fragment {
     private static final String TAG = PerformQueryFragment.class.getSimpleName();
     private EmbeddingViewModel viewModel;
     private TextView resultDisplay;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
+    private ActivityResultLauncher<Intent> speechResultLauncher;
 
     @Nullable
     @Override
@@ -52,8 +62,26 @@ public class PerformQueryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_perform_query, container, false);
         viewModel = new ViewModelProvider(this).get(EmbeddingViewModel.class);
 
+        initResultLaunchers();
+
+        Button startVoiceRecognitionButton = view.findViewById(R.id.startVoiceRecognitionButton);
+        startVoiceRecognitionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isPermissionGranted()) {
+                    startVoiceRecognition();
+                } else {
+                    if (shouldShowRequestPermissionRationale(RECORD_AUDIO)) {
+                        showRationaleDialog();
+                    } else {
+                        requestPermissionLauncher.launch(RECORD_AUDIO);
+                    }
+                }
+            }
+        });
+
         EditText queryInput = view.findViewById(R.id.queryInput);
-        Button queryButton = view.findViewById(R.id.queryButton);
+        Button queryButton = view.findViewById(R.id.performQueryButton);
         resultDisplay = view.findViewById(R.id.resultDisplay);
         queryButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,6 +95,56 @@ public class PerformQueryFragment extends Fragment {
             }
         });
         return view;
+    }
+
+    private void initResultLaunchers() {
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(), isGranted -> {
+                    if (isGranted) {
+                        startVoiceRecognition();
+                    } else {
+                        Toast.makeText(getContext(),
+                                "Permission denied", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        speechResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), result -> {
+                    if (result.getResultCode() == FragmentActivity.RESULT_OK &&
+                            result.getData() != null) {
+                        ArrayList<String> matches = result.getData()
+                                .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                        if (matches != null && !matches.isEmpty()) {
+                            String query = matches.get(0);
+                            Log.i(TAG, "query from voice: " + query);
+                            Toast.makeText(getContext(), query, Toast.LENGTH_LONG).show();
+                            performQuery(query);
+                        }
+                    }
+                });
+    }
+
+    private void startVoiceRecognition() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...");
+        speechResultLauncher.launch(intent);
+    }
+
+    private boolean isPermissionGranted() {
+        return ContextCompat.checkSelfPermission(requireContext(), RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void showRationaleDialog() {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Permission Needed")
+                .setMessage("This permission is needed for voice recognition features")
+                .setPositiveButton("OK", (dialog, which) -> requestPermissionLauncher.launch(RECORD_AUDIO))
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
     }
 
     private Embedding fetchEmbeddings(String text) {

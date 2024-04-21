@@ -41,7 +41,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         String location = " is \"50, Bundang-ro, Bundang-gu, Seongnam-si, Gyeonggi-do, Republic of Korea\"";
         String duration = " is \"Overnight\"";
         String time = " is \"from 8 PM to 11 PM\"";
-        String app = " is \"GalaxyNav\"";
+        String app = " is \"GoogleMaps\"";
 
         Button addOvernightLocationButton = view.findViewById(R.id.addOvernightLocationButton);
         addOvernightLocationButton.setOnClickListener(new View.OnClickListener() {
@@ -107,23 +107,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             }
         });
 
-        Button addPreferredNavigationButton = view.findViewById(R.id.addPreferredNavigationButton);
-        addPreferredNavigationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addEmbeddings(getString(R.string.preferred_navigation) + app);
-            }
-        });
-
-        Button removePreferredNavigationButton = view.findViewById(R.id.removePreferredNavigationButton);
-        removePreferredNavigationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                removeEmbeddings(getString(R.string.preferred_navigation) + app);
-            }
-        });
-
-        Button resetButton = view.findViewById(R.id.resetButton);
+        Button resetButton = view.findViewById(R.id.resetDatabaseButton);
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -143,7 +127,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         }
         StringBuilder sb = new StringBuilder();
         for (Embedding embedding : embeddings) {
-            sb.append("- ").append(embedding.text).append("\n");
+            sb.append("- ").append(embedding.text).append("\n\n");
         }
         embeddingsInDatabaseView.setText(sb.toString());
     }
