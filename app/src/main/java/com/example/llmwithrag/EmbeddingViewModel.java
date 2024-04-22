@@ -60,9 +60,11 @@ public class EmbeddingViewModel extends ViewModel {
         elements.sort(Comparator.comparingDouble((Element element) -> element.distance).reversed());
 
         Log.i(TAG, "sorted");
+        int count = 0;
         for (Element element : elements) {
             Log.i(TAG, "* " + element.distance + " : " + element.embedding.text);
             result.add(element.embedding);
+            if (++count == 10) break;
         }
         return result;
     }
