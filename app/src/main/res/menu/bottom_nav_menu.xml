@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/navigation_fetch_embeddings"
-        android:icon="@drawable/ic_fetch_embeddings"
+        android:id="@+id/navigation_store_embeddings"
+        android:icon="@drawable/ic_store_embeddings"
         android:title="@string/store_embeddings" />
 
     <item

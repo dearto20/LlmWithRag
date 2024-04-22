@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment selectedFragment = null;
-                if (item.getItemId() == R.id.navigation_fetch_embeddings) {
+                if (item.getItemId() == R.id.navigation_store_embeddings) {
                     selectedFragment = new StoreEmbeddingsFragment();
                 } else if (item.getItemId() == R.id.navigation_perform_query) {
                     selectedFragment = new PerformQueryFragment();
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new StoreEmbeddingsFragment())
                     .commit();
-            navigationView.setSelectedItemId(R.id.navigation_fetch_embeddings);
+            navigationView.setSelectedItemId(R.id.navigation_store_embeddings);
         }
     }
 }
