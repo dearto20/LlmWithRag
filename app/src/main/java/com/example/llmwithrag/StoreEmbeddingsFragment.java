@@ -1,6 +1,11 @@
 package com.example.llmwithrag;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,6 +17,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.llmwithrag.llm.Embedding;
@@ -31,6 +37,43 @@ public class StoreEmbeddingsFragment extends Fragment {
     private static final String TAG = StoreEmbeddingsFragment.class.getSimpleName();
     private EmbeddingViewModel viewModel;
     private TextView embeddingsInDatabaseView;
+    private IMonitoringService mService;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder binder) {
+            mService = ((MonitoringService.LocalBinder) binder).getService();
+            mService.startMonitoring();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            if (mService != null) mService.stopMonitoring();
+            mService = null;
+        }
+    };
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Intent intent = new Intent(getActivity(), MonitoringService.class);
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            activity.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mService != null) {
+            FragmentActivity activity = getActivity();
+            if (activity != null) {
+                activity.unbindService(mConnection);
+            }
+            mService = null;
+        }
+    }
 
     @Nullable
     @Override
@@ -38,24 +81,58 @@ public class StoreEmbeddingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_store_embeddings, container, false);
         embeddingsInDatabaseView = view.findViewById(R.id.embeddingsInDatabaseView);
         viewModel = new ViewModelProvider(this).get(EmbeddingViewModel.class);
-        String location = " is \"50, Bundang-ro, Bundang-gu, Seongnam-si, Gyeonggi-do, Republic of Korea\"";
-        String duration = " is \"Overnight\"";
-        String time = " is \"from 8 PM to 11 PM\"";
-        String app = " is \"GoogleMaps\"";
 
-        Button addOvernightLocationButton = view.findViewById(R.id.addOvernightLocationButton);
-        addOvernightLocationButton.setOnClickListener(new View.OnClickListener() {
+        Button startMonitoringDataSourceButton = view.findViewById(R.id.startMonitoringDataSourceButton);
+        startMonitoringDataSourceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addEmbeddings(getString(R.string.overnight_location) + location);
+                mService.startMonitoring();
             }
         });
 
-        Button removeOvernightLocationButton = view.findViewById(R.id.removeOvernightLocationButton);
-        removeOvernightLocationButton.setOnClickListener(new View.OnClickListener() {
+        Button stopMonitoringDataSourceButton = view.findViewById(R.id.stopMonitoringDataSourceButton);
+        stopMonitoringDataSourceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                removeEmbeddings(getString(R.string.overnight_location) + location);
+                mService.stopMonitoring();
+            }
+        });
+
+        Button addLocationDuringTheDayButton = view.findViewById(R.id.addLocationDuringTheDayButton);
+        addLocationDuringTheDayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String result = getString(R.string.during_the_day) + " is " +
+                        mService.getMostFrequentlyVisitedPlacesDuringTheDay(1).get(0);
+                removeEmbeddings("location_during_the_day");
+                addEmbeddings(result, "location_during_the_day");
+            }
+        });
+
+        Button removeLocationDuringTheDayButton = view.findViewById(R.id.removeLocationDuringTheDayButton);
+        removeLocationDuringTheDayButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removeEmbeddings("location_during_the_day");
+            }
+        });
+
+        Button addLocationDuringTheNightButton = view.findViewById(R.id.addLocationDuringTheNightButton);
+        addLocationDuringTheNightButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String result = getString(R.string.during_the_night) + " is " +
+                        mService.getMostFrequentlyVisitedPlacesDuringTheNight(1).get(0);
+                removeEmbeddings("location_during_the_night");
+                addEmbeddings(result, "location_during_the_night");
+            }
+        });
+
+        Button removeLocationDuringTheNightButton = view.findViewById(R.id.removeLocationDuringTheNightButton);
+        removeLocationDuringTheNightButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removeEmbeddings("location_during_the_night");
             }
         });
 
@@ -63,7 +140,10 @@ public class StoreEmbeddingsFragment extends Fragment {
         addWeekendsLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addEmbeddings(getString(R.string.weekends_location) + location);
+                String result = getString(R.string.weekends_location) + " is " +
+                        mService.getMostFrequentlyVisitedPlacesDuringTheWeekend(1).get(0);
+                removeEmbeddings("weekends_location");
+                addEmbeddings(result, "weekends_location");
             }
         });
 
@@ -71,7 +151,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         removeWeekendsLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                removeEmbeddings(getString(R.string.weekends_location) + location);
+                removeEmbeddings("weekends_location");
             }
         });
 
@@ -79,7 +159,10 @@ public class StoreEmbeddingsFragment extends Fragment {
         addStationaryTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addEmbeddings(getString(R.string.stationary_time) + duration);
+                String result = getString(R.string.stationary_time) + " is " +
+                        mService.getMostFrequentStationaryTimes(1).get(0);
+                removeEmbeddings("stationary_time");
+                addEmbeddings(result, "stationary_time");
             }
         });
 
@@ -87,7 +170,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         removeStationaryTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                removeEmbeddings(getString(R.string.stationary_time) + duration);
+                removeEmbeddings("stationary_time");
             }
         });
 
@@ -95,7 +178,10 @@ public class StoreEmbeddingsFragment extends Fragment {
         addPublicWiFiButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addEmbeddings(getString(R.string.public_wifi) + time);
+                String result = getString(R.string.public_wifi) + " is " +
+                        mService.getMostFrequentPublicWifiConnectionTimes(1).get(0);
+                removeEmbeddings("wifi_connected");
+                addEmbeddings(result, "wifi_connected");
             }
         });
 
@@ -103,7 +189,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         removePublicWiFiButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                removeEmbeddings(getString(R.string.public_wifi) + time);
+                removeEmbeddings("wifi_connected");
             }
         });
 
@@ -111,6 +197,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mService.deleteAll();
                 removeAllEmbeddings();
             }
         });
@@ -127,7 +214,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         }
         StringBuilder sb = new StringBuilder();
         for (Embedding embedding : embeddings) {
-            sb.append("- ").append(embedding.text).append("\n\n");
+            sb.append("- ").append(embedding.text).append("\n");
         }
         embeddingsInDatabaseView.setText(sb.toString());
     }
@@ -143,7 +230,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         return false;
     }
 
-    private void addEmbeddings(String text) {
+    private void addEmbeddings(String text, String category) {
         if (hasText(text)) return;
         EmbeddingRequest request = new EmbeddingRequest(text, "text-embedding-3-small", "float");
         OpenAiService service = RetrofitClient.getInstance().create(OpenAiService.class);
@@ -154,7 +241,7 @@ public class StoreEmbeddingsFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     float[] embedding = response.body().data.get(0).embedding;
                     Log.i(TAG, "response: " + Arrays.toString(embedding));
-                    viewModel.insert(new Embedding(text, embedding));
+                    viewModel.insert(new Embedding(text, category, embedding));
                     Log.i(TAG, "embeddings added for " + text);
                     updateEmbeddingsList();
                 }
@@ -167,17 +254,16 @@ public class StoreEmbeddingsFragment extends Fragment {
         });
     }
 
-    private void removeEmbeddings(String text) {
+    private void removeEmbeddings(String category) {
         List<Embedding> embeddings = viewModel.getAll();
         if (embeddings.isEmpty()) return;
         for (Embedding embedding : embeddings) {
-            if (TextUtils.equals(text, embedding.text)) {
+            if (TextUtils.equals(category, embedding.category)) {
                 viewModel.delete(embedding);
-                Log.i(TAG, "embeddings deleted for " + text);
-                updateEmbeddingsList();
-                break;
+                Log.i(TAG, "embeddings deleted for " + embedding.text);
             }
         }
+        updateEmbeddingsList();
     }
 
     private void removeAllEmbeddings() {

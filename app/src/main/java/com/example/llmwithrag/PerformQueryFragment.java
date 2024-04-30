@@ -162,7 +162,7 @@ public class PerformQueryFragment extends Fragment {
                         if (response.isSuccessful() && response.body() != null) {
                             float[] embedding = response.body().data.get(0).embedding;
                             Log.i(TAG, "response: " + Arrays.toString(embedding));
-                            result[0] = new Embedding(text, embedding);
+                            result[0] = new Embedding(text, "", embedding);
                         }
                         countDownLatch.countDown();
                     } catch (IOException e) {

@@ -11,10 +11,10 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/nightLocationView"
+            android:id="@+id/startMonitoringDataSourceView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/overnight_location"
+            android:text="@string/start_or_stop_monitoring_data_source"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -23,7 +23,47 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/addOvernightLocationButton"
+                android:id="@+id/startMonitoringDataSourceButton"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                android:text="@string/start" />
+
+            <Button
+                android:id="@+id/stopMonitoringDataSourceButton"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                android:text="@string/stop" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#888888" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/locationDuringTheDayView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/during_the_day"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/addLocationDuringTheDayButton"
                 android:layout_width="0dp"
                 android:layout_height="38dp"
                 android:layout_marginHorizontal="10dp"
@@ -31,7 +71,47 @@
                 android:text="@string/add_to_database" />
 
             <Button
-                android:id="@+id/removeOvernightLocationButton"
+                android:id="@+id/removeLocationDuringTheDayButton"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                android:text="@string/remove_from_database" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#888888" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/locationDuringTheNightView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/during_the_night"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/addLocationDuringTheNightButton"
+                android:layout_width="0dp"
+                android:layout_height="38dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                android:text="@string/add_to_database" />
+
+            <Button
+                android:id="@+id/removeLocationDuringTheNightButton"
                 android:layout_width="0dp"
                 android:layout_height="38dp"
                 android:layout_marginHorizontal="10dp"

@@ -8,10 +8,12 @@ public class Embedding {
     @PrimaryKey(autoGenerate = true)
     public int id;
     public String text;
+    public String category;
     public float[] vector;
 
-    public Embedding(String text, float[] vector) {
+    public Embedding(String text, String category, float[] vector) {
         this.text = text;
+        this.category = category;
         this.vector = vector;
     }
 }
