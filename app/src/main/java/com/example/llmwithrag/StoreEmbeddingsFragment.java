@@ -1,9 +1,15 @@
 package com.example.llmwithrag;
 
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.CHANGE_WIFI_STATE;
+import static android.Manifest.permission.RECORD_AUDIO;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.text.TextUtils;
@@ -13,9 +19,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -28,6 +38,7 @@ import com.example.llmwithrag.llm.RetrofitClient;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,6 +48,7 @@ public class StoreEmbeddingsFragment extends Fragment {
     private static final String TAG = StoreEmbeddingsFragment.class.getSimpleName();
     private EmbeddingViewModel viewModel;
     private TextView embeddingsInDatabaseView;
+    private ActivityResultLauncher<String[]> requestPermissionLauncher;
     private IMonitoringService mService;
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -53,14 +65,22 @@ public class StoreEmbeddingsFragment extends Fragment {
         }
     };
 
+    private boolean isPermissionGranted(String[] permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(requireContext(), permission) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public void onStart() {
         super.onStart();
-        Intent intent = new Intent(getActivity(), MonitoringService.class);
-        FragmentActivity activity = getActivity();
-        if (activity != null) {
-            activity.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        }
+        requestPermissionLauncher.launch(new String[]{
+                ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO
+        });
     }
 
     @Override
@@ -73,6 +93,32 @@ public class StoreEmbeddingsFragment extends Fragment {
             }
             mService = null;
         }
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                    boolean allPermissionsGranted = true;
+                    for (Map.Entry<String, Boolean> entry : result.entrySet()) {
+                        if (!entry.getValue()) {
+                            allPermissionsGranted = false;
+                            break;
+                        }
+                    }
+
+                    if (allPermissionsGranted) {
+                        Intent intent = new Intent(getActivity(), MonitoringService.class);
+                        FragmentActivity activity = getActivity();
+                        if (activity != null) {
+                            activity.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+                        }
+                    } else {
+                        Toast.makeText(getContext(),
+                                "Permission Denied", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     @Nullable
@@ -102,10 +148,14 @@ public class StoreEmbeddingsFragment extends Fragment {
         addLocationDuringTheDayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String result = getString(R.string.during_the_day) + " is " +
-                        mService.getMostFrequentlyVisitedPlacesDuringTheDay(1).get(0);
-                removeEmbeddings("location_during_the_day");
-                addEmbeddings(result, "location_during_the_day");
+                String result = "Not Found Yet";
+                List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheDay(1);
+                if (!results.isEmpty()) {
+                    result = results.get(0);
+                    removeEmbeddings("location_during_the_day");
+                }
+                String text = getString(R.string.during_the_day) + " is " + result;
+                addEmbeddings(text, "location_during_the_day");
             }
         });
 
@@ -121,10 +171,14 @@ public class StoreEmbeddingsFragment extends Fragment {
         addLocationDuringTheNightButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String result = getString(R.string.during_the_night) + " is " +
-                        mService.getMostFrequentlyVisitedPlacesDuringTheNight(1).get(0);
-                removeEmbeddings("location_during_the_night");
-                addEmbeddings(result, "location_during_the_night");
+                String result = "Not Found Yet";
+                List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheNight(1);
+                if (!results.isEmpty()) {
+                    result = results.get(0);
+                    removeEmbeddings("location_during_the_night");
+                }
+                String text = getString(R.string.during_the_night) + " is " + result;
+                addEmbeddings(text, "location_during_the_night");
             }
         });
 
@@ -140,10 +194,14 @@ public class StoreEmbeddingsFragment extends Fragment {
         addWeekendsLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String result = getString(R.string.weekends_location) + " is " +
-                        mService.getMostFrequentlyVisitedPlacesDuringTheWeekend(1).get(0);
-                removeEmbeddings("weekends_location");
-                addEmbeddings(result, "weekends_location");
+                String result = "Not Found Yet";
+                List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
+                if (!results.isEmpty()) {
+                    result = results.get(0);
+                    removeEmbeddings("weekends_location");
+                }
+                String text = getString(R.string.weekends_location) + " is " + result;
+                addEmbeddings(text, "weekends_location");
             }
         });
 
@@ -159,10 +217,14 @@ public class StoreEmbeddingsFragment extends Fragment {
         addStationaryTimeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String result = getString(R.string.stationary_time) + " is " +
-                        mService.getMostFrequentStationaryTimes(1).get(0);
-                removeEmbeddings("stationary_time");
-                addEmbeddings(result, "stationary_time");
+                String result = "Not Found Yet";
+                List<String> results = mService.getMostFrequentStationaryTimes(1);
+                if (!results.isEmpty()) {
+                    result = results.get(0);
+                    removeEmbeddings("stationary_time");
+                }
+                String text = getString(R.string.stationary_time) + " is " + result;
+                addEmbeddings(text, "stationary_time");
             }
         });
 
@@ -178,10 +240,14 @@ public class StoreEmbeddingsFragment extends Fragment {
         addPublicWiFiButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String result = getString(R.string.public_wifi) + " is " +
-                        mService.getMostFrequentPublicWifiConnectionTimes(1).get(0);
-                removeEmbeddings("wifi_connected");
-                addEmbeddings(result, "wifi_connected");
+                String result = "Not Found Yet";
+                List<String> results = mService.getMostFrequentPublicWifiConnectionTimes(1);
+                if (!results.isEmpty()) {
+                    result = results.get(0);
+                    removeEmbeddings("wifi_connected");
+                }
+                String text = getString(R.string.public_wifi) + " is " + result;
+                addEmbeddings(text, "wifi_connected");
             }
         });
 

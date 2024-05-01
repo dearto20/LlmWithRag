@@ -109,34 +109,27 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public List<String> getMostFrequentPublicWifiConnectionTimes(int topN) {
-        List<String> results = mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(topN);
-        postNotification(ID_MAIN_CHANNEL, "Galaxy AutoNav",
-                "most frequent connection time : " + results.get(0));
-        return results;
+        return mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(topN);
     }
 
     @Override
     public List<String> getMostFrequentStationaryTimes(int topN) {
-        List<String> results = mStationaryPeriodManager.getMostFrequentStationaryTimes(topN);
-        return results;
+        return mStationaryPeriodManager.getMostFrequentStationaryTimes(topN);
     }
 
     @Override
     public List<String> getMostFrequentlyVisitedPlacesDuringTheDay(int topN) {
-        List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheDay(topN);
-        return results;
+        return mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheDay(topN);
     }
 
     @Override
     public List<String> getMostFrequentlyVisitedPlacesDuringTheNight(int topN) {
-        List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheNight(topN);
-        return results;
+        return mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheNight(topN);
     }
 
     @Override
     public List<String> getMostFrequentlyVisitedPlacesDuringTheWeekend(int topN) {
-        List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheWeekend(topN);
-        return results;
+        return mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheWeekend(topN);
     }
 
     @Override

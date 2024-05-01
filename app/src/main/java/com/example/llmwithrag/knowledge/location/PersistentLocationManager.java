@@ -1,5 +1,7 @@
 package com.example.llmwithrag.knowledge.location;
 
+import android.util.Log;
+
 import com.example.llmwithrag.datasource.location.LocationData;
 import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
@@ -11,6 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PersistentLocationManager implements IKnowledgeComponent {
+    private static final String TAG = PersistentLocationManager.class.getSimpleName();
     private final LocationTracker mLocationTracker;
 
     public PersistentLocationManager(LocationTracker locationTracker) {
@@ -26,19 +29,18 @@ public class PersistentLocationManager implements IKnowledgeComponent {
 
         for (LocationData location : locations) {
             String when = timeOf(location.timestamp);
+            Log.i(TAG, "location 0: " + location.latitude + ", " + location.longitude + " at " + when);
             if (!when.contains("day")) continue;
 
-            String key = "Latitude " + location.latitude + ", Longitude " + location.longitude;
+            String key = location.latitude + "," + location.longitude;
             frequencyMap.put(key, frequencyMap.getOrDefault(key, 0) + 1);
         }
 
-        List<String> result = frequencyMap.entrySet().stream()
+        return frequencyMap.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(topN)
                 .map(entry -> String.format("%s", entry.getKey()))
                 .collect(Collectors.toList());
-        if (result.isEmpty()) result.add("Not Found Yet");
-        return result;
     }
 
     public List<String> getMostFrequentlyVisitedPlacesDuringTheNight(int topN) {
@@ -47,19 +49,18 @@ public class PersistentLocationManager implements IKnowledgeComponent {
 
         for (LocationData location : locations) {
             String when = timeOf(location.timestamp);
+            Log.i(TAG, "location 1: " + location.latitude + ", " + location.longitude + " at " + when);
             if (!when.contains("night")) continue;
 
-            String key = "Latitude " + location.latitude + ", Longitude " + location.longitude;
+            String key = location.latitude + "," + location.longitude;
             frequencyMap.put(key, frequencyMap.getOrDefault(key, 0) + 1);
         }
 
-        List<String> result = frequencyMap.entrySet().stream()
+        return frequencyMap.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(topN)
                 .map(entry -> String.format("%s", entry.getKey()))
                 .collect(Collectors.toList());
-        if (result.isEmpty()) result.add("Not Found Yet");
-        return result;
     }
 
     public List<String> getMostFrequentlyVisitedPlacesDuringTheWeekend(int topN) {
@@ -67,19 +68,18 @@ public class PersistentLocationManager implements IKnowledgeComponent {
         Map<String, Integer> frequencyMap = new HashMap<>();
 
         for (LocationData location : locations) {
+            Log.i(TAG, "location 2: " + location.latitude + ", " + location.longitude);
             if (!duringTheWeekend(location.timestamp)) continue;
 
-            String key = "Latitude " + location.latitude + ", Longitude " + location.longitude;
+            String key = location.latitude + "," + location.longitude;
             frequencyMap.put(key, frequencyMap.getOrDefault(key, 0) + 1);
         }
 
-        List<String> result = frequencyMap.entrySet().stream()
+        return frequencyMap.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(topN)
                 .map(entry -> String.format("%s", entry.getKey()))
                 .collect(Collectors.toList());
-        if (result.isEmpty()) result.add("Not Found Yet");
-        return result;
     }
 
     @Override

@@ -17,7 +17,7 @@ public class StationaryPeriodManager implements IKnowledgeComponent {
     private static final String TAG = StationaryPeriodManager.class.getSimpleName();
     private static final float GRAVITY = 9.8f;
     private static final float THRESHOLD = 0.1f;
-    private static final long MIN_DURATION = 3600000;
+    private static final long MIN_DURATION = 5000; // TODO: 3600000;
     private final MovementTracker mMovementTracker;
     private boolean mIsStationary;
     private long mStartTime;
@@ -29,7 +29,7 @@ public class StationaryPeriodManager implements IKnowledgeComponent {
 
     private void initialize() {
         mIsStationary = false;
-        mStartTime = 0;
+        mStartTime = System.currentTimeMillis();
         mCheckTime = 0;
     }
 
@@ -41,12 +41,12 @@ public class StationaryPeriodManager implements IKnowledgeComponent {
     public List<String> getMostFrequentStationaryTimes(int topN) {
         List<MovementData> movements = mMovementTracker.getAllData();
         List<String> periods = new ArrayList<>();
+        long currentTime = System.currentTimeMillis();
 
         for (MovementData movement : movements) {
             if (movement.timestamp < mCheckTime) continue;
             double magnitude = Math.sqrt(movement.x * movement.x + movement.y * movement.y +
                     movement.z * movement.z);
-            Log.i(TAG, "magnitude is " + magnitude + " at " + timeOf(movement.timestamp));
             boolean isNewStationary = Math.abs(magnitude - GRAVITY) < THRESHOLD;
             long timestamp = movement.timestamp;
 
@@ -57,6 +57,7 @@ public class StationaryPeriodManager implements IKnowledgeComponent {
                     mIsStationary = true;
                 } else {
                     long duration = timestamp - mStartTime;
+                    Log.i(TAG, "duration : " + duration + ", min duration : " + MIN_DURATION);
                     if (duration >= MIN_DURATION) {
                         periods.add(periodOf(mStartTime, timestamp) + " for " + durationOf(duration));
                         mStartTime = timestamp;
@@ -65,19 +66,17 @@ public class StationaryPeriodManager implements IKnowledgeComponent {
                     mIsStationary = false;
                 }
             }
-
-            mCheckTime = System.currentTimeMillis();
         }
 
-        List<String> result = periods.stream()
+        mCheckTime = currentTime;
+
+        return periods.stream()
                 .sorted((a, b) -> Long.compare(
                         Long.parseLong(b.split(" for ")[1].split(" ")[0]),
                         Long.parseLong(a.split(" for ")[1].split(" ")[0])
                 ))
                 .limit(topN)
                 .collect(Collectors.toList());
-        if (result.isEmpty()) result.add("Not Found Yet");
-        return result;
     }
 
     @Override

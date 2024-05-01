@@ -20,7 +20,7 @@ import java.util.List;
 
 public class LocationTracker implements IDataSource {
     private static final String TAG = LocationTracker.class.getSimpleName();
-    private static final long INTERVAL = 1000 * 10;//60 * 10;
+    private static final long INTERVAL = 1000 * 10; // TODO: 1000 * 60 * 10;
     private final Context mContext;
     private final LocationManager mLocationManager;
     private final LocationDataRepository mRepository;

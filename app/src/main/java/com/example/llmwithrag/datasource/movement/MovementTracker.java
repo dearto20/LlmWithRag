@@ -15,14 +15,13 @@ import java.util.List;
 
 public class MovementTracker implements SensorEventListener, IDataSource {
     private static final String TAG = MovementTracker.class.getSimpleName();
+    private static final long INTERVAL = 1000;
     private final SensorManager mSensorManager;
     private final Sensor mAccelerometerSensor;
     private final MovementRepository mRepository;
-    private final Context mContext;
     private long lastTime;
 
     public MovementTracker(Context context) {
-        mContext = context;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mAccelerometerSensor = mSensorManager.getDefaultSensor(TYPE_ACCELEROMETER);
         mRepository = new MovementRepository(context);
@@ -44,13 +43,14 @@ public class MovementTracker implements SensorEventListener, IDataSource {
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= 1000 * 10) {
+        if (currentTime - lastTime >= INTERVAL) {
             lastTime = currentTime;
             if (sensorEvent.sensor.getType() == TYPE_ACCELEROMETER) {
-                Log.i(TAG, "movement update : (" + sensorEvent.values[0] + ", " +
-                        sensorEvent.values[1] + ", " + sensorEvent.values[2] + ")");
+                Log.d(TAG, "movement update : (" + sensorEvent.values[0] + ", " +
+                        sensorEvent.values[1] + ", " + sensorEvent.values[2] + " at " +
+                        currentTime + ")");
                 mRepository.insertData(new MovementData(sensorEvent.values[0],
-                        sensorEvent.values[1], sensorEvent.values[2], System.currentTimeMillis()));
+                        sensorEvent.values[1], sensorEvent.values[2], currentTime));
             }
         }
     }

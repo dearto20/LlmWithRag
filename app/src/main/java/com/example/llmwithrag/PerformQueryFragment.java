@@ -104,7 +104,7 @@ public class PerformQueryFragment extends Fragment {
                         startVoiceRecognition();
                     } else {
                         Toast.makeText(getContext(),
-                                "Permission denied", Toast.LENGTH_SHORT).show();
+                                "Permission Denied", Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -209,8 +209,9 @@ public class PerformQueryFragment extends Fragment {
             }
             sb.append("\n").append(query);
             sb.append("\n").append("if asked finding route, first, figure out \"the destination\" based on the info");
-            sb.append("\n").append("and only provide the address of the destination, and do not ever put any other comments or something");
-            sb.append("\n").append("Make sure, you only return proper address, which could be used for opening GoogleMaps as is");
+            sb.append("\n").append("all the addresses in the info has the coordinates in the form of 'latitude,longitude'");
+            sb.append("\n").append("out of all the addresses, find only one destination, and do not ever put any other comments or something");
+            sb.append("\n").append("you MUST return only the destination address in the format of 'latitude,longitude', which can be accepted by GoogleMaps as is");
             query = sb.toString();
         }
 
@@ -227,6 +228,8 @@ public class PerformQueryFragment extends Fragment {
                     String completion = response.body().choices.get(0).message.content;
                     Log.i(TAG, "response: " + completion);
                     resultDisplay.setText(completion);
+                    Toast.makeText(getContext(), "destination: " + completion, Toast.LENGTH_SHORT)
+                            .show();
                     runNaviApp(completion);
                 }
             }
