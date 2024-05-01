@@ -17,6 +17,6 @@ public interface MovementDataDao {
     @Query("DELETE FROM movement_data")
     void deleteAllData();
 
-    @Query("DELETE FROM movement_data WHERE id NOT IN (SELECT id FROM movement_data ORDER BY id DESC LIMIT 1024)")
+    @Query("DELETE FROM movement_data WHERE id NOT IN (SELECT id FROM movement_data ORDER BY id DESC LIMIT 10240)")
     void deleteOldData();
 }

@@ -17,6 +17,6 @@ public interface LocationDataDao {
     @Query("DELETE FROM location_data")
     void deleteAllData();
 
-    @Query("DELETE FROM location_data WHERE id NOT IN (SELECT id FROM location_data ORDER BY id DESC LIMIT 1024)")
+    @Query("DELETE FROM location_data WHERE id NOT IN (SELECT id FROM location_data ORDER BY id DESC LIMIT 10240)")
     void deleteOldData();
 }

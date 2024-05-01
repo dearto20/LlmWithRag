@@ -19,11 +19,15 @@ import java.util.stream.Collectors;
 public class PublicWifiUsageManager implements IKnowledgeComponent {
     private static final String TAG = PublicWifiUsageManager.class.getSimpleName();
     private static final String NAME_SHARED_PREFS = "public_wifi_usage";
-    private static final String KEY_CONNECTION_TIMESTAMP = "connection_timestamp";
-    private static final String KEY_CONNECTION_COUNT = "connection_count";
-
+    private static final String KEY_CONNECTION_TIME = "connection_time";
+    private static final String KEY_CONNECTION_DURATION = "connection_duration";
+    private static final long MIN_DURATION = 1800000;
+    ;
     private final ConnectivityTracker mConnectivityTracker;
     private final Context mContext;
+    private boolean mIsConnected;
+    private long mStartTime;
+    private long mCheckTime;
 
     public PublicWifiUsageManager(Context context, ConnectivityTracker connectivityTracker) {
         mContext = context;
@@ -31,39 +35,37 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
     }
 
     private void initialize() {
+        mIsConnected = false;
+        mStartTime = System.currentTimeMillis();
+        mCheckTime = 0;
     }
 
-    private String timeOf(long timestamp) {
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        return sdf.format(new Date(timestamp));
-    }
-
-    private void updateCandidateList(Map<String, Integer> frequencyMap, String timestampKey,
-                                     String countKey) {
+    private void updateCandidateList(Map<String, Long> durationMap, String timeKey,
+                                     String durationKey) {
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(
                 NAME_SHARED_PREFS, Context.MODE_PRIVATE);
-        String oldKey = sharedPreferences.getString(timestampKey, null);
-        int oldValue = sharedPreferences.getInt(countKey, 0);
-        Integer newValue = frequencyMap.get(oldKey);
+        String oldKey = sharedPreferences.getString(timeKey, null);
+        long oldValue = sharedPreferences.getLong(durationKey, 0);
+        Long newValue = durationMap.get(oldKey);
         if (oldKey != null && oldValue > 0) {
-            if (!frequencyMap.containsKey(oldKey) || (newValue == null || newValue < oldValue)) {
-                frequencyMap.put(oldKey, oldValue);
+            if (!durationMap.containsKey(oldKey) || (newValue == null || newValue < oldValue)) {
+                durationMap.put(oldKey, oldValue);
                 Log.i(TAG, "add last key " + oldKey + " with value " + oldValue);
             }
         }
     }
 
-    private void updateLastResult(Map<String, Integer> frequencyMap, String timestampKey,
-                                  String countKey, List<String> result) {
+    private void updateLastResult(Map<String, Long> durationMap, String timeKey,
+                                  String durationKey, List<String> result) {
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(
                 NAME_SHARED_PREFS, Context.MODE_PRIVATE);
         if (!result.isEmpty()) {
             String key = result.get(0);
-            Integer value = frequencyMap.get(key);
+            Long value = durationMap.get(key);
             if (value != null) {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(timestampKey, key);
-                editor.putInt(countKey, value);
+                editor.putString(timeKey, key);
+                editor.putLong(durationKey, value);
                 editor.apply();
                 Log.i(TAG, "update last key " + key + " with value " + value);
             }
@@ -80,28 +82,47 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
     }
 
     public List<String> getMostFrequentPublicWifiConnectionTimes(int topN) {
-        List<ConnectivityData> events = mConnectivityTracker.getAllData();
-        Map<String, Integer> frequencyMap = new HashMap<>();
+        List<ConnectivityData> allData = mConnectivityTracker.getAllData();
+        Map<String, Long> durationMap = new HashMap<>();
+        long currentTime = System.currentTimeMillis();
 
-        for (ConnectivityData event : events) {
-            if (!event.capabilities.contains("EAP")) {
-                String key = timeOf(event.timestamp);
-                frequencyMap.put(key, frequencyMap.getOrDefault(key, 0) + 1);
+        for (ConnectivityData data : allData) {
+            if (data.timestamp < mCheckTime) continue;
+            boolean isNewConnected = data.connected;
+            long timestamp = data.timestamp;
+
+            if (mIsConnected != isNewConnected) {
+                Log.i(TAG, "connection status change to " + isNewConnected);
+                if (isNewConnected) {
+                    mStartTime = timestamp;
+                    mIsConnected = true;
+                } else {
+                    long duration = timestamp - mStartTime;
+                    Log.i(TAG, "duration : " + duration + ", min duration : " + MIN_DURATION);
+                    if (duration >= MIN_DURATION) {
+                        durationMap.put(periodOf(mStartTime, timestamp), duration);
+                        mStartTime = timestamp;
+                        Log.i(TAG, "period of duration " + duration + " is added");
+                    }
+                    mIsConnected = false;
+                }
             }
         }
 
-        // Add last top value to the candidate list.
-        updateCandidateList(frequencyMap, KEY_CONNECTION_TIMESTAMP, KEY_CONNECTION_COUNT);
+        mCheckTime = currentTime;
 
-        List<String> result = frequencyMap.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+        // Add last top value to the candidate list.
+        updateCandidateList(durationMap, KEY_CONNECTION_TIME, KEY_CONNECTION_DURATION);
+
+        List<String> result = durationMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .limit(topN)
                 .map(entry -> String.format("%s", entry.getKey()))
                 .collect(Collectors.toList());
 
         // Update last top value
-        updateLastResult(frequencyMap, KEY_CONNECTION_TIMESTAMP, KEY_CONNECTION_COUNT, result);
-        Log.i(TAG, "get most frequent public wifi connection time : " + result);
+        updateLastResult(durationMap, KEY_CONNECTION_TIME, KEY_CONNECTION_DURATION, result);
+        Log.i(TAG, "get most frequent connection time : " + result);
         return result;
     }
 
@@ -109,6 +130,11 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
     public void deleteAll() {
         deleteLastResult();
         mConnectivityTracker.deleteAllData();
+    }
+
+    private String periodOf(long startTime, long endTime) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault());
+        return sdf.format(new Date(startTime)) + " to " + sdf.format(new Date(endTime));
     }
 
     @Override

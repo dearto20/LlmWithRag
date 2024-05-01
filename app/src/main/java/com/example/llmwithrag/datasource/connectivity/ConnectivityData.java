@@ -7,15 +7,13 @@ import androidx.room.PrimaryKey;
 public class ConnectivityData {
     @PrimaryKey(autoGenerate = true)
     public int id;
-    public String ssid;
-    public String bssid;
-    public String capabilities;
+    public boolean connected;
+    public boolean enterprise;
     public long timestamp;
 
-    public ConnectivityData(String ssid, String bssid, String capabilities, long timestamp) {
-        this.ssid = ssid;
-        this.bssid = bssid;
-        this.capabilities = capabilities;
+    public ConnectivityData(boolean connected, boolean enterprise, long timestamp) {
+        this.connected = connected;
+        this.enterprise = enterprise;
         this.timestamp = timestamp;
     }
 }

@@ -23,7 +23,7 @@ public class StationaryDurationManager implements IKnowledgeComponent {
     private static final String KEY_STATIONARY_DURATION = "stationary_duration";
     private static final float GRAVITY = 9.8f;
     private static final float THRESHOLD = 0.2f;
-    private static final long MIN_DURATION = 5000; // TODO: 3600000;
+    private static final long MIN_DURATION = 3600000;
     private final MovementTracker mMovementTracker;
     private final Context mContext;
     private boolean mIsStationary;
@@ -94,7 +94,7 @@ public class StationaryDurationManager implements IKnowledgeComponent {
             boolean isNewStationary = Math.abs(magnitude - GRAVITY) < THRESHOLD;
             long timestamp = movement.timestamp;
 
-            if (mStartTime == 0 || mIsStationary != isNewStationary) {
+            if (mIsStationary != isNewStationary) {
                 Log.i(TAG, "stationary status change to " + isNewStationary);
                 if (isNewStationary) {
                     mStartTime = timestamp;
@@ -138,10 +138,6 @@ public class StationaryDurationManager implements IKnowledgeComponent {
     private String periodOf(long startTime, long endTime) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault());
         return sdf.format(new Date(startTime)) + " to " + sdf.format(new Date(endTime));
-    }
-
-    private long durationOf(long duration) {
-        return (duration / 3600000);
     }
 
     @Override
