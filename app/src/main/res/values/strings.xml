@@ -4,7 +4,7 @@
     <string name="perform_query">Perform Query</string>
     <string name="during_the_day">Location During the Day</string>
     <string name="during_the_night">Location During the Night</string>
-    <string name="weekends_location">Location During the Weekends</string>
+    <string name="weekends_location">Location During the Weekend</string>
     <string name="stationary_time">Time to Stay Stationary</string>
     <string name="public_wifi">Time for Using Public Wi-Fi</string>
     <string name="add_to_database">Add</string>

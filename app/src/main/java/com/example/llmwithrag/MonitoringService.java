@@ -17,7 +17,7 @@ import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
 import com.example.llmwithrag.knowledge.connectivity.PublicWifiUsageManager;
 import com.example.llmwithrag.knowledge.location.PersistentLocationManager;
-import com.example.llmwithrag.knowledge.status.StationaryPeriodManager;
+import com.example.llmwithrag.knowledge.status.StationaryDurationManager;
 
 import java.util.List;
 import java.util.Random;
@@ -29,7 +29,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private final IBinder binder = new LocalBinder();
     private PersistentLocationManager mPersistentLocationManager;
     private PublicWifiUsageManager mPublicWifiUsageManager;
-    private StationaryPeriodManager mStationaryPeriodManager;
+    private StationaryDurationManager mStationaryDurationManager;
     private boolean mStarted;
 
     public class LocalBinder extends Binder {
@@ -45,9 +45,9 @@ public class MonitoringService extends Service implements IMonitoringService {
         startForeground(ID_NOTIFICATION, getNotification());
 
         Context context = getApplicationContext();
-        mPersistentLocationManager = new PersistentLocationManager(new LocationTracker(context));
-        mPublicWifiUsageManager = new PublicWifiUsageManager(new ConnectivityTracker(context));
-        mStationaryPeriodManager = new StationaryPeriodManager(new MovementTracker(context));
+        mPersistentLocationManager = new PersistentLocationManager(context, new LocationTracker(context));
+        mPublicWifiUsageManager = new PublicWifiUsageManager(context, new ConnectivityTracker(context));
+        mStationaryDurationManager = new StationaryDurationManager(context, new MovementTracker(context));
         mStarted = false;
     }
 
@@ -91,7 +91,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     public void deleteAll() {
         mPersistentLocationManager.deleteAll();
         mPublicWifiUsageManager.deleteAll();
-        mStationaryPeriodManager.deleteAll();
+        mStationaryDurationManager.deleteAll();
     }
 
     @Override
@@ -101,7 +101,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public List<String> getMostFrequentStationaryTimes(int topN) {
-        return mStationaryPeriodManager.getMostFrequentStationaryTimes(topN);
+        return mStationaryDurationManager.getMostFrequentStationaryTimes(topN);
     }
 
     @Override
@@ -130,7 +130,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
         mPersistentLocationManager.startMonitoring();
         mPublicWifiUsageManager.startMonitoring();
-        mStationaryPeriodManager.startMonitoring();
+        mStationaryDurationManager.startMonitoring();
         mStarted = true;
     }
 
@@ -138,7 +138,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     public void stopMonitoring() {
         if (!mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Stopped", Toast.LENGTH_SHORT).show();
-        mStationaryPeriodManager.stopMonitoring();
+        mStationaryDurationManager.stopMonitoring();
         mPublicWifiUsageManager.stopMonitoring();
         mPersistentLocationManager.stopMonitoring();
         mStarted = false;

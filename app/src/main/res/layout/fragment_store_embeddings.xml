@@ -89,7 +89,7 @@
             tools:ignore="UseSwitchCompatOrMaterialXml" />
 
         <Switch
-            android:id="@+id/duringTheWeekendsSwitch"
+            android:id="@+id/duringTheWeekendSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
