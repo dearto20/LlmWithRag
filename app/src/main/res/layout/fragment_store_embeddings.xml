@@ -8,23 +8,15 @@
     android:padding="16dp">
 
     <TextView
-        style="@style/HeaderStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Galaxy AutoNav"
-        tools:ignore="HardcodedText" />
-
-    <TextView
         style="@style/SubHeaderStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SERVICE"
-        tools:ignore="HardcodedText" />
+        android:text="@string/service" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="2dp"
         android:background="@drawable/rounded_background"
         android:gravity="center_vertical"
         android:orientation="vertical">
@@ -34,9 +26,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginVertical="8dp"
+            android:layout_marginVertical="5dp"
             android:switchMinWidth="36dp"
             android:text="@string/enable_service"
+            android:textColor="@color/black"
             android:thumb="@drawable/switch_thumb"
             android:track="@drawable/switch_track"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
@@ -47,18 +40,17 @@
         style="@style/SubHeaderStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SETTINGS"
-        android:visibility="gone"
-        tools:ignore="HardcodedText" />
+        android:text="@string/settings"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/configureKnowledgeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="2dp"
         android:background="@drawable/rounded_background"
         android:divider="?android:attr/listDivider"
-        android:dividerPadding="8dp"
+        android:dividerPadding="10dp"
         android:gravity="center_vertical"
         android:orientation="vertical"
         android:showDividers="middle"
@@ -69,9 +61,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginVertical="8dp"
+            android:layout_marginVertical="5dp"
             android:switchMinWidth="36dp"
             android:text="@string/during_the_day"
+            android:textColor="@color/black"
             android:thumb="@drawable/switch_thumb"
             android:track="@drawable/switch_track"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
@@ -81,9 +74,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginVertical="8dp"
+            android:layout_marginVertical="5dp"
             android:switchMinWidth="36dp"
             android:text="@string/during_the_night"
+            android:textColor="@color/black"
             android:thumb="@drawable/switch_thumb"
             android:track="@drawable/switch_track"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
@@ -93,9 +87,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginVertical="8dp"
+            android:layout_marginVertical="5dp"
             android:switchMinWidth="36dp"
             android:text="@string/weekends_location"
+            android:textColor="@color/black"
             android:thumb="@drawable/switch_thumb"
             android:track="@drawable/switch_track"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
@@ -105,9 +100,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginVertical="8dp"
+            android:layout_marginVertical="5dp"
             android:switchMinWidth="36dp"
             android:text="@string/stationary_time"
+            android:textColor="@color/black"
             android:thumb="@drawable/switch_thumb"
             android:track="@drawable/switch_track"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
@@ -117,9 +113,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginVertical="8dp"
+            android:layout_marginVertical="5dp"
             android:switchMinWidth="36dp"
             android:text="@string/public_wifi"
+            android:textColor="@color/black"
             android:thumb="@drawable/switch_thumb"
             android:track="@drawable/switch_track"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
@@ -130,15 +127,14 @@
         style="@style/SubHeaderStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="DATABASE"
-        android:visibility="gone"
-        tools:ignore="HardcodedText" />
+        android:text="@string/database"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/configureDatabaseLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="2dp"
         android:background="@drawable/rounded_background"
         android:gravity="center_vertical"
         android:orientation="vertical"
@@ -150,7 +146,8 @@
             android:layout_height="40dp"
             android:layout_marginHorizontal="10dp"
             android:background="@drawable/button_background"
-            android:text="@string/reset_database" />
+            android:text="@string/reset_database"
+            android:textColor="@color/white"/>
     </LinearLayout>
 
     <TextView
@@ -158,15 +155,14 @@
         style="@style/SubHeaderStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="KNOWLEDGE"
-        android:visibility="gone"
-        tools:ignore="HardcodedText" />
+        android:text="@string/knowledge"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/showKnowledgeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="2dp"
         android:background="@drawable/rounded_background"
         android:gravity="center_vertical"
         android:orientation="vertical"
@@ -180,7 +176,8 @@
             <TextView
                 android:id="@+id/embeddingsInDatabaseView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"/>
         </ScrollView>
     </LinearLayout>
 </LinearLayout>

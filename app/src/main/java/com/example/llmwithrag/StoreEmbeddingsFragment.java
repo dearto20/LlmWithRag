@@ -108,7 +108,9 @@ public class StoreEmbeddingsFragment extends Fragment {
         }
 
         private void updateKnowledge(boolean updateSwitch) {
-            SharedPreferences sharedPreferences = requireContext()
+            Context context = getContext();
+            if (context == null) return;
+            SharedPreferences sharedPreferences = context
                     .getSharedPreferences(NAME_SHARED_PREFS, Context.MODE_PRIVATE);
             if (sharedPreferences == null) return;
             if (!sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false)) {
@@ -151,7 +153,9 @@ public class StoreEmbeddingsFragment extends Fragment {
     };
 
     private SharedPreferences getSharedPreferences(String name) {
-        return requireContext().getSharedPreferences(name, Context.MODE_PRIVATE);
+        Context context = getContext();
+        if (context == null) return null;
+        return context.getSharedPreferences(name, Context.MODE_PRIVATE);
     }
 
     private boolean setSharedPreferences(String key, boolean value) {
@@ -165,8 +169,10 @@ public class StoreEmbeddingsFragment extends Fragment {
 
     private boolean isPermissionGranted(String[] permissions) {
         if (permissions == null || permissions.length == 0) return false;
+        Context context = getContext();
+        if (context == null) return false;
         for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(requireContext(), permission)
+            if (ContextCompat.checkSelfPermission(context, permission)
                     != PackageManager.PERMISSION_GRANTED) {
                 return false;
             }
@@ -284,7 +290,9 @@ public class StoreEmbeddingsFragment extends Fragment {
 
                     if (mService != null) {
                         mService.stopMonitoring();
-                        StoreEmbeddingsFragment.this.requireContext().unbindService(mConnection);
+                        Context context = getContext();
+                        if (context == null) return;
+                        context.unbindService(mConnection);
                         mService = null;
                     }
                 }
@@ -351,7 +359,6 @@ public class StoreEmbeddingsFragment extends Fragment {
             List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheDay(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
-                removeEmbeddings("location_during_the_day");
             }
             String text = getString(R.string.during_the_day) + " is " + result;
             addEmbeddings(text, "location_during_the_day");
@@ -367,7 +374,6 @@ public class StoreEmbeddingsFragment extends Fragment {
             List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheNight(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
-                removeEmbeddings("location_during_the_night");
             }
             String text = getString(R.string.during_the_night) + " is " + result;
             addEmbeddings(text, "location_during_the_night");
@@ -383,7 +389,6 @@ public class StoreEmbeddingsFragment extends Fragment {
             List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
-                removeEmbeddings("weekends_location");
             }
             String text = getString(R.string.weekends_location) + " is " + result;
             addEmbeddings(text, "weekends_location");
@@ -399,7 +404,6 @@ public class StoreEmbeddingsFragment extends Fragment {
             List<String> results = mService.getMostFrequentStationaryTimes(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
-                removeEmbeddings("stationary_time");
             }
             String text = getString(R.string.stationary_time) + " is " + result;
             addEmbeddings(text, "stationary_time");
@@ -415,7 +419,6 @@ public class StoreEmbeddingsFragment extends Fragment {
             List<String> results = mService.getMostFrequentPublicWifiConnectionTimes(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
-                removeEmbeddings("wifi_connected");
             }
             String text = getString(R.string.public_wifi) + " is " + result;
             addEmbeddings(text, "wifi_connected");
@@ -459,6 +462,7 @@ public class StoreEmbeddingsFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     float[] embedding = response.body().data.get(0).embedding;
                     Log.i(TAG, "response: " + Arrays.toString(embedding));
+                    removeEmbeddings(category);
                     viewModel.insert(new Embedding(text, category, embedding));
                     Log.i(TAG, "embeddings added for " + text);
                     updateEmbeddingsList();

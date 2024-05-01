@@ -19,4 +19,8 @@
     <string name="enable_service">Enable Service</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
+    <string name="service">SERVICE</string>
+    <string name="settings">SETTINGS</string>
+    <string name="database">DATABASE</string>
+    <string name="knowledge">KNOWLEDGE</string>
 </resources>

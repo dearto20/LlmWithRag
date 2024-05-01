@@ -21,7 +21,7 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
     private static final String NAME_SHARED_PREFS = "public_wifi_usage";
     private static final String KEY_CONNECTION_TIME = "connection_time";
     private static final String KEY_CONNECTION_DURATION = "connection_duration";
-    private static final long MIN_DURATION = 1800000;
+    private static final long MIN_DURATION = 900000;
     ;
     private final ConnectivityTracker mConnectivityTracker;
     private final Context mContext;
