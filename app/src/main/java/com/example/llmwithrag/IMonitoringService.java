@@ -15,6 +15,8 @@ public interface IMonitoringService {
 
     List<String> getMostFrequentlyVisitedPlacesDuringTheWeekend(int topN);
 
+    boolean isStarted();
+
     void startMonitoring();
 
     void stopMonitoring();

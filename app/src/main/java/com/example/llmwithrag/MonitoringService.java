@@ -88,23 +88,10 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public void startMonitoring() {
-        if (mStarted) return;
-        Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
-        mPersistentLocationManager.startMonitoring();
-        mPublicWifiUsageManager.startMonitoring();
-        mStationaryPeriodManager.startMonitoring();
-        mStarted = true;
-    }
-
-    @Override
-    public void stopMonitoring() {
-        if (!mStarted) return;
-        Toast.makeText(getApplicationContext(), "Service Stopped", Toast.LENGTH_SHORT).show();
-        mStationaryPeriodManager.stopMonitoring();
-        mPublicWifiUsageManager.stopMonitoring();
-        mPersistentLocationManager.stopMonitoring();
-        mStarted = false;
+    public void deleteAll() {
+        mPersistentLocationManager.deleteAll();
+        mPublicWifiUsageManager.deleteAll();
+        mStationaryPeriodManager.deleteAll();
     }
 
     @Override
@@ -133,9 +120,27 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public void deleteAll() {
-        mPersistentLocationManager.deleteAll();
-        mPublicWifiUsageManager.deleteAll();
-        mStationaryPeriodManager.deleteAll();
+    public boolean isStarted() {
+        return mStarted;
+    }
+
+    @Override
+    public void startMonitoring() {
+        if (mStarted) return;
+        Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
+        mPersistentLocationManager.startMonitoring();
+        mPublicWifiUsageManager.startMonitoring();
+        mStationaryPeriodManager.startMonitoring();
+        mStarted = true;
+    }
+
+    @Override
+    public void stopMonitoring() {
+        if (!mStarted) return;
+        Toast.makeText(getApplicationContext(), "Service Stopped", Toast.LENGTH_SHORT).show();
+        mStationaryPeriodManager.stopMonitoring();
+        mPublicWifiUsageManager.stopMonitoring();
+        mPersistentLocationManager.stopMonitoring();
+        mStarted = false;
     }
 }

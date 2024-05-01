@@ -1,282 +1,176 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#E0E0E0"
     android:orientation="vertical"
     android:padding="16dp">
 
+    <TextView
+        style="@style/HeaderStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Galaxy AutoNav"
+        tools:ignore="HardcodedText" />
+
+    <TextView
+        style="@style/SubHeaderStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SERVICE"
+        tools:ignore="HardcodedText" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_background"
+        android:gravity="center_vertical"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/startMonitoringDataSourceView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/start_or_stop_monitoring_data_source"
-            android:textStyle="bold" />
-
-        <LinearLayout
+        <Switch
+            android:id="@+id/enableServiceSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/startMonitoringDataSourceButton"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/start" />
-
-            <Button
-                android:id="@+id/stopMonitoringDataSourceButton"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/stop" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#888888" />
+            android:layout_gravity="end"
+            android:layout_marginVertical="8dp"
+            android:switchMinWidth="36dp"
+            android:text="@string/enable_service"
+            android:thumb="@drawable/switch_thumb"
+            android:track="@drawable/switch_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
     </LinearLayout>
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/configureKnowledgeView"
+        style="@style/SubHeaderStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:text="SETTINGS"
+        android:visibility="gone"
+        tools:ignore="HardcodedText" />
 
-        <TextView
-            android:id="@+id/locationDuringTheDayView"
-            android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/configureKnowledgeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_background"
+        android:divider="?android:attr/listDivider"
+        android:dividerPadding="8dp"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:showDividers="middle"
+        android:visibility="gone">
+
+        <Switch
+            android:id="@+id/duringTheDaySwitch"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginVertical="8dp"
+            android:switchMinWidth="36dp"
             android:text="@string/during_the_day"
-            android:textStyle="bold" />
+            android:thumb="@drawable/switch_thumb"
+            android:track="@drawable/switch_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
-        <LinearLayout
+        <Switch
+            android:id="@+id/duringTheNightSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/addLocationDuringTheDayButton"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/add_to_database" />
-
-            <Button
-                android:id="@+id/removeLocationDuringTheDayButton"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/remove_from_database" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#888888" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/locationDuringTheNightView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginVertical="8dp"
+            android:switchMinWidth="36dp"
             android:text="@string/during_the_night"
-            android:textStyle="bold" />
+            android:thumb="@drawable/switch_thumb"
+            android:track="@drawable/switch_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
-        <LinearLayout
+        <Switch
+            android:id="@+id/duringTheWeekendsSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/addLocationDuringTheNightButton"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/add_to_database" />
-
-            <Button
-                android:id="@+id/removeLocationDuringTheNightButton"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/remove_from_database" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#888888" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/weekendsLocationView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginVertical="8dp"
+            android:switchMinWidth="36dp"
             android:text="@string/weekends_location"
-            android:textStyle="bold" />
+            android:thumb="@drawable/switch_thumb"
+            android:track="@drawable/switch_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
-        <LinearLayout
+        <Switch
+            android:id="@+id/stationaryTimeSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/addWeekendsLocationButton"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/add_to_database" />
-
-            <Button
-                android:id="@+id/removeWeekendsLocationButton"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/remove_from_database" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#888888" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/stationaryTimeView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginVertical="8dp"
+            android:switchMinWidth="36dp"
             android:text="@string/stationary_time"
-            android:textStyle="bold" />
+            android:thumb="@drawable/switch_thumb"
+            android:track="@drawable/switch_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
-        <LinearLayout
+        <Switch
+            android:id="@+id/publicWifiTimeSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/addStationaryTimeButton"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/add_to_database" />
-
-            <Button
-                android:id="@+id/removeStationaryTimeButton"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/remove_from_database" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#888888" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/publicWiFiView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginVertical="8dp"
+            android:switchMinWidth="36dp"
             android:text="@string/public_wifi"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/addPublicWiFiButton"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/add_to_database" />
-
-            <Button
-                android:id="@+id/removePublicWiFiButton"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_marginHorizontal="10dp"
-                android:layout_weight="1"
-                android:text="@string/remove_from_database" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#888888" />
+            android:thumb="@drawable/switch_thumb"
+            android:track="@drawable/switch_track"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
     </LinearLayout>
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/configureDatabaseView"
+        style="@style/SubHeaderStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="10dp"
-        android:orientation="vertical">
+        android:text="DATABASE"
+        android:visibility="gone"
+        tools:ignore="HardcodedText" />
+
+    <LinearLayout
+        android:id="@+id/configureDatabaseLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_background"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <Button
             android:id="@+id/resetDatabaseButton"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginHorizontal="10dp"
+            android:background="@drawable/button_background"
             android:text="@string/reset_database" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#888888" />
     </LinearLayout>
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/showKnowledgeView"
+        style="@style/SubHeaderStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="10dp"
-        android:orientation="vertical">
+        android:text="KNOWLEDGE"
+        android:visibility="gone"
+        tools:ignore="HardcodedText" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="5dp"
-            android:text="@string/title_embeddings_in_database"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+    <LinearLayout
+        android:id="@+id/showKnowledgeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/rounded_background"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <ScrollView
             android:layout_width="match_parent"
