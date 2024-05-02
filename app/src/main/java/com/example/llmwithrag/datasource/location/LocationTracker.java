@@ -71,10 +71,13 @@ public class LocationTracker implements IDataSource {
     private final LocationListener mLocationListener = new LocationListener() {
         @Override
         public void onLocationChanged(@NonNull Location location) {
+            double scale = Math.pow(10, 4);
+            double latitude = Math.floor(location.getLatitude() * scale) / scale;
+            double longitude = Math.floor(location.getLongitude() * scale) / scale;
             Log.i(TAG, "location update : (" +
-                    location.getLatitude() + ", " + location.getLongitude() + ")");
-            mRepository.insertData(new LocationData(location.getLatitude(),
-                    location.getLongitude(), System.currentTimeMillis()));
+                    latitude + ", " + longitude + ")");
+            mRepository.insertData(new LocationData(latitude, longitude,
+                    System.currentTimeMillis()));
         }
     };
 }

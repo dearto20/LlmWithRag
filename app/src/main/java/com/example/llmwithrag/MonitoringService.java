@@ -72,7 +72,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         return new Notification.Builder(this, channelId)
                 .setContentTitle(title)
                 .setContentText(content)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.ic_store_embeddings)
                 .build();
     }
 

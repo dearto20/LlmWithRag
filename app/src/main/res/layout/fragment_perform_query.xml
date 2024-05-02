@@ -3,32 +3,38 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#E0E0E0"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
+        style="@style/SubHeaderStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp"
         android:text="@string/speak_to_galaxyautonav"
         android:textSize="20sp"
-        android:textStyle="bold" />
+        android:gravity="center"/>
 
     <Button
         android:id="@+id/startVoiceRecognitionButton"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_gravity="center"
-        android:layout_marginTop="10dp"
-        android:text="@string/start_with_voice" />
+        android:layout_marginTop="30dp"
+        android:background="@drawable/circle_button"
+        android:text="@string/start_with_voice"
+        android:textColor="@color/white"
+        android:textSize="18sp" />
 
     <TextView
+        style="@style/SubHeaderStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="100dp"
         android:text="@string/write_to_galaxyautonav"
         android:textSize="20sp"
-        android:textStyle="bold" />
+        android:gravity="center"/>
 
     <EditText
         android:id="@+id/queryInput"
@@ -46,7 +52,9 @@
         android:layout_height="64dp"
         android:layout_gravity="center"
         android:layout_marginTop="10dp"
-        android:text="@string/start_with_text" />
+        android:background="@drawable/button_background"
+        android:text="@string/start_with_text"
+        android:textColor="@color/white" />
 
     <TextView
         android:id="@+id/resultDisplay"

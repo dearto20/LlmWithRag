@@ -16,7 +16,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="2dp"
+        android:layout_marginBottom="3dp"
         android:background="@drawable/rounded_background"
         android:gravity="center_vertical"
         android:orientation="vertical">
@@ -47,10 +47,10 @@
         android:id="@+id/configureKnowledgeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="2dp"
+        android:layout_marginBottom="3dp"
         android:background="@drawable/rounded_background"
         android:divider="?android:attr/listDivider"
-        android:dividerPadding="10dp"
+        android:dividerPadding="8dp"
         android:gravity="center_vertical"
         android:orientation="vertical"
         android:showDividers="middle"
@@ -134,7 +134,7 @@
         android:id="@+id/configureDatabaseLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="2dp"
+        android:layout_marginBottom="3dp"
         android:background="@drawable/rounded_background"
         android:gravity="center_vertical"
         android:orientation="vertical"
@@ -147,7 +147,7 @@
             android:layout_marginHorizontal="10dp"
             android:background="@drawable/button_background"
             android:text="@string/reset_database"
-            android:textColor="@color/white"/>
+            android:textColor="@color/white" />
     </LinearLayout>
 
     <TextView
@@ -162,7 +162,7 @@
         android:id="@+id/showKnowledgeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="2dp"
+        android:layout_marginBottom="3dp"
         android:background="@drawable/rounded_background"
         android:gravity="center_vertical"
         android:orientation="vertical"
@@ -177,7 +177,7 @@
                 android:id="@+id/embeddingsInDatabaseView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"/>
+                android:textColor="@color/black" />
         </ScrollView>
     </LinearLayout>
 </LinearLayout>

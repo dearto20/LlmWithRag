@@ -137,7 +137,7 @@ public class StationaryDurationManager implements IKnowledgeComponent {
 
     private String periodOf(long startTime, long endTime) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault());
-        return sdf.format(new Date(startTime)) + " to " + sdf.format(new Date(endTime));
+        return "from " + sdf.format(new Date(startTime)) + " to " + sdf.format(new Date(endTime));
     }
 
     @Override

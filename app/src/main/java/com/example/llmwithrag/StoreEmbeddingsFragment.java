@@ -73,6 +73,7 @@ public class StoreEmbeddingsFragment extends Fragment {
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
+            Log.i(TAG, "connected to the service");
             mService = ((MonitoringService.LocalBinder) binder).getService();
             mService.startMonitoring();
 
@@ -96,6 +97,7 @@ public class StoreEmbeddingsFragment extends Fragment {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            Log.i(TAG, "disconnected from the service");
             mCheckRunnable = null;
             mHandler.removeCallbacksAndMessages(null);
             mHandler = null;
@@ -355,12 +357,12 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateDuringTheDay(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Not Available Yet";
+            String result = "not available yet";
             List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheDay(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
             }
-            String text = getString(R.string.during_the_day) + " is " + result;
+            String text = "The most frequently visited location during the day is " + result + ".";
             addEmbeddings(text, "location_during_the_day");
         } else {
             removeEmbeddings("location_during_the_day");
@@ -370,12 +372,12 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateDuringTheNight(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Not Available Yet";
+            String result = "not available yet";
             List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheNight(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
             }
-            String text = getString(R.string.during_the_night) + " is " + result;
+            String text = "The most frequently visited location during the night is " + result + ".";
             addEmbeddings(text, "location_during_the_night");
         } else {
             removeEmbeddings("location_during_the_night");
@@ -385,12 +387,12 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateDuringTheWeekend(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Not Available Yet";
+            String result = "not available yet";
             List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
             }
-            String text = getString(R.string.weekends_location) + " is " + result;
+            String text = "The most frequently visited location during the weekend is " + result + ".";
             addEmbeddings(text, "weekends_location");
         } else {
             removeEmbeddings("weekends_location");
@@ -400,12 +402,12 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateStationaryTime(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Not Available Yet";
+            String result = "not available yet";
             List<String> results = mService.getMostFrequentStationaryTimes(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
             }
-            String text = getString(R.string.stationary_time) + " is " + result;
+            String text = "The most frequent time period for the phone to stay stationary is " + result + ".";
             addEmbeddings(text, "stationary_time");
         } else {
             removeEmbeddings("stationary_time");
@@ -415,12 +417,12 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updatePublicWifiTime(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Not Found Yet";
+            String result = "not available yet";
             List<String> results = mService.getMostFrequentPublicWifiConnectionTimes(1);
             if (!results.isEmpty()) {
                 result = results.get(0);
             }
-            String text = getString(R.string.public_wifi) + " is " + result;
+            String text = "The most frequent time period for the phone to connect to non-enterprise Wi-Fi is " + result + ".";
             addEmbeddings(text, "wifi_connected");
         } else {
             removeEmbeddings("wifi_connected");
