@@ -115,55 +115,18 @@ public class StoreEmbeddingsFragment extends Fragment {
         }
 
         private void updateKnowledge(boolean updateSwitch) {
-            Context context = getContext();
-            if (context == null) return;
-            SharedPreferences sharedPreferences = context
-                    .getSharedPreferences(NAME_SHARED_PREFS, Context.MODE_PRIVATE);
-            if (sharedPreferences == null) return;
-            if (!sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false)) {
-                Log.i(TAG, "update knowledge : service is disabled");
+            updateViews();
+
+            SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+            if (sharedPreferences == null) {
                 return;
             }
-
-            FragmentActivity activity = getActivity();
-            if (activity == null) return;
 
             boolean isDuringTheDayEnabled = sharedPreferences.getBoolean(KEY_DURING_THE_DAY, true);
             boolean isDuringTheNightEnabled = sharedPreferences.getBoolean(KEY_DURING_THE_NIGHT, true);
             boolean isDuringTheWeekendEnabled = sharedPreferences.getBoolean(KEY_DURING_THE_WEEKENDS, true);
             boolean isStationaryTimeEnabled = sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true);
             boolean isPublicWifiTimeEnabled = sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, true);
-
-            Log.i(TAG, "update knowledge, " + isDuringTheDayEnabled + ", " +
-                    isDuringTheNightEnabled + ", " + isDuringTheWeekendEnabled + ", " +
-                    isStationaryTimeEnabled + ", " + isPublicWifiTimeEnabled);
-
-            if (updateSwitch) {
-                Switch duringTheDaySwitch = activity.findViewById(R.id.duringTheDaySwitch);
-                if (isDuringTheDayEnabled != duringTheDaySwitch.isChecked()) {
-                    duringTheDaySwitch.setChecked(isDuringTheDayEnabled);
-                }
-
-                Switch duringTheNightSwitch = activity.findViewById(R.id.duringTheNightSwitch);
-                if (isDuringTheNightEnabled != duringTheNightSwitch.isChecked()) {
-                    duringTheNightSwitch.setChecked(isDuringTheNightEnabled);
-                }
-
-                Switch duringTheWeekendSwitch = activity.findViewById(R.id.duringTheWeekendSwitch);
-                if (isDuringTheWeekendEnabled != duringTheWeekendSwitch.isChecked()) {
-                    duringTheWeekendSwitch.setChecked(isDuringTheWeekendEnabled);
-                }
-
-                Switch stationaryTimeSwitch = activity.findViewById(R.id.stationaryTimeSwitch);
-                if (isStationaryTimeEnabled != stationaryTimeSwitch.isChecked()) {
-                    stationaryTimeSwitch.setChecked(isStationaryTimeEnabled);
-                }
-
-                Switch publicWifiTimeSwitch = activity.findViewById(R.id.publicWifiTimeSwitch);
-                if (isPublicWifiTimeEnabled != publicWifiTimeSwitch.isChecked()) {
-                    publicWifiTimeSwitch.setChecked(isPublicWifiTimeEnabled);
-                }
-            }
 
             updateDuringTheDay(isDuringTheDayEnabled);
             updateDuringTheNight(isDuringTheNightEnabled);
@@ -172,6 +135,70 @@ public class StoreEmbeddingsFragment extends Fragment {
             updatePublicWifiTime(isPublicWifiTimeEnabled);
         }
     };
+
+    private void updateViews() {
+        FragmentActivity activity = getActivity();
+        if (activity == null) return;
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        if (sharedPreferences == null) {
+            return;
+        }
+
+        TextView configureKnowledgeView = activity.findViewById(R.id.configureDatabaseView);
+        LinearLayout configureKnowledgeSwitch = activity.findViewById(R.id.configureKnowledgeLayout);
+        TextView configureDatabaseView = activity.findViewById(R.id.configureKnowledgeView);
+        LinearLayout configureDatabaseSwitch = activity.findViewById(R.id.configureDatabaseLayout);
+        TextView showKnowledgeView = activity.findViewById(R.id.showKnowledgeView);
+        LinearLayout showKnowledgeSwitch = activity.findViewById(R.id.showKnowledgeLayout);
+
+        boolean enabled = sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
+        if (enabled) {
+            configureKnowledgeView.setVisibility(View.VISIBLE);
+            configureKnowledgeSwitch.setVisibility(View.VISIBLE);
+            configureDatabaseView.setVisibility(View.VISIBLE);
+            configureDatabaseSwitch.setVisibility(View.VISIBLE);
+            showKnowledgeView.setVisibility(View.VISIBLE);
+            showKnowledgeSwitch.setVisibility(View.VISIBLE);
+        } else {
+            configureKnowledgeView.setVisibility(View.GONE);
+            configureKnowledgeSwitch.setVisibility(View.GONE);
+            configureDatabaseView.setVisibility(View.GONE);
+            configureDatabaseSwitch.setVisibility(View.GONE);
+            showKnowledgeView.setVisibility(View.GONE);
+            showKnowledgeSwitch.setVisibility(View.GONE);
+        }
+
+        boolean isDuringTheDayEnabled = sharedPreferences.getBoolean(KEY_DURING_THE_DAY, true);
+        boolean isDuringTheNightEnabled = sharedPreferences.getBoolean(KEY_DURING_THE_NIGHT, true);
+        boolean isDuringTheWeekendEnabled = sharedPreferences.getBoolean(KEY_DURING_THE_WEEKENDS, true);
+        boolean isStationaryTimeEnabled = sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true);
+        boolean isPublicWifiTimeEnabled = sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, true);
+
+        Switch duringTheDaySwitch = activity.findViewById(R.id.duringTheDaySwitch);
+        if (isDuringTheDayEnabled != duringTheDaySwitch.isChecked()) {
+            duringTheDaySwitch.setChecked(isDuringTheDayEnabled);
+        }
+
+        Switch duringTheNightSwitch = activity.findViewById(R.id.duringTheNightSwitch);
+        if (isDuringTheNightEnabled != duringTheNightSwitch.isChecked()) {
+            duringTheNightSwitch.setChecked(isDuringTheNightEnabled);
+        }
+
+        Switch duringTheWeekendSwitch = activity.findViewById(R.id.duringTheWeekendSwitch);
+        if (isDuringTheWeekendEnabled != duringTheWeekendSwitch.isChecked()) {
+            duringTheWeekendSwitch.setChecked(isDuringTheWeekendEnabled);
+        }
+
+        Switch stationaryTimeSwitch = activity.findViewById(R.id.stationaryTimeSwitch);
+        if (isStationaryTimeEnabled != stationaryTimeSwitch.isChecked()) {
+            stationaryTimeSwitch.setChecked(isStationaryTimeEnabled);
+        }
+
+        Switch publicWifiTimeSwitch = activity.findViewById(R.id.publicWifiTimeSwitch);
+        if (isPublicWifiTimeEnabled != publicWifiTimeSwitch.isChecked()) {
+            publicWifiTimeSwitch.setChecked(isPublicWifiTimeEnabled);
+        }
+    }
 
     private SharedPreferences getSharedPreferences(String name) {
         Context context = getContext();
@@ -219,9 +246,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         if (sharedPreferences != null) {
             boolean enabled = sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
             Switch enableServiceSwitch = getActivity().findViewById(R.id.enableServiceSwitch);
-            if (enabled != enableServiceSwitch.isChecked()) {
-                enableServiceSwitch.setChecked(enabled);
-            }
+            enableServiceSwitch.setChecked(enabled);
         }
     }
 
@@ -289,28 +314,17 @@ public class StoreEmbeddingsFragment extends Fragment {
         enableServiceSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton button, boolean isChecked) {
+                Log.i(TAG, "onCheckedChanged");
                 setSharedPreferences(KEY_SERVICE_ENABLED, isChecked);
-                if (isChecked) {
-                    configureKnowledgeView.setVisibility(View.VISIBLE);
-                    configureKnowledgeSwitch.setVisibility(View.VISIBLE);
-                    configureDatabaseView.setVisibility(View.VISIBLE);
-                    configureDatabaseSwitch.setVisibility(View.VISIBLE);
-                    showKnowledgeView.setVisibility(View.VISIBLE);
-                    showKnowledgeSwitch.setVisibility(View.VISIBLE);
+                updateViews();
 
+                if (isChecked) {
                     if (isPermissionGranted(permissions)) {
                         bindToMonitoringService();
                     } else {
                         requestPermissionLauncher.launch(permissions);
                     }
                 } else {
-                    configureKnowledgeView.setVisibility(View.GONE);
-                    configureKnowledgeSwitch.setVisibility(View.GONE);
-                    configureDatabaseView.setVisibility(View.GONE);
-                    configureDatabaseSwitch.setVisibility(View.GONE);
-                    showKnowledgeView.setVisibility(View.GONE);
-                    showKnowledgeSwitch.setVisibility(View.GONE);
-
                     if (mService != null) {
                         mService.stopMonitoring();
                         Context context = getContext();
