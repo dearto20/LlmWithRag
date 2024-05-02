@@ -223,7 +223,6 @@ public class StoreEmbeddingsFragment extends Fragment {
                 enableServiceSwitch.setChecked(enabled);
             }
         }
-        mConnection.updateKnowledge();
     }
 
     @Override
