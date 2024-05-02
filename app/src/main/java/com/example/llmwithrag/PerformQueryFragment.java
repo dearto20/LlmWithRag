@@ -208,10 +208,10 @@ public class PerformQueryFragment extends Fragment {
                 sb.append("\n").append(embedding.text);
             }
             sb.append("\n").append(query);
-            sb.append("\n").append("If you're asked to find the route, figure out \"the destination\" based on the info.");
-            sb.append("\n").append("All the addresses in the info has the coordinates in the form of 'latitude,longitude'.");
-            sb.append("\n").append("Out of all the addresses, find only one likely destination, and do not ever add any other comments or something.");
-            sb.append("\n").append("You MUST return only the destination address in the form of 'latitude,longitude', which can be accepted by GoogleMaps as is.");
+            sb.append("\n").append("If you're asked to find the route, determine 'the destination' based on the provided information above.");
+            sb.append("\n").append("All the addresses found in the information are in the form of 'latitude,longitude'.");
+            sb.append("\n").append("Consider all the correlations between the information carefully and determine the most likely destination");
+            sb.append("\n").append("Ensure you provide the answer in the form of 'latitude, longitude' only, and do not add any other comments.");
             query = sb.toString();
         }
 
