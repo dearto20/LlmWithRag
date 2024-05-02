@@ -44,6 +44,7 @@
         android:autofillHints="Enter Input Text"
         android:imeOptions="actionDone"
         android:inputType="text"
+        android:textColor="@color/black"
         tools:ignore="LabelFor" />
 
     <Button

@@ -53,8 +53,7 @@
         android:dividerPadding="8dp"
         android:gravity="center_vertical"
         android:orientation="vertical"
-        android:showDividers="middle"
-        android:visibility="gone">
+        android:showDividers="middle">
 
         <Switch
             android:id="@+id/duringTheDaySwitch"

@@ -79,9 +79,14 @@ public class StoreEmbeddingsFragment extends Fragment {
 
             FragmentActivity activity = getActivity();
             if (activity == null) return;
-
-            Switch enableServiceSwitch = activity.findViewById(R.id.enableServiceSwitch);
-            enableServiceSwitch.setChecked(true);
+            SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+            if (sharedPreferences != null) {
+                boolean enabled = sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
+                Switch enableServiceSwitch = getActivity().findViewById(R.id.enableServiceSwitch);
+                if (enabled != enableServiceSwitch.isChecked()) {
+                    enableServiceSwitch.setChecked(enabled);
+                }
+            }
 
             mHandler = new Handler(Looper.getMainLooper());
             mCheckRunnable = new Runnable() {
@@ -135,15 +140,29 @@ public class StoreEmbeddingsFragment extends Fragment {
 
             if (updateSwitch) {
                 Switch duringTheDaySwitch = activity.findViewById(R.id.duringTheDaySwitch);
-                duringTheDaySwitch.setChecked(isDuringTheDayEnabled);
+                if (isDuringTheDayEnabled != duringTheDaySwitch.isChecked()) {
+                    duringTheDaySwitch.setChecked(isDuringTheDayEnabled);
+                }
+
                 Switch duringTheNightSwitch = activity.findViewById(R.id.duringTheNightSwitch);
-                duringTheNightSwitch.setChecked(isDuringTheNightEnabled);
+                if (isDuringTheNightEnabled != duringTheNightSwitch.isChecked()) {
+                    duringTheNightSwitch.setChecked(isDuringTheNightEnabled);
+                }
+
                 Switch duringTheWeekendSwitch = activity.findViewById(R.id.duringTheWeekendSwitch);
-                duringTheWeekendSwitch.setChecked(isDuringTheWeekendEnabled);
+                if (isDuringTheWeekendEnabled != duringTheWeekendSwitch.isChecked()) {
+                    duringTheWeekendSwitch.setChecked(isDuringTheWeekendEnabled);
+                }
+
                 Switch stationaryTimeSwitch = activity.findViewById(R.id.stationaryTimeSwitch);
-                stationaryTimeSwitch.setChecked(isStationaryTimeEnabled);
+                if (isStationaryTimeEnabled != stationaryTimeSwitch.isChecked()) {
+                    stationaryTimeSwitch.setChecked(isStationaryTimeEnabled);
+                }
+
                 Switch publicWifiTimeSwitch = activity.findViewById(R.id.publicWifiTimeSwitch);
-                publicWifiTimeSwitch.setChecked(isPublicWifiTimeEnabled);
+                if (isPublicWifiTimeEnabled != publicWifiTimeSwitch.isChecked()) {
+                    publicWifiTimeSwitch.setChecked(isPublicWifiTimeEnabled);
+                }
             }
 
             updateDuringTheDay(isDuringTheDayEnabled);
@@ -200,8 +219,11 @@ public class StoreEmbeddingsFragment extends Fragment {
         if (sharedPreferences != null) {
             boolean enabled = sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
             Switch enableServiceSwitch = getActivity().findViewById(R.id.enableServiceSwitch);
-            enableServiceSwitch.setChecked(enabled);
+            if (enabled != enableServiceSwitch.isChecked()) {
+                enableServiceSwitch.setChecked(enabled);
+            }
         }
+        mConnection.updateKnowledge();
     }
 
     @Override
