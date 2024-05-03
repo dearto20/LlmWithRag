@@ -54,7 +54,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private Notification getNotification() {
         createNotificationChannel(ID_MAIN_CHANNEL, "main", NotificationManager.IMPORTANCE_DEFAULT);
-        return createNotification(ID_MAIN_CHANNEL, "Galaxy AutoNav", "Running...");
+        return createNotification(ID_MAIN_CHANNEL, "Galaxy AutoNav", "Tap Here to Open");
     }
 
     private void postNotification(String channelId, String title, String content) {
