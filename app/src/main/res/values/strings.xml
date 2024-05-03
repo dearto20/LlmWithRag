@@ -2,11 +2,16 @@
     <string name="app_name">Galaxy AutoNav</string>
     <string name="store_embeddings">Store Embeddings</string>
     <string name="perform_query">Perform Query</string>
-    <string name="during_the_day">Location During the Day</string>
-    <string name="during_the_night">Location During the Night</string>
-    <string name="weekends_location">Location During the Weekend</string>
-    <string name="stationary_time">Time to Stay Stationary</string>
-    <string name="public_wifi">Time for Using Non-Enterprise Wi-Fi</string>
+    <string name="day_location">Location During the Day</string>
+    <string name="day_location_unavailable">Location During the Day is Unavailable</string>
+    <string name="night_location">Location During the Night</string>
+    <string name="night_location_unavailable">Location During the Night is Unavailable</string>
+    <string name="weekend_location">Location During the Weekend</string>
+    <string name="weekend_location_unavailable">Location During the Weekend is Unavailable</string>
+    <string name="stationary_time">Time Period of No Phone Usage</string>
+    <string name="stationary_time_unavailable">Time Period of No Phone Usage is Unavailable</string>
+    <string name="public_wifi_time">Time Period for Using Public Wi-Fi</string>
+    <string name="public_wifi_time_unavailable">Time Period for Using Public Wi-Fi is Unavailable</string>
     <string name="add_to_database">Add</string>
     <string name="remove_from_database">Remove</string>
     <string name="reset_database">Reset Database</string>
@@ -21,6 +26,5 @@
     <string name="stop">Stop</string>
     <string name="service">SERVICE</string>
     <string name="settings">SETTINGS</string>
-    <string name="database">DATABASE</string>
     <string name="knowledge">KNOWLEDGE</string>
 </resources>

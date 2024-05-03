@@ -3,6 +3,7 @@ package com.example.llmwithrag;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -69,9 +70,15 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private Notification createNotification(String channelId, String title, String content) {
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         return new Notification.Builder(this, channelId)
                 .setContentTitle(title)
                 .setContentText(content)
+                .setContentIntent(pendingIntent)
                 .setSmallIcon(R.drawable.ic_notification)
                 .build();
     }

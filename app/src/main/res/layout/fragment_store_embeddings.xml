@@ -1,183 +1,240 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E0E0E0"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:fillViewport="true">
 
-    <TextView
-        style="@style/SubHeaderStyle"
+    <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/service" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="3dp"
-        android:background="@drawable/rounded_background"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
-
-        <Switch
-            android:id="@+id/enableServiceSwitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginVertical="5dp"
-            android:switchMinWidth="36dp"
-            android:text="@string/enable_service"
-            android:textColor="@color/black"
-            android:thumb="@drawable/switch_thumb"
-            android:track="@drawable/switch_track"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/configureKnowledgeView"
-        style="@style/SubHeaderStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/settings"
-        android:visibility="gone" />
-
-    <LinearLayout
-        android:id="@+id/configureKnowledgeLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="3dp"
-        android:background="@drawable/rounded_background"
-        android:divider="?android:attr/listDivider"
-        android:dividerPadding="8dp"
-        android:gravity="center_vertical"
+        android:background="#E0E0E0"
         android:orientation="vertical"
-        android:showDividers="middle"
-        android:visibility="gone">
+        android:padding="16dp">
 
-        <Switch
-            android:id="@+id/duringTheDaySwitch"
+        <TextView
+            style="@style/SubHeaderStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginVertical="5dp"
-            android:switchMinWidth="36dp"
-            android:text="@string/during_the_day"
-            android:textColor="@color/black"
-            android:thumb="@drawable/switch_thumb"
-            android:track="@drawable/switch_track"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
+            android:text="@string/service" />
 
-        <Switch
-            android:id="@+id/duringTheNightSwitch"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginVertical="5dp"
-            android:switchMinWidth="36dp"
-            android:text="@string/during_the_night"
-            android:textColor="@color/black"
-            android:thumb="@drawable/switch_thumb"
-            android:track="@drawable/switch_track"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
+            android:background="@drawable/rounded_background"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
 
-        <Switch
-            android:id="@+id/duringTheWeekendSwitch"
+            <Switch
+                android:id="@+id/enableServiceSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="5dp"
+                android:switchMinWidth="36dp"
+                android:text="@string/enable_service"
+                android:textColor="@color/black"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/configureKnowledgeView"
+            style="@style/SubHeaderStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginVertical="5dp"
-            android:switchMinWidth="36dp"
-            android:text="@string/weekends_location"
-            android:textColor="@color/black"
-            android:thumb="@drawable/switch_thumb"
-            android:track="@drawable/switch_track"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
+            android:text="@string/settings" />
 
-        <Switch
-            android:id="@+id/stationaryTimeSwitch"
+        <LinearLayout
+            android:id="@+id/configureKnowledgeLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginVertical="5dp"
-            android:switchMinWidth="36dp"
-            android:text="@string/stationary_time"
-            android:textColor="@color/black"
-            android:thumb="@drawable/switch_thumb"
-            android:track="@drawable/switch_track"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
+            android:background="@drawable/rounded_background"
+            android:divider="?android:attr/listDivider"
+            android:dividerPadding="8dp"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:showDividers="middle">
 
-        <Switch
-            android:id="@+id/publicWifiTimeSwitch"
+            <Switch
+                android:id="@+id/dayLocationSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="4dp"
+                android:drawableStart="@drawable/switch_circle_red"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:switchMinWidth="36dp"
+                android:text="@string/day_location"
+                android:textColor="@color/black"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track"
+                tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
+
+            <Switch
+                android:id="@+id/nightLocationSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="4dp"
+                android:drawableStart="@drawable/switch_circle_orange"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:switchMinWidth="36dp"
+                android:text="@string/night_location"
+                android:textColor="@color/black"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track"
+                tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
+
+            <Switch
+                android:id="@+id/weekendLocationSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="4dp"
+                android:drawableStart="@drawable/switch_circle_green"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:switchMinWidth="36dp"
+                android:text="@string/weekend_location"
+                android:textColor="@color/black"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+            <Switch
+                android:id="@+id/stationaryTimeSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="4dp"
+                android:drawableStart="@drawable/switch_circle_blue"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:switchMinWidth="36dp"
+                android:text="@string/stationary_time"
+                android:textColor="@color/black"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track"
+                tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
+
+            <Switch
+                android:id="@+id/publicWifiTimeSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="4dp"
+                android:drawableStart="@drawable/switch_circle_purple"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:switchMinWidth="36dp"
+                android:text="@string/public_wifi_time"
+                android:textColor="@color/black"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track"
+                tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/showKnowledgeView"
+            style="@style/SubHeaderStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginVertical="5dp"
-            android:switchMinWidth="36dp"
-            android:text="@string/public_wifi"
-            android:textColor="@color/black"
-            android:thumb="@drawable/switch_thumb"
-            android:track="@drawable/switch_track"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
-    </LinearLayout>
+            android:text="@string/knowledge" />
 
-    <TextView
-        android:id="@+id/configureDatabaseView"
-        style="@style/SubHeaderStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/database"
-        android:visibility="gone" />
+        <LinearLayout
+            android:id="@+id/showKnowledgeLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_background"
+            android:divider="?android:attr/listDivider"
+            android:dividerPadding="8dp"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:showDividers="middle">
 
-    <LinearLayout
-        android:id="@+id/configureDatabaseLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="3dp"
-        android:background="@drawable/rounded_background"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        android:visibility="gone">
+            <TextView
+                android:id="@+id/dayLocationView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="8dp"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/day_location_unavailable"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                app:drawableStartCompat="@drawable/switch_circle_red"
+                tools:ignore="RtlSymmetry" />
+
+            <TextView
+                android:id="@+id/nightLocationView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="8dp"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/night_location_unavailable"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                app:drawableStartCompat="@drawable/switch_circle_orange"
+                tools:ignore="RtlSymmetry" />
+
+            <TextView
+                android:id="@+id/weekendLocationView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="8dp"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/weekend_location_unavailable"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                app:drawableStartCompat="@drawable/switch_circle_green"
+                tools:ignore="RtlSymmetry" />
+
+            <TextView
+                android:id="@+id/stationaryTimeView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="8dp"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/stationary_time_unavailable"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                app:drawableStartCompat="@drawable/switch_circle_blue"
+                tools:ignore="RtlSymmetry" />
+
+            <TextView
+                android:id="@+id/publicWifiTimeView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="8dp"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/public_wifi_time_unavailable"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                app:drawableStartCompat="@drawable/switch_circle_purple"
+                tools:ignore="RtlSymmetry" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/resetDatabaseButton"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginHorizontal="1dp"
+            android:layout_marginVertical="10dp"
             android:background="@drawable/button_background"
             android:text="@string/reset_database"
             android:textColor="@color/white" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/showKnowledgeView"
-        style="@style/SubHeaderStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/knowledge"
-        android:visibility="gone" />
-
-    <LinearLayout
-        android:id="@+id/showKnowledgeLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="3dp"
-        android:background="@drawable/rounded_background"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fillViewport="true">
-
-            <TextView
-                android:id="@+id/embeddingsInDatabaseView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/black" />
-        </ScrollView>
-    </LinearLayout>
-</LinearLayout>
+</ScrollView>
