@@ -16,8 +16,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class StationaryDurationManager implements IKnowledgeComponent {
-    private static final String TAG = StationaryDurationManager.class.getSimpleName();
+public class StationaryTimeManager implements IKnowledgeComponent {
+    private static final String TAG = StationaryTimeManager.class.getSimpleName();
     private static final String NAME_SHARED_PREFS = "stationary_duration";
     private static final String KEY_STATIONARY_TIME = "stationary_time";
     private static final String KEY_STATIONARY_DURATION = "stationary_duration";
@@ -30,7 +30,7 @@ public class StationaryDurationManager implements IKnowledgeComponent {
     private long mStartTime;
     private long mCheckTime;
 
-    public StationaryDurationManager(Context context, MovementTracker movementTracker) {
+    public StationaryTimeManager(Context context, MovementTracker movementTracker) {
         mMovementTracker = movementTracker;
         mContext = context;
     }
@@ -136,7 +136,7 @@ public class StationaryDurationManager implements IKnowledgeComponent {
     }
 
     private String periodOf(long startTime, long endTime) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
         return "from " + sdf.format(new Date(startTime)) + " to " + sdf.format(new Date(endTime));
     }
 
