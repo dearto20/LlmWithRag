@@ -7,7 +7,9 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.widget.Toast;
 
@@ -21,7 +23,6 @@ import com.example.llmwithrag.knowledge.location.PersistentLocationManager;
 import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
 
 import java.util.List;
-import java.util.Random;
 
 public class MonitoringService extends Service implements IMonitoringService {
     private static final String TAG = MonitoringService.class.getSimpleName();
@@ -43,7 +44,11 @@ public class MonitoringService extends Service implements IMonitoringService {
     public void onCreate() {
         super.onCreate();
         Toast.makeText(getApplicationContext(), "Service Created", Toast.LENGTH_SHORT).show();
-        startForeground(ID_NOTIFICATION, getNotification());
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(ID_NOTIFICATION, getNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+        } else {
+            startForeground(ID_NOTIFICATION, getNotification());
+        }
 
         Context context = getApplicationContext();
         mPersistentLocationManager = new PersistentLocationManager(context, new LocationTracker(context));
@@ -55,12 +60,6 @@ public class MonitoringService extends Service implements IMonitoringService {
     private Notification getNotification() {
         createNotificationChannel(ID_MAIN_CHANNEL, "main", NotificationManager.IMPORTANCE_DEFAULT);
         return createNotification(ID_MAIN_CHANNEL, "Galaxy AutoNav", "Tap Here to Open");
-    }
-
-    private void postNotification(String channelId, String title, String content) {
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        Notification notification = createNotification(channelId, title, content);
-        notificationManager.notify(new Random().nextInt(), notification);
     }
 
     private void createNotificationChannel(String channelId, String channelName, int importance) {

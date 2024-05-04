@@ -55,7 +55,7 @@
         android:layout_marginTop="10dp"
         android:background="@drawable/button_background"
         android:text="@string/start_with_text"
-        android:textSize="18sp"
+        android:textSize="15sp"
         android:textColor="@color/white" />
 
     <TextView

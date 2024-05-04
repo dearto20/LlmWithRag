@@ -1,6 +1,5 @@
 package com.example.llmwithrag;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -8,7 +7,6 @@ import android.view.MenuItem;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -49,8 +47,5 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
             navigationView.setSelectedItemId(R.id.navigation_store_embeddings);
         }
-
-        Intent serviceIntent = new Intent(this, MonitoringService.class);
-        ContextCompat.startForegroundService(this, serviceIntent);
     }
 }

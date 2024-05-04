@@ -3,6 +3,7 @@ package com.example.llmwithrag;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
+import static android.Manifest.permission.FOREGROUND_SERVICE_LOCATION;
 import static android.Manifest.permission.RECORD_AUDIO;
 
 import android.annotation.SuppressLint;
@@ -12,6 +13,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -32,6 +34,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -222,6 +225,9 @@ public class StoreEmbeddingsFragment extends Fragment {
     }
 
     private void bindToMonitoringService() {
+        Intent serviceIntent = new Intent(getContext(), MonitoringService.class);
+        ContextCompat.startForegroundService(requireContext(), serviceIntent);
+
         Intent intent = new Intent(getActivity(), MonitoringService.class);
         FragmentActivity activity = getActivity();
         if (activity != null) {
@@ -283,6 +289,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         updateViews();
     }
 
+    @RequiresApi(api = 34)
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup
@@ -298,9 +305,18 @@ public class StoreEmbeddingsFragment extends Fragment {
         Switch publicWifiTimeSwitch = view.findViewById(R.id.publicWifiTimeSwitch);
         Button resetButton = view.findViewById(R.id.resetDatabaseButton);
 
-        String[] permissions = new String[]{
-                ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO
-        };
+        String[] permissions;
+
+        if (Build.VERSION.SDK_INT >= 34) {
+            permissions = new String[]{
+                    ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO,
+                    FOREGROUND_SERVICE_LOCATION
+            };
+        } else {
+            permissions = new String[]{
+                    ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO
+            };
+        }
 
         enableServiceSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
