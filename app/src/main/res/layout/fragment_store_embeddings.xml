@@ -69,6 +69,7 @@
                 android:switchMinWidth="36dp"
                 android:text="@string/day_location"
                 android:textColor="@color/black"
+                android:textSize="14sp"
                 android:thumb="@drawable/switch_thumb"
                 android:track="@drawable/switch_track"
                 tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
@@ -85,6 +86,7 @@
                 android:switchMinWidth="36dp"
                 android:text="@string/night_location"
                 android:textColor="@color/black"
+                android:textSize="14sp"
                 android:thumb="@drawable/switch_thumb"
                 android:track="@drawable/switch_track"
                 tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
@@ -101,6 +103,7 @@
                 android:switchMinWidth="36dp"
                 android:text="@string/weekend_location"
                 android:textColor="@color/black"
+                android:textSize="14sp"
                 android:thumb="@drawable/switch_thumb"
                 android:track="@drawable/switch_track"
                 tools:ignore="UseSwitchCompatOrMaterialXml" />
@@ -117,6 +120,7 @@
                 android:switchMinWidth="36dp"
                 android:text="@string/stationary_time"
                 android:textColor="@color/black"
+                android:textSize="14sp"
                 android:thumb="@drawable/switch_thumb"
                 android:track="@drawable/switch_track"
                 tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
@@ -133,6 +137,7 @@
                 android:switchMinWidth="36dp"
                 android:text="@string/public_wifi_time"
                 android:textColor="@color/black"
+                android:textSize="14sp"
                 android:thumb="@drawable/switch_thumb"
                 android:track="@drawable/switch_track"
                 tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
@@ -166,7 +171,7 @@
                 android:gravity="center_vertical"
                 android:text="@string/day_location_unavailable"
                 android:textColor="@color/black"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 app:drawableStartCompat="@drawable/switch_circle_red"
                 tools:ignore="RtlSymmetry" />
 
@@ -180,7 +185,7 @@
                 android:gravity="center_vertical"
                 android:text="@string/night_location_unavailable"
                 android:textColor="@color/black"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 app:drawableStartCompat="@drawable/switch_circle_orange"
                 tools:ignore="RtlSymmetry" />
 
@@ -194,7 +199,7 @@
                 android:gravity="center_vertical"
                 android:text="@string/weekend_location_unavailable"
                 android:textColor="@color/black"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 app:drawableStartCompat="@drawable/switch_circle_green"
                 tools:ignore="RtlSymmetry" />
 
@@ -208,7 +213,7 @@
                 android:gravity="center_vertical"
                 android:text="@string/stationary_time_unavailable"
                 android:textColor="@color/black"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 app:drawableStartCompat="@drawable/switch_circle_blue"
                 tools:ignore="RtlSymmetry" />
 
@@ -222,7 +227,7 @@
                 android:gravity="center_vertical"
                 android:text="@string/public_wifi_time_unavailable"
                 android:textColor="@color/black"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 app:drawableStartCompat="@drawable/switch_circle_purple"
                 tools:ignore="RtlSymmetry" />
         </LinearLayout>
