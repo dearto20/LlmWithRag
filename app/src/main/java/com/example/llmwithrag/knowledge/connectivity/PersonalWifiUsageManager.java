@@ -15,12 +15,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class PublicWifiUsageManager implements IKnowledgeComponent {
-    private static final String TAG = PublicWifiUsageManager.class.getSimpleName();
+public class PersonalWifiUsageManager implements IKnowledgeComponent {
+    private static final String TAG = PersonalWifiUsageManager.class.getSimpleName();
     private static final String KEY_CONNECTION_TIME = "connection_time";
     private static final String KEY_CONNECTION_DURATION = "connection_duration";
     private static final long MIN_DURATION = 900000;
-    private final PublicWifiUsageRepository mRepository;
+    private final PersonalWifiUsageRepository mRepository;
 
     private final ConnectivityTracker mConnectivityTracker;
     private final Context mContext;
@@ -28,11 +28,11 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
     private long mStartTime;
     private long mCheckTime;
 
-    public PublicWifiUsageManager(Context context,
-                                  PublicWifiUsageRepository publicWifiUsageRepository,
-                                  ConnectivityTracker connectivityTracker) {
+    public PersonalWifiUsageManager(Context context,
+                                    PersonalWifiUsageRepository personalWifiUsageRepository,
+                                    ConnectivityTracker connectivityTracker) {
         mContext = context;
-        mRepository = publicWifiUsageRepository;
+        mRepository = personalWifiUsageRepository;
         mConnectivityTracker = connectivityTracker;
     }
 

@@ -18,8 +18,8 @@ import androidx.annotation.Nullable;
 import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
 import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
-import com.example.llmwithrag.knowledge.connectivity.PublicWifiUsageManager;
-import com.example.llmwithrag.knowledge.connectivity.PublicWifiUsageRepository;
+import com.example.llmwithrag.knowledge.connectivity.PersonalWifiUsageManager;
+import com.example.llmwithrag.knowledge.connectivity.PersonalWifiUsageRepository;
 import com.example.llmwithrag.knowledge.location.PersistentLocationManager;
 import com.example.llmwithrag.knowledge.location.PersistentLocationRepository;
 import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
@@ -33,7 +33,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private static final String ID_MAIN_CHANNEL = "001";
     private final IBinder binder = new LocalBinder();
     private PersistentLocationManager mPersistentLocationManager;
-    private PublicWifiUsageManager mPublicWifiUsageManager;
+    private PersonalWifiUsageManager mPersonalWifiUsageManager;
     private StationaryTimeManager mStationaryTimeManager;
     private boolean mStarted;
 
@@ -56,8 +56,8 @@ public class MonitoringService extends Service implements IMonitoringService {
         Context context = getApplicationContext();
         mPersistentLocationManager = new PersistentLocationManager(context,
                 new PersistentLocationRepository(context), new LocationTracker(context));
-        mPublicWifiUsageManager = new PublicWifiUsageManager(context,
-                new PublicWifiUsageRepository(context), new ConnectivityTracker(context));
+        mPersonalWifiUsageManager = new PersonalWifiUsageManager(context,
+                new PersonalWifiUsageRepository(context), new ConnectivityTracker(context));
         mStationaryTimeManager = new StationaryTimeManager(context,
                 new StationaryTimeRepository(context), new MovementTracker(context));
         mStarted = false;
@@ -102,13 +102,13 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public void deleteAll() {
         mPersistentLocationManager.deleteAll();
-        mPublicWifiUsageManager.deleteAll();
+        mPersonalWifiUsageManager.deleteAll();
         mStationaryTimeManager.deleteAll();
     }
 
     @Override
     public List<String> getMostFrequentPublicWifiConnectionTimes(int topN) {
-        return mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(topN);
+        return mPersonalWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(topN);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         if (mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
         mPersistentLocationManager.startMonitoring();
-        mPublicWifiUsageManager.startMonitoring();
+        mPersonalWifiUsageManager.startMonitoring();
         mStationaryTimeManager.startMonitoring();
         mStarted = true;
     }
@@ -151,7 +151,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         if (!mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Stopped", Toast.LENGTH_SHORT).show();
         mStationaryTimeManager.stopMonitoring();
-        mPublicWifiUsageManager.stopMonitoring();
+        mPersonalWifiUsageManager.stopMonitoring();
         mPersistentLocationManager.stopMonitoring();
         mStarted = false;
     }
