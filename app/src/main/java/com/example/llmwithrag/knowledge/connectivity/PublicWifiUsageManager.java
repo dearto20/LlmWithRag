@@ -1,7 +1,6 @@
 package com.example.llmwithrag.knowledge.connectivity;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.example.llmwithrag.datasource.connectivity.ConnectivityData;
@@ -18,19 +17,22 @@ import java.util.stream.Collectors;
 
 public class PublicWifiUsageManager implements IKnowledgeComponent {
     private static final String TAG = PublicWifiUsageManager.class.getSimpleName();
-    private static final String NAME_SHARED_PREFS = "public_wifi_usage";
     private static final String KEY_CONNECTION_TIME = "connection_time";
     private static final String KEY_CONNECTION_DURATION = "connection_duration";
     private static final long MIN_DURATION = 900000;
-    ;
+    private final PublicWifiUsageRepository mRepository;
+
     private final ConnectivityTracker mConnectivityTracker;
     private final Context mContext;
     private boolean mIsConnected;
     private long mStartTime;
     private long mCheckTime;
 
-    public PublicWifiUsageManager(Context context, ConnectivityTracker connectivityTracker) {
+    public PublicWifiUsageManager(Context context,
+                                  PublicWifiUsageRepository publicWifiUsageRepository,
+                                  ConnectivityTracker connectivityTracker) {
         mContext = context;
+        mRepository = publicWifiUsageRepository;
         mConnectivityTracker = connectivityTracker;
     }
 
@@ -38,47 +40,6 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
         mIsConnected = false;
         mStartTime = System.currentTimeMillis();
         mCheckTime = 0;
-    }
-
-    private void updateCandidateList(Map<String, Long> durationMap, String timeKey,
-                                     String durationKey) {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(
-                NAME_SHARED_PREFS, Context.MODE_PRIVATE);
-        String oldKey = sharedPreferences.getString(timeKey, null);
-        long oldValue = sharedPreferences.getLong(durationKey, 0);
-        Long newValue = durationMap.get(oldKey);
-        if (oldKey != null && oldValue > 0) {
-            if (!durationMap.containsKey(oldKey) || (newValue == null || newValue < oldValue)) {
-                durationMap.put(oldKey, oldValue);
-                Log.i(TAG, "add last key " + oldKey + " with value " + oldValue);
-            }
-        }
-    }
-
-    private void updateLastResult(Map<String, Long> durationMap, String timeKey,
-                                  String durationKey, List<String> result) {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(
-                NAME_SHARED_PREFS, Context.MODE_PRIVATE);
-        if (!result.isEmpty()) {
-            String key = result.get(0);
-            Long value = durationMap.get(key);
-            if (value != null) {
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(timeKey, key);
-                editor.putLong(durationKey, value);
-                editor.apply();
-                Log.i(TAG, "update last key " + key + " with value " + value);
-            }
-        }
-    }
-
-    private void deleteLastResult() {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(
-                NAME_SHARED_PREFS, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.apply();
-        Log.i(TAG, "remove last data");
     }
 
     public List<String> getMostFrequentPublicWifiConnectionTimes(int topN) {
@@ -112,7 +73,7 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
         mCheckTime = currentTime;
 
         // Add last top value to the candidate list.
-        updateCandidateList(durationMap, KEY_CONNECTION_TIME, KEY_CONNECTION_DURATION);
+        mRepository.updateCandidateList(durationMap, KEY_CONNECTION_TIME, KEY_CONNECTION_DURATION);
 
         List<String> result = durationMap.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
@@ -121,14 +82,14 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
                 .collect(Collectors.toList());
 
         // Update last top value
-        updateLastResult(durationMap, KEY_CONNECTION_TIME, KEY_CONNECTION_DURATION, result);
+        mRepository.updateLastResult(durationMap, KEY_CONNECTION_TIME, KEY_CONNECTION_DURATION, result);
         Log.i(TAG, "get most frequent connection time : " + result);
         return result;
     }
 
     @Override
     public void deleteAll() {
-        deleteLastResult();
+        mRepository.deleteLastResult();
         mConnectivityTracker.deleteAllData();
     }
 

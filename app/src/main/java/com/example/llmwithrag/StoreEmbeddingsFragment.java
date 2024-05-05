@@ -67,7 +67,6 @@ public class StoreEmbeddingsFragment extends Fragment {
     private static final long DELAY_PERIODIC_CHECK = 10000L;
 
     private EmbeddingViewModel mViewModel;
-    private TextView mEmbeddingsInDatabaseView;
     private ActivityResultLauncher<String[]> mRequestPermissionLauncher;
     private IMonitoringService mService;
     private Handler mHandler;
@@ -92,12 +91,9 @@ public class StoreEmbeddingsFragment extends Fragment {
             }
 
             mHandler = new Handler(Looper.getMainLooper());
-            mCheckRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    updateKnowledge();
-                    mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
-                }
+            mCheckRunnable = () -> {
+                mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
+                updateKnowledge();
             };
             mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
             updateKnowledge(true);
@@ -118,18 +114,22 @@ public class StoreEmbeddingsFragment extends Fragment {
         }
 
         private void updateKnowledge(boolean updateSwitch) {
-            updateViews();
+            try {
+                Log.i(TAG, "update knowledge");
+                updateViews();
 
-            SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-            if (sharedPreferences == null) {
-                return;
+                SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+                if (sharedPreferences == null) return;
+
+                updateDayLocation(sharedPreferences.getBoolean(KEY_DAY_LOCATION, true));
+                updateNightLocation(sharedPreferences.getBoolean(KEY_NIGHT_LOCATION, true));
+                updateWeekendLocation(sharedPreferences.getBoolean(KEY_WEEKEND_LOCATION, true));
+                updateStationaryTime(sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true));
+                updatePublicWifiTime(sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, true));
+            } catch (Throwable e) {
+                Log.e(TAG, e.toString());
+                e.printStackTrace();
             }
-
-            updateDayLocation(sharedPreferences.getBoolean(KEY_DAY_LOCATION, true));
-            updateNightLocation(sharedPreferences.getBoolean(KEY_NIGHT_LOCATION, true));
-            updateWeekendLocation(sharedPreferences.getBoolean(KEY_WEEKEND_LOCATION, true));
-            updateStationaryTime(sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true));
-            updatePublicWifiTime(sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, true));
         }
     };
 

@@ -3,30 +3,30 @@ package com.example.llmwithrag.datasource.location;
 import android.content.Context;
 
 import com.example.llmwithrag.datasource.DataSourceDatabase;
+import com.example.llmwithrag.datasource.DataSourceRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-public class LocationDataRepository {
-    private final LocationDataDao mDataDao;
-
-    public LocationDataRepository(Context context) {
-        DataSourceDatabase db = DataSourceDatabase.getInstance(context);
-        mDataDao = db.getLocationDataDao();
+public class LocationRepository extends
+        DataSourceRepository<LocationDataDao, LocationData> {
+    public LocationRepository(Context context) {
+        super(DataSourceDatabase.getInstance(context).getLocationDataDao());
     }
 
+    @Override
     public void insertData(LocationData data) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mDataDao.insertData(data);
-                mDataDao.deleteOldData();
-            }
+        new Thread(() -> {
+            mDataDao.insertData(data);
+            mDataDao.deleteOldData();
         }).start();
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * @noinspection unchecked
+     */
+    @Override
     public List<LocationData> getAllData() {
         try {
             final List<LocationData>[] result = new List[]{null};
@@ -43,12 +43,8 @@ public class LocationDataRepository {
         return new ArrayList<>();
     }
 
+    @Override
     public void deleteAllData() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mDataDao.deleteAllData();
-            }
-        }).start();
+        new Thread(mDataDao::deleteAllData).start();
     }
 }

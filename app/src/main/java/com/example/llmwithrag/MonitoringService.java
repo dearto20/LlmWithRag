@@ -19,8 +19,11 @@ import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
 import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
 import com.example.llmwithrag.knowledge.connectivity.PublicWifiUsageManager;
+import com.example.llmwithrag.knowledge.connectivity.PublicWifiUsageRepository;
 import com.example.llmwithrag.knowledge.location.PersistentLocationManager;
+import com.example.llmwithrag.knowledge.location.PersistentLocationRepository;
 import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
+import com.example.llmwithrag.knowledge.status.StationaryTimeRepository;
 
 import java.util.List;
 
@@ -51,9 +54,12 @@ public class MonitoringService extends Service implements IMonitoringService {
         }
 
         Context context = getApplicationContext();
-        mPersistentLocationManager = new PersistentLocationManager(context, new LocationTracker(context));
-        mPublicWifiUsageManager = new PublicWifiUsageManager(context, new ConnectivityTracker(context));
-        mStationaryTimeManager = new StationaryTimeManager(context, new MovementTracker(context));
+        mPersistentLocationManager = new PersistentLocationManager(context,
+                new PersistentLocationRepository(context), new LocationTracker(context));
+        mPublicWifiUsageManager = new PublicWifiUsageManager(context,
+                new PublicWifiUsageRepository(context), new ConnectivityTracker(context));
+        mStationaryTimeManager = new StationaryTimeManager(context,
+                new StationaryTimeRepository(context), new MovementTracker(context));
         mStarted = false;
     }
 

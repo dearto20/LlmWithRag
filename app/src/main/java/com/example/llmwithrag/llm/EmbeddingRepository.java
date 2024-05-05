@@ -35,12 +35,9 @@ public class EmbeddingRepository {
         final List<Embedding>[] result = new List[]{new ArrayList<>()};
         try {
             CountDownLatch countDownLatch = new CountDownLatch(1);
-            mExecutorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    result[0] = mEmbeddingDao.getAll();
-                    countDownLatch.countDown();
-                }
+            mExecutorService.execute(() -> {
+                result[0] = mEmbeddingDao.getAll();
+                countDownLatch.countDown();
             });
             countDownLatch.await(5, TimeUnit.SECONDS);
         } catch (Throwable e) {

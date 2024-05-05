@@ -1,6 +1,6 @@
 package com.example.llmwithrag.datasource;
 
-public interface IDataSource {
+public interface IDataSourceComponent {
     void startMonitoring();
     void stopMonitoring();
 }

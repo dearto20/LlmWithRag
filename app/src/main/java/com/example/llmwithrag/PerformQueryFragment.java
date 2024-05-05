@@ -154,21 +154,18 @@ public class PerformQueryFragment extends Fragment {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         final Embedding[] result = {null};
         try {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Response<EmbeddingResponse> response = call.execute();
-                        if (response.isSuccessful() && response.body() != null) {
-                            float[] embedding = response.body().data.get(0).embedding;
-                            Log.i(TAG, "response: " + Arrays.toString(embedding));
-                            result[0] = new Embedding(text, "", "", embedding);
-                        }
-                        countDownLatch.countDown();
-                    } catch (IOException e) {
-                        Log.e(TAG, e.toString());
-                        e.printStackTrace();
+            new Thread(() -> {
+                try {
+                    Response<EmbeddingResponse> response = call.execute();
+                    if (response.isSuccessful() && response.body() != null) {
+                        float[] embedding = response.body().data.get(0).embedding;
+                        Log.i(TAG, "response: " + Arrays.toString(embedding));
+                        result[0] = new Embedding(text, "", "", embedding);
                     }
+                    countDownLatch.countDown();
+                } catch (IOException e) {
+                    Log.e(TAG, e.toString());
+                    e.printStackTrace();
                 }
             }).start();
             countDownLatch.await();

@@ -6,13 +6,12 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.example.llmwithrag.datasource.IDataSource;
+import com.example.llmwithrag.datasource.IDataSourceComponent;
 
 import java.util.List;
 
-public class ConnectivityTracker implements IDataSource {
+public class ConnectivityTracker implements IDataSourceComponent {
     private static final String TAG = ConnectivityTracker.class.getSimpleName();
     private final Context mContext;
     private final ConnectivityRepository mRepository;

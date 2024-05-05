@@ -9,11 +9,11 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
-import com.example.llmwithrag.datasource.IDataSource;
+import com.example.llmwithrag.datasource.IDataSourceComponent;
 
 import java.util.List;
 
-public class MovementTracker implements SensorEventListener, IDataSource {
+public class MovementTracker implements SensorEventListener, IDataSourceComponent {
     private static final String TAG = MovementTracker.class.getSimpleName();
     private static final long INTERVAL = 1000;
     private final SensorManager mSensorManager;

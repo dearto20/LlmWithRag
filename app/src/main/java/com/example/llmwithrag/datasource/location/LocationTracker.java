@@ -14,21 +14,21 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
-import com.example.llmwithrag.datasource.IDataSource;
+import com.example.llmwithrag.datasource.IDataSourceComponent;
 
 import java.util.List;
 
-public class LocationTracker implements IDataSource {
+public class LocationTracker implements IDataSourceComponent {
     private static final String TAG = LocationTracker.class.getSimpleName();
     private static final long INTERVAL = 1000 * 10; // TODO: 1000 * 60 * 10;
     private final Context mContext;
     private final LocationManager mLocationManager;
-    private final LocationDataRepository mRepository;
+    private final LocationRepository mRepository;
 
     public LocationTracker(Context context) {
         mContext = context;
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        mRepository = new LocationDataRepository(context);
+        mRepository = new LocationRepository(context);
     }
 
     @Override
