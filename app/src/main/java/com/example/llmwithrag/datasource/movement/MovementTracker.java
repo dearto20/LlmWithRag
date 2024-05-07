@@ -15,6 +15,7 @@ import java.util.List;
 
 public class MovementTracker implements SensorEventListener, IDataSourceComponent {
     private static final String TAG = MovementTracker.class.getSimpleName();
+    private final boolean DEBUG = false;
     private static final long INTERVAL = 1000;
     private final SensorManager mSensorManager;
     private final Sensor mAccelerometerSensor;
@@ -46,7 +47,7 @@ public class MovementTracker implements SensorEventListener, IDataSourceComponen
         if (currentTime - lastTime >= INTERVAL) {
             lastTime = currentTime;
             if (sensorEvent.sensor.getType() == TYPE_ACCELEROMETER) {
-                Log.d(TAG, "movement update : (" + sensorEvent.values[0] + ", " +
+                if (DEBUG) Log.d(TAG, "movement update : (" + sensorEvent.values[0] + ", " +
                         sensorEvent.values[1] + ", " + sensorEvent.values[2] + " at " +
                         currentTime + ")");
                 mRepository.insertData(new MovementData(sensorEvent.values[0],

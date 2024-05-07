@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 public class StationaryTimeManager implements IKnowledgeComponent {
     private static final String TAG = StationaryTimeManager.class.getSimpleName();
+    private final boolean DEBUG = false;
     private static final String KEY_STATIONARY_TIME = "stationary_time";
     private static final String KEY_STATIONARY_DURATION = "stationary_duration";
     private static final float GRAVITY = 9.8f;
@@ -56,13 +57,14 @@ public class StationaryTimeManager implements IKnowledgeComponent {
             long timestamp = movement.timestamp;
 
             if (mIsStationary != isNewStationary) {
-                Log.i(TAG, "stationary status change to " + isNewStationary);
+                if (DEBUG) Log.d(TAG, "stationary status change to " + isNewStationary);
                 if (isNewStationary) {
                     mStartTime = timestamp;
                     mIsStationary = true;
                 } else {
                     long duration = timestamp - mStartTime;
-                    Log.i(TAG, "duration : " + duration + ", min duration : " + MIN_DURATION);
+                    if (DEBUG) Log.d(TAG, "duration : " + duration + ", min duration : " +
+                            MIN_DURATION);
                     if (duration >= MIN_DURATION) {
                         durationMap.put(periodOf(mStartTime, timestamp), duration);
                         mStartTime = timestamp;

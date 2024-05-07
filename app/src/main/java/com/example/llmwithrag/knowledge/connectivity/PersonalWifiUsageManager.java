@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 public class PersonalWifiUsageManager implements IKnowledgeComponent {
     private static final String TAG = PersonalWifiUsageManager.class.getSimpleName();
+    private final boolean DEBUG = false;
     private static final String KEY_CONNECTION_TIME = "connection_time";
     private static final String KEY_CONNECTION_DURATION = "connection_duration";
     private static final long MIN_DURATION = 900000;
@@ -53,13 +54,14 @@ public class PersonalWifiUsageManager implements IKnowledgeComponent {
             long timestamp = data.timestamp;
 
             if (mIsConnected != isNewConnected) {
-                Log.i(TAG, "connection status change to " + isNewConnected);
+                if (DEBUG) Log.d(TAG, "connection status change to " + isNewConnected);
                 if (isNewConnected) {
                     mStartTime = timestamp;
                     mIsConnected = true;
                 } else {
                     long duration = timestamp - mStartTime;
-                    Log.i(TAG, "duration : " + duration + ", min duration : " + MIN_DURATION);
+                    if (DEBUG) Log.d(TAG, "duration : " + duration + ", min duration : " +
+                            MIN_DURATION);
                     if (duration >= MIN_DURATION) {
                         durationMap.put(periodOf(mStartTime, timestamp), duration);
                         mStartTime = timestamp;
