@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class PersistentLocationManager implements IKnowledgeComponent {
     private static final String TAG = PersistentLocationManager.class.getSimpleName();
-    private final boolean DEBUG = false;
+    private static final boolean DEBUG = false;
     private static final String KEY_LOCATION_0_COORDINATES = "location_0_coordinates";
     private static final String KEY_LOCATION_0_COUNT = "location_0_count";
     private static final String KEY_LOCATION_1_COORDINATES = "location_1_coordinates";

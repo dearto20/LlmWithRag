@@ -9,12 +9,12 @@ import com.example.llmwithrag.knowledge.KnowledgeRepository;
 import java.util.List;
 import java.util.Map;
 
-public class PersonalWifiUsageRepository extends KnowledgeRepository<Long> {
-    private static final String TAG = PersonalWifiUsageRepository.class.getSimpleName();
+public class PublicWifiUsageRepository extends KnowledgeRepository<Long> {
+    private static final String TAG = PublicWifiUsageRepository.class.getSimpleName();
     private static final String NAME_SHARED_PREFS = "public_wifi_usage";
     private final Context mContext;
 
-    public PersonalWifiUsageRepository(Context context) {
+    public PublicWifiUsageRepository(Context context) {
         mContext = context;
     }
 

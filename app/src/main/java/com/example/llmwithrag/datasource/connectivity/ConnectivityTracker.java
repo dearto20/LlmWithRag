@@ -5,6 +5,8 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.example.llmwithrag.datasource.IDataSourceComponent;
@@ -13,16 +15,17 @@ import java.util.List;
 
 public class ConnectivityTracker implements IDataSourceComponent {
     private static final String TAG = ConnectivityTracker.class.getSimpleName();
-    private final Context mContext;
+    private static final boolean DEBUG = false;
+    private final ConnectivityManager mConnectivityManager;
     private final ConnectivityRepository mRepository;
+    private final Handler mHandler;
     private ConnectivityManager.NetworkCallback mNetworkCallback;
-    private ConnectivityManager mConnectivityManager;
 
-    public ConnectivityTracker(Context context) {
-        mContext = context;
+    public ConnectivityTracker(Context context, Looper looper) {
+        mHandler = new Handler(looper);
         mRepository = new ConnectivityRepository(context);
         mConnectivityManager = (ConnectivityManager)
-                mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+                context.getSystemService(Context.CONNECTIVITY_SERVICE);
     }
 
     @Override
@@ -33,6 +36,7 @@ public class ConnectivityTracker implements IDataSourceComponent {
     @Override
     public void stopMonitoring() {
         unregisterNetworkCallback();
+        mHandler.removeCallbacksAndMessages(null);
     }
 
     public List<ConnectivityData> getAllData() {
@@ -63,7 +67,7 @@ public class ConnectivityTracker implements IDataSourceComponent {
                 boolean isEnterpriseNetwork = isEnterpriseNetwork(network);
                 mRepository.insertData(new ConnectivityData(true,
                         isEnterpriseNetwork(network), System.currentTimeMillis()));
-                Log.i(TAG, "connected to " +
+                if (DEBUG) Log.i(TAG, "connected to " +
                         ((isEnterpriseNetwork) ? "an enterprise" : "a non-enterprise") + " network");
             }
 
@@ -73,11 +77,11 @@ public class ConnectivityTracker implements IDataSourceComponent {
                 boolean isEnterpriseNetwork = isEnterpriseNetwork(network);
                 mRepository.insertData(new ConnectivityData(false,
                         isEnterpriseNetwork(network), System.currentTimeMillis()));
-                Log.i(TAG, "disconnected from " +
+                if (DEBUG) Log.i(TAG, "disconnected from " +
                         ((isEnterpriseNetwork) ? "an enterprise" : "a non-enterprise") + " network");
             }
         };
-        mConnectivityManager.registerNetworkCallback(request, mNetworkCallback);
+        mConnectivityManager.registerNetworkCallback(request, mNetworkCallback, mHandler);
     }
 
     public void unregisterNetworkCallback() {

@@ -1,23 +1,31 @@
 package com.example.llmwithrag;
 
-import java.util.List;
-
 public interface IMonitoringService {
     void deleteAll();
 
-    List<String> getMostFrequentPublicWifiConnectionTimes(int topN);
+    String getMostFrequentlyVisitedPlaceDuringTheDay();
 
-    List<String> getMostFrequentStationaryTimes(int topN);
+    String getMostFrequentlyVisitedPlaceDuringTheNight();
 
-    List<String> getMostFrequentlyVisitedPlacesDuringTheDay(int topN);
+    String getMostFrequentlyVisitedPlaceDuringTheWeekend();
 
-    List<String> getMostFrequentlyVisitedPlacesDuringTheNight(int topN);
+    String getMostFrequentStationaryTime();
 
-    List<String> getMostFrequentlyVisitedPlacesDuringTheWeekend(int topN);
+    String getMostFrequentPublicWifiConnectionTime();
 
-    boolean isStarted();
+    void setDayLocationEnabled(boolean enabled);
+
+    void setNightLocationEnabled(boolean enabled);
+
+    void setWeekendLocationEnabled(boolean enabled);
+
+    void setStationaryTimeEnabled(boolean enabled);
+
+    void setPublicWifiTimeEnabled(boolean enabled);
 
     void startMonitoring();
 
     void stopMonitoring();
+
+    boolean isStarted();
 }

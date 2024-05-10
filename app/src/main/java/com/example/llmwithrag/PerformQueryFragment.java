@@ -5,7 +5,6 @@ import static android.Manifest.permission.RECORD_AUDIO;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -189,11 +188,27 @@ public class PerformQueryFragment extends Fragment {
 
     @SuppressLint("QueryPermissionsNeeded")
     private void runNaviApp(String destination) {
+        /*
         Intent intent = new Intent();
         intent.setComponent(new ComponentName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity"));
         intent.setAction(Intent.ACTION_VIEW);
         intent.setData(Uri.parse("google.navigation:q=" + Uri.encode(destination) + "&mode=r"));
         startActivity(intent);
+         */
+
+        String[] parts = destination.split(",\\s*");
+        if (parts.length == 2) {
+            try {
+                double latitude = Double.parseDouble(parts[0]);
+                double longitude = Double.parseDouble(parts[1]);
+                Uri uri = Uri.parse("tmap://route?goalx=" + longitude + "&goaly=" + latitude + "&name=home");
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+            } catch (Throwable e) {
+                Log.e(TAG, e.toString());
+                e.printStackTrace();
+            }
+        }
     }
 
     private void performQuery(String query) {

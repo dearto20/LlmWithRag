@@ -24,7 +24,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -72,11 +71,16 @@ public class StoreEmbeddingsFragment extends Fragment {
     private Handler mHandler;
     private Runnable mCheckRunnable;
 
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
             Log.i(TAG, "connected to the service");
             mService = ((MonitoringService.LocalBinder) binder).getService();
+            mService.setDayLocationEnabled(isDayLocationEnabled());
+            mService.setNightLocationEnabled(isNightLocationEnabled());
+            mService.setWeekendLocationEnabled(isWeekendLocationEnabled());
+            mService.setStationaryTimeEnabled(isStationaryTimeEnabled());
+            mService.setPublicWifiTimeEnabled(isPublicWifiTimeEnabled());
             mService.startMonitoring();
 
             FragmentActivity activity = getActivity();
@@ -93,10 +97,10 @@ public class StoreEmbeddingsFragment extends Fragment {
             mHandler = new Handler(Looper.getMainLooper());
             mCheckRunnable = () -> {
                 mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
-                updateKnowledge();
+                updateViews();
             };
             mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
-            updateKnowledge(true);
+            updateViews();
         }
 
         @Override
@@ -108,92 +112,73 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (mService != null) mService.stopMonitoring();
             mService = null;
         }
-
-        private void updateKnowledge() {
-            updateKnowledge(false);
-        }
-
-        private void updateKnowledge(boolean updateSwitch) {
-            try {
-                Log.i(TAG, "update knowledge");
-                updateViews();
-
-                SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-                if (sharedPreferences == null) return;
-
-                updateDayLocation(sharedPreferences.getBoolean(KEY_DAY_LOCATION, true));
-                updateNightLocation(sharedPreferences.getBoolean(KEY_NIGHT_LOCATION, true));
-                updateWeekendLocation(sharedPreferences.getBoolean(KEY_WEEKEND_LOCATION, true));
-                updateStationaryTime(sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true));
-                updatePublicWifiTime(sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, true));
-            } catch (Throwable e) {
-                Log.e(TAG, e.toString());
-                e.printStackTrace();
-            }
-        }
     };
 
+    private void updateKnowledge() {
+        try {
+            updateDayLocation(isDayLocationEnabled());
+            updateNightLocation(isNightLocationEnabled());
+            updateWeekendLocation(isWeekendLocationEnabled());
+            updateStationaryTime(isStationaryTimeEnabled());
+            updatePublicWifiTime(isPublicWifiTimeEnabled());
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
+        }
+    }
+
     private void updateViews() {
-        FragmentActivity activity = getActivity();
-        if (activity == null) return;
-        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        if (sharedPreferences == null) {
-            return;
+        try {
+            updateService();
+            updateKnowledge();
+
+            FragmentActivity activity = getActivity();
+            if (activity == null) return;
+            SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+            if (sharedPreferences == null) {
+                return;
+            }
+
+            TextView configureKnowledgeView = activity.findViewById(R.id.configureKnowledgeView);
+            LinearLayout configureKnowledgeLayout = activity.findViewById(R.id.configureKnowledgeLayout);
+            TextView showKnowledgeView = activity.findViewById(R.id.showKnowledgeView);
+            LinearLayout showKnowledgeLayout = activity.findViewById(R.id.showKnowledgeLayout);
+            Button resetDatabaseButton = activity.findViewById(R.id.resetDatabaseButton);
+
+            if (isServiceEnabled()) {
+                configureKnowledgeView.setVisibility(View.VISIBLE);
+                configureKnowledgeLayout.setVisibility(View.VISIBLE);
+                showKnowledgeView.setVisibility(View.VISIBLE);
+                showKnowledgeLayout.setVisibility(View.VISIBLE);
+                resetDatabaseButton.setVisibility(View.VISIBLE);
+
+                Switch dayLocationSwitch = activity.findViewById(R.id.dayLocationSwitch);
+                dayLocationSwitch.setChecked(isDayLocationEnabled());
+
+                Switch nightLocationSwitch = activity.findViewById(R.id.nightLocationSwitch);
+                nightLocationSwitch.setChecked(isNightLocationEnabled());
+
+                Switch weekendLocationSwitch = activity.findViewById(R.id.weekendLocationSwitch);
+                weekendLocationSwitch.setChecked(isWeekendLocationEnabled());
+
+                Switch stationaryTimeSwitch = activity.findViewById(R.id.stationaryTimeSwitch);
+                stationaryTimeSwitch.setChecked(isStationaryTimeEnabled());
+
+                Switch publicWifiTimeSwitch = activity.findViewById(R.id.publicWifiTimeSwitch);
+                publicWifiTimeSwitch.setChecked(isPublicWifiTimeEnabled());
+            } else {
+                configureKnowledgeView.setVisibility(View.GONE);
+                configureKnowledgeLayout.setVisibility(View.GONE);
+                showKnowledgeView.setVisibility(View.GONE);
+                showKnowledgeLayout.setVisibility(View.GONE);
+                resetDatabaseButton.setVisibility(View.GONE);
+            }
+
+            updateEmbeddingsList();
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
         }
-
-        TextView configureKnowledgeView = activity.findViewById(R.id.configureKnowledgeView);
-        LinearLayout configureKnowledgeLayout = activity.findViewById(R.id.configureKnowledgeLayout);
-        TextView showKnowledgeView = activity.findViewById(R.id.showKnowledgeView);
-        LinearLayout showKnowledgeLayout = activity.findViewById(R.id.showKnowledgeLayout);
-        Button resetDatabaseButton = activity.findViewById(R.id.resetDatabaseButton);
-
-        boolean enabled = sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
-        if (enabled) {
-            configureKnowledgeView.setVisibility(View.VISIBLE);
-            configureKnowledgeLayout.setVisibility(View.VISIBLE);
-            showKnowledgeView.setVisibility(View.VISIBLE);
-            showKnowledgeLayout.setVisibility(View.VISIBLE);
-            resetDatabaseButton.setVisibility(View.VISIBLE);
-
-            boolean isDayLocationEnabled = sharedPreferences.getBoolean(KEY_DAY_LOCATION, true);
-            boolean isNightLocationEnabled = sharedPreferences.getBoolean(KEY_NIGHT_LOCATION, true);
-            boolean isWeekendLocationEnabled = sharedPreferences.getBoolean(KEY_WEEKEND_LOCATION, true);
-            boolean isStationaryTimeEnabled = sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true);
-            boolean isPublicWifiTimeEnabled = sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, true);
-
-            Switch dayLocationSwitch = activity.findViewById(R.id.dayLocationSwitch);
-            if (isDayLocationEnabled != dayLocationSwitch.isChecked()) {
-                dayLocationSwitch.setChecked(isDayLocationEnabled);
-            }
-
-            Switch nightLocationSwitch = activity.findViewById(R.id.nightLocationSwitch);
-            if (isNightLocationEnabled != nightLocationSwitch.isChecked()) {
-                nightLocationSwitch.setChecked(isNightLocationEnabled);
-            }
-
-            Switch weekendLocationSwitch = activity.findViewById(R.id.weekendLocationSwitch);
-            if (isWeekendLocationEnabled != weekendLocationSwitch.isChecked()) {
-                weekendLocationSwitch.setChecked(isWeekendLocationEnabled);
-            }
-
-            Switch stationaryTimeSwitch = activity.findViewById(R.id.stationaryTimeSwitch);
-            if (isStationaryTimeEnabled != stationaryTimeSwitch.isChecked()) {
-                stationaryTimeSwitch.setChecked(isStationaryTimeEnabled);
-            }
-
-            Switch publicWifiTimeSwitch = activity.findViewById(R.id.publicWifiTimeSwitch);
-            if (isPublicWifiTimeEnabled != publicWifiTimeSwitch.isChecked()) {
-                publicWifiTimeSwitch.setChecked(isPublicWifiTimeEnabled);
-            }
-        } else {
-            configureKnowledgeView.setVisibility(View.GONE);
-            configureKnowledgeLayout.setVisibility(View.GONE);
-            showKnowledgeView.setVisibility(View.GONE);
-            showKnowledgeLayout.setVisibility(View.GONE);
-            resetDatabaseButton.setVisibility(View.GONE);
-        }
-
-        updateEmbeddingsList();
     }
 
     private SharedPreferences getSharedPreferences(String name) {
@@ -305,103 +290,87 @@ public class StoreEmbeddingsFragment extends Fragment {
         Switch publicWifiTimeSwitch = view.findViewById(R.id.publicWifiTimeSwitch);
         Button resetButton = view.findViewById(R.id.resetDatabaseButton);
 
-        String[] permissions;
-
-        if (Build.VERSION.SDK_INT >= 34) {
-            permissions = new String[]{
-                    ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO,
-                    FOREGROUND_SERVICE_LOCATION
-            };
-        } else {
-            permissions = new String[]{
-                    ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO
-            };
-        }
-
-        enableServiceSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton button, boolean isChecked) {
-                Log.i(TAG, "onCheckedChanged");
-                setSharedPreferences(KEY_SERVICE_ENABLED, isChecked);
-                updateViews();
-
-                if (isChecked) {
-                    if (isPermissionGranted(permissions)) {
-                        bindToMonitoringService();
-                    } else {
-                        mRequestPermissionLauncher.launch(permissions);
-                    }
-                } else {
-                    if (mService != null) {
-                        mService.stopMonitoring();
-                        Context context = getContext();
-                        if (context == null) return;
-                        context.unbindService(mConnection);
-                        mService = null;
-                    }
-                }
-            }
+        enableServiceSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            setServiceEnabled(isChecked);
+            updateViews();
         });
 
-        dayLocationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton button, boolean isChecked) {
-                setSharedPreferences(KEY_DAY_LOCATION, isChecked);
-                updateDayLocation(isChecked);
-            }
+        dayLocationSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            setDayLocationEnabled(isChecked);
+            updateViews();
         });
 
-        nightLocationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton button, boolean isChecked) {
-                setSharedPreferences(KEY_NIGHT_LOCATION, isChecked);
-                updateNightLocation(isChecked);
-            }
+        nightLocationSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            setNightLocationEnabled(isChecked);
+            updateViews();
         });
 
-        weekendLocationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton button, boolean isChecked) {
-                setSharedPreferences(KEY_WEEKEND_LOCATION, isChecked);
-                updateWeekendLocation(isChecked);
-            }
+        weekendLocationSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            setWeekendLocationEnabled(isChecked);
+            updateViews();
         });
 
-        stationaryTimeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton button, boolean isChecked) {
-                setSharedPreferences(KEY_STATIONARY_TIME, isChecked);
-                updateStationaryTime(isChecked);
-            }
+        stationaryTimeSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            setStationaryTimeEnabled(isChecked);
+            updateViews();
         });
 
-        publicWifiTimeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton button, boolean isChecked) {
-                setSharedPreferences(KEY_PUBLIC_WIFI_TIME, isChecked);
-                updatePublicWifiTime(isChecked);
-            }
+        publicWifiTimeSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            setPublicWifiTimeEnabled(isChecked);
+            updateViews();
         });
 
-        resetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mService.deleteAll();
-                removeAllEmbeddings();
-            }
+        resetButton.setOnClickListener(view1 -> {
+            if (mService != null) mService.deleteAll();
+            removeAllEmbeddings();
         });
 
         enableServiceSwitch.setChecked(false);
         return view;
     }
 
+    private void updateService() {
+        try {
+            String[] permissions;
+
+            if (Build.VERSION.SDK_INT >= 34) {
+                permissions = new String[]{
+                        ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO,
+                        FOREGROUND_SERVICE_LOCATION
+                };
+            } else {
+                permissions = new String[]{
+                        ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO
+                };
+            }
+
+            if (isServiceEnabled()) {
+                if (isPermissionGranted(permissions)) {
+                    bindToMonitoringService();
+                } else {
+                    mRequestPermissionLauncher.launch(permissions);
+                }
+            } else {
+                if (mService != null) {
+                    mService.stopMonitoring();
+                    Context context = getContext();
+                    if (context == null) return;
+                    context.unbindService(mConnection);
+                    mService = null;
+                }
+            }
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
+        }
+    }
+
     private void updateDayLocation(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Unavailable";
-            List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheDay(1);
-            if (!results.isEmpty()) {
-                result = results.get(0);
+            String result = mService.getMostFrequentlyVisitedPlaceDuringTheDay();
+            if (TextUtils.isEmpty(result)) {
+                result = "Unavailable";
             }
             String text = getString(R.string.day_location) + " is " + result;
             addEmbeddings(text, text, KEY_DAY_LOCATION);
@@ -413,10 +382,9 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateNightLocation(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Unavailable";
-            List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheNight(1);
-            if (!results.isEmpty()) {
-                result = results.get(0);
+            String result = mService.getMostFrequentlyVisitedPlaceDuringTheNight();
+            if (TextUtils.isEmpty(result)) {
+                result = "Unavailable";
             }
             String text = getString(R.string.night_location) + " is " + result;
             addEmbeddings(text, text, KEY_NIGHT_LOCATION);
@@ -428,10 +396,9 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateWeekendLocation(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Unavailable";
-            List<String> results = mService.getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
-            if (!results.isEmpty()) {
-                result = results.get(0);
+            String result = mService.getMostFrequentlyVisitedPlaceDuringTheWeekend();
+            if (TextUtils.isEmpty(result)) {
+                result = "Unavailable";
             }
             String text = getString(R.string.weekend_location) + " is " + result;
             addEmbeddings(text, text, KEY_WEEKEND_LOCATION);
@@ -443,10 +410,9 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateStationaryTime(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Unavailable";
-            List<String> results = mService.getMostFrequentStationaryTimes(1);
-            if (!results.isEmpty()) {
-                result = results.get(0);
+            String result = mService.getMostFrequentStationaryTime();
+            if (TextUtils.isEmpty(result)) {
+                result = "Unavailable";
             }
             String text = getString(R.string.stationary_time) + " is " + result;
             addEmbeddings(text, text, KEY_STATIONARY_TIME);
@@ -458,10 +424,9 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updatePublicWifiTime(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = "Unavailable";
-            List<String> results = mService.getMostFrequentPublicWifiConnectionTimes(1);
-            if (!results.isEmpty()) {
-                result = results.get(0);
+            String result = mService.getMostFrequentPublicWifiConnectionTime();
+            if (TextUtils.isEmpty(result)) {
+                result = "Unavailable";
             }
             String text = getString(R.string.public_wifi_time) + " is " + result;
             addEmbeddings(text, text, KEY_PUBLIC_WIFI_TIME);
@@ -471,23 +436,24 @@ public class StoreEmbeddingsFragment extends Fragment {
     }
 
     private void updateEmbeddingsList() {
-        FragmentActivity activity = getActivity();
-        if (activity == null) return;
-        Switch enableServiceSwitch = activity.findViewById(R.id.enableServiceSwitch);
-        if (enableServiceSwitch == null || !enableServiceSwitch.isChecked()) return;
-        TextView dayLocationView = activity.findViewById(R.id.dayLocationView);
-        TextView nightLocationView = activity.findViewById(R.id.nightLocationView);
-        TextView weekendLocationView = activity.findViewById(R.id.weekendLocationView);
-        TextView stationaryTimeView = activity.findViewById(R.id.stationaryTimeView);
-        TextView publicWifiTimeView = activity.findViewById(R.id.publicWifiTimeView);
-        List<Embedding> embeddings = mViewModel.getAll();
-        if (embeddings.isEmpty()) {
+        try {
+            FragmentActivity activity = getActivity();
+            if (activity == null) return;
+            Switch enableServiceSwitch = activity.findViewById(R.id.enableServiceSwitch);
+            if (enableServiceSwitch == null || !enableServiceSwitch.isChecked()) return;
+            TextView dayLocationView = activity.findViewById(R.id.dayLocationView);
+            TextView nightLocationView = activity.findViewById(R.id.nightLocationView);
+            TextView weekendLocationView = activity.findViewById(R.id.weekendLocationView);
+            TextView stationaryTimeView = activity.findViewById(R.id.stationaryTimeView);
+            TextView publicWifiTimeView = activity.findViewById(R.id.publicWifiTimeView);
+
+            List<Embedding> embeddings = mViewModel.getAll();
             dayLocationView.setText(R.string.day_location_unavailable);
             nightLocationView.setText(R.string.night_location_unavailable);
             weekendLocationView.setText(R.string.weekend_location_unavailable);
             stationaryTimeView.setText(R.string.stationary_time_unavailable);
             publicWifiTimeView.setText(R.string.public_wifi_time_unavailable);
-        } else {
+
             for (Embedding embedding : embeddings) {
                 if (TextUtils.equals(KEY_DAY_LOCATION, embedding.category)) {
                     dayLocationView.setText(embedding.description);
@@ -501,6 +467,9 @@ public class StoreEmbeddingsFragment extends Fragment {
                     publicWifiTimeView.setText(embedding.description);
                 }
             }
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -556,5 +525,64 @@ public class StoreEmbeddingsFragment extends Fragment {
         Log.i(TAG, "embeddings deleted for all");
         mViewModel.deleteAll();
         updateEmbeddingsList();
+    }
+
+    private boolean isServiceEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
+    }
+
+    private boolean isDayLocationEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_DAY_LOCATION, false);
+    }
+
+    private boolean isNightLocationEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_NIGHT_LOCATION, false);
+    }
+
+    private boolean isWeekendLocationEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_WEEKEND_LOCATION, false);
+    }
+
+    private boolean isStationaryTimeEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_STATIONARY_TIME, false);
+    }
+
+    private boolean isPublicWifiTimeEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, false);
+    }
+
+    private void setServiceEnabled(boolean enabled) {
+        setSharedPreferences(KEY_SERVICE_ENABLED, enabled);
+    }
+
+    private void setDayLocationEnabled(boolean enabled) {
+        setSharedPreferences(KEY_DAY_LOCATION, enabled);
+        if (mService != null) mService.setDayLocationEnabled(enabled);
+    }
+
+    private void setNightLocationEnabled(boolean enabled) {
+        setSharedPreferences(KEY_NIGHT_LOCATION, enabled);
+        if (mService != null) mService.setNightLocationEnabled(enabled);
+    }
+
+    private void setWeekendLocationEnabled(boolean enabled) {
+        setSharedPreferences(KEY_WEEKEND_LOCATION, enabled);
+        if (mService != null) mService.setWeekendLocationEnabled(enabled);
+    }
+
+    private void setStationaryTimeEnabled(boolean enabled) {
+        setSharedPreferences(KEY_STATIONARY_TIME, enabled);
+        if (mService != null) mService.setStationaryTimeEnabled(enabled);
+    }
+
+    private void setPublicWifiTimeEnabled(boolean enabled) {
+        setSharedPreferences(KEY_PUBLIC_WIFI_TIME, enabled);
+        if (mService != null) mService.setPublicWifiTimeEnabled(enabled);
     }
 }

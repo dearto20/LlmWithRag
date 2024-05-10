@@ -9,6 +9,8 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -20,13 +22,16 @@ import java.util.List;
 
 public class LocationTracker implements IDataSourceComponent {
     private static final String TAG = LocationTracker.class.getSimpleName();
+    private static final boolean DEBUG = false;
     private static final long INTERVAL = 1000 * 10; // TODO: 1000 * 60 * 10;
     private final Context mContext;
+    private final Handler mHandler;
     private final LocationManager mLocationManager;
     private final LocationRepository mRepository;
 
-    public LocationTracker(Context context) {
+    public LocationTracker(Context context, Looper looper) {
         mContext = context;
+        mHandler = new Handler(looper);
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         mRepository = new LocationRepository(context);
     }
@@ -36,7 +41,8 @@ public class LocationTracker implements IDataSourceComponent {
         if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION)
                 == PERMISSION_GRANTED) {
             mLocationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, INTERVAL, 0, mLocationListener);
+                    LocationManager.GPS_PROVIDER, INTERVAL, 0, mLocationListener,
+                    mHandler.getLooper());
         } else {
             Log.e(TAG, "permission ACCESS_COARSE_LOCATION not granted");
         }
@@ -44,7 +50,8 @@ public class LocationTracker implements IDataSourceComponent {
         if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PERMISSION_GRANTED) {
             mLocationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, INTERVAL, 0, mLocationListener);
+                    LocationManager.NETWORK_PROVIDER, INTERVAL, 0, mLocationListener,
+                    mHandler.getLooper());
         } else {
             Log.e(TAG, "permission ACCESS_FINE_LOCATION not granted");
         }
@@ -57,6 +64,7 @@ public class LocationTracker implements IDataSourceComponent {
                 ContextCompat.checkSelfPermission(mContext, ACCESS_FINE_LOCATION)
                         == PERMISSION_GRANTED) {
             mLocationManager.removeUpdates(mLocationListener);
+            mHandler.removeCallbacksAndMessages(null);
         }
     }
 
@@ -74,7 +82,7 @@ public class LocationTracker implements IDataSourceComponent {
             double scale = Math.pow(10, 4);
             double latitude = Math.floor(location.getLatitude() * scale) / scale;
             double longitude = Math.floor(location.getLongitude() * scale) / scale;
-            Log.d(TAG, "location update : (" + latitude + ", " + longitude + ")");
+            if (DEBUG) Log.d(TAG, "location update : (" + latitude + ", " + longitude + ")");
             mRepository.insertData(new LocationData(latitude, longitude,
                     System.currentTimeMillis()));
         }

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class StationaryTimeManager implements IKnowledgeComponent {
     private static final String TAG = StationaryTimeManager.class.getSimpleName();
-    private final boolean DEBUG = false;
+    private final boolean DEBUG = true;
     private static final String KEY_STATIONARY_TIME = "stationary_time";
     private static final String KEY_STATIONARY_DURATION = "stationary_duration";
     private static final float GRAVITY = 9.8f;

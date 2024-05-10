@@ -7,6 +7,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.example.llmwithrag.datasource.IDataSourceComponent;
@@ -15,14 +17,16 @@ import java.util.List;
 
 public class MovementTracker implements SensorEventListener, IDataSourceComponent {
     private static final String TAG = MovementTracker.class.getSimpleName();
-    private final boolean DEBUG = false;
+    private static final boolean DEBUG = false;
     private static final long INTERVAL = 1000;
+    private final Handler mHandler;
     private final SensorManager mSensorManager;
     private final Sensor mAccelerometerSensor;
     private final MovementRepository mRepository;
     private long lastTime;
 
-    public MovementTracker(Context context) {
+    public MovementTracker(Context context, Looper looper) {
+        mHandler = new Handler(looper);
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mAccelerometerSensor = mSensorManager.getDefaultSensor(TYPE_ACCELEROMETER);
         mRepository = new MovementRepository(context);
@@ -33,12 +37,13 @@ public class MovementTracker implements SensorEventListener, IDataSourceComponen
     public void startMonitoring() {
         int maxDelay = mAccelerometerSensor.getMaxDelay();
         int delay = Math.min(maxDelay, 60000000);
-        mSensorManager.registerListener(this, mAccelerometerSensor, delay);
+        mSensorManager.registerListener(this, mAccelerometerSensor, delay, mHandler);
     }
 
     @Override
     public void stopMonitoring() {
         mSensorManager.unregisterListener(this);
+        mHandler.removeCallbacksAndMessages(null);
     }
 
     @Override
