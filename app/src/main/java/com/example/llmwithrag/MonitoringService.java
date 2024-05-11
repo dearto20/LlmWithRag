@@ -232,7 +232,6 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private void updateKnowledge() {
         try {
-            Log.i(TAG, "update knowledge");
             updateDayLocation();
             updateNightLocation();
             updateWeekendLocation();

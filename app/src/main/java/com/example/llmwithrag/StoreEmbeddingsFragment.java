@@ -100,17 +100,16 @@ public class StoreEmbeddingsFragment extends Fragment {
                 updateViews();
             };
             mCheckRunnable.run();
-            updateViews();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             Log.i(TAG, "disconnected from the service");
-            mCheckRunnable = null;
             mHandler.removeCallbacksAndMessages(null);
             mHandler = null;
-            if (mService != null) mService.stopMonitoring();
+            mCheckRunnable = null;
             mService = null;
+            updateService();
         }
     };
 
