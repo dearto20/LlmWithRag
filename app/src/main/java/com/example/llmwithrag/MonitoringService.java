@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
@@ -36,23 +35,10 @@ public class MonitoringService extends Service implements IMonitoringService {
     private static final boolean DEBUG = false;
     private static final int ID_NOTIFICATION = 1;
     private static final String ID_MAIN_CHANNEL = "001";
-    private static final long DELAY_PERIODIC_UPDATE = 60000L;
     private final IBinder mBinder = new LocalBinder();
     private PersistentLocationManager mPersistentLocationManager;
     private PublicWifiUsageManager mPublicWifiUsageManager;
     private StationaryTimeManager mStationaryTimeManager;
-    private String mDayLocation;
-    private String mNightLocation;
-    private String mWeekendLocation;
-    private String mStationaryTime;
-    private String mPublicWifiTime;
-    private Handler mHandler;
-    private Runnable mCheckRunnable;
-    private boolean mDayLocationEnabled;
-    private boolean mNightLocationEnabled;
-    private boolean mWeekendLocationEnabled;
-    private boolean mStationaryTimeEnabled;
-    private boolean mPublicWifiTimeEnabled;
     private boolean mStarted;
 
     public class LocalBinder extends Binder {
@@ -76,13 +62,6 @@ public class MonitoringService extends Service implements IMonitoringService {
         HandlerThread handlerThread = new HandlerThread(TAG);
         handlerThread.start();
         Looper looper = handlerThread.getLooper();
-        mHandler = new Handler(looper);
-        mCheckRunnable = () -> {
-            if (mHandler.hasCallbacks(mCheckRunnable)) return;
-            mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_UPDATE);
-            updateKnowledge();
-        };
-
         Context context = getApplicationContext();
         mPersistentLocationManager = new PersistentLocationManager(context,
                 new PersistentLocationRepository(context), new LocationTracker(context, looper));
@@ -90,16 +69,6 @@ public class MonitoringService extends Service implements IMonitoringService {
                 new PublicWifiUsageRepository(context), new ConnectivityTracker(context, looper));
         mStationaryTimeManager = new StationaryTimeManager(context,
                 new StationaryTimeRepository(context), new MovementTracker(context, looper));
-        mDayLocation = "";
-        mNightLocation = "";
-        mWeekendLocation = "";
-        mStationaryTime = "";
-        mPublicWifiTime = "";
-        mDayLocationEnabled = false;
-        mNightLocationEnabled = false;
-        mWeekendLocationEnabled = false;
-        mStationaryTimeEnabled = false;
-        mPublicWifiTimeEnabled = false;
         mStarted = false;
     }
 
@@ -148,57 +117,42 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public String getMostFrequentlyVisitedPlaceDuringTheDay() {
-        return mDayLocation;
+        String result = "";
+        List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheDay(1);
+        if (results != null && !results.isEmpty()) result = results.get(0);
+        return result;
     }
 
     @Override
     public String getMostFrequentlyVisitedPlaceDuringTheNight() {
-        return mNightLocation;
+        String result = "";
+        List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheNight(1);
+        if (results != null && !results.isEmpty()) result = results.get(0);
+        return result;
     }
 
     @Override
     public String getMostFrequentlyVisitedPlaceDuringTheWeekend() {
-        return mWeekendLocation;
+        String result = "";
+        List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
+        if (results != null && !results.isEmpty()) result = results.get(0);
+        return result;
     }
 
     @Override
     public String getMostFrequentStationaryTime() {
-        return mStationaryTime;
+        String result = "";
+        List<String> results = mStationaryTimeManager.getMostFrequentStationaryTimes(1);
+        if (results != null && !results.isEmpty()) result = results.get(0);
+        return result;
     }
 
     @Override
     public String getMostFrequentPublicWifiConnectionTime() {
-        return mPublicWifiTime;
-    }
-
-    @Override
-    public void setDayLocationEnabled(boolean enabled) {
-        Log.i(TAG, "set day location to " + enabled);
-        mDayLocationEnabled = enabled;
-    }
-
-    @Override
-    public void setNightLocationEnabled(boolean enabled) {
-        Log.i(TAG, "set night location to " + enabled);
-        mNightLocationEnabled = enabled;
-    }
-
-    @Override
-    public void setWeekendLocationEnabled(boolean enabled) {
-        Log.i(TAG, "set weekend location to " + enabled);
-        mWeekendLocationEnabled = enabled;
-    }
-
-    @Override
-    public void setStationaryTimeEnabled(boolean enabled) {
-        Log.i(TAG, "set stationary time to " + enabled);
-        mStationaryTimeEnabled = enabled;
-    }
-
-    @Override
-    public void setPublicWifiTimeEnabled(boolean enabled) {
-        Log.i(TAG, "set public wifi time enabled to " + enabled);
-        mPublicWifiTimeEnabled = enabled;
+        String result = "";
+        List<String> results = mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(1);
+        if (results != null && !results.isEmpty()) result = results.get(0);
+        return result;
     }
 
     @Override
@@ -209,7 +163,6 @@ public class MonitoringService extends Service implements IMonitoringService {
         mPersistentLocationManager.startMonitoring();
         mPublicWifiUsageManager.startMonitoring();
         mStationaryTimeManager.startMonitoring();
-        mCheckRunnable.run();
         mStarted = true;
     }
 
@@ -221,91 +174,11 @@ public class MonitoringService extends Service implements IMonitoringService {
         mStationaryTimeManager.stopMonitoring();
         mPublicWifiUsageManager.stopMonitoring();
         mPersistentLocationManager.stopMonitoring();
-        mHandler.removeCallbacksAndMessages(null);
-        mDayLocation = "";
-        mNightLocation = "";
-        mWeekendLocation = "";
-        mStationaryTime = "";
-        mPublicWifiTime = "";
         mStarted = false;
     }
 
     @Override
     public boolean isStarted() {
         return mStarted;
-    }
-
-    private void updateKnowledge() {
-        try {
-            Log.i(TAG, "update knowledge");
-            updateDayLocation();
-            updateNightLocation();
-            updateWeekendLocation();
-            updateStationaryTime();
-            updatePublicWifiTime();
-        } catch (Throwable e) {
-            Log.e(TAG, e.toString());
-            e.printStackTrace();
-        }
-    }
-
-    private void updateDayLocation() {
-        mDayLocation = "";
-        if (mDayLocationEnabled) {
-            List<String> results = getMostFrequentlyVisitedPlacesDuringTheDay(1);
-            if (!results.isEmpty()) mDayLocation = results.get(0);
-        }
-    }
-
-    private void updateNightLocation() {
-        mNightLocation = "";
-        if (mNightLocationEnabled) {
-            List<String> results = getMostFrequentlyVisitedPlacesDuringTheNight(1);
-            if (!results.isEmpty()) mNightLocation = results.get(0);
-        }
-    }
-
-    private void updateWeekendLocation() {
-        mWeekendLocation = "";
-        if (mWeekendLocationEnabled) {
-            List<String> results = getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
-            if (!results.isEmpty()) mWeekendLocation = results.get(0);
-        }
-    }
-
-    private void updateStationaryTime() {
-        mStationaryTime = "";
-        if (mStationaryTimeEnabled) {
-            List<String> results = getMostFrequentStationaryTimes(1);
-            if (!results.isEmpty()) mStationaryTime = results.get(0);
-        }
-    }
-
-    private void updatePublicWifiTime() {
-        mPublicWifiTime = "";
-        if (mPublicWifiTimeEnabled) {
-            List<String> results = getMostFrequentPublicWifiConnectionTimes(1);
-            if (!results.isEmpty()) mPublicWifiTime = results.get(0);
-        }
-    }
-
-    private List<String> getMostFrequentlyVisitedPlacesDuringTheDay(int topN) {
-        return mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheDay(topN);
-    }
-
-    private List<String> getMostFrequentlyVisitedPlacesDuringTheNight(int topN) {
-        return mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheNight(topN);
-    }
-
-    private List<String> getMostFrequentlyVisitedPlacesDuringTheWeekend(int topN) {
-        return mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheWeekend(topN);
-    }
-
-    private List<String> getMostFrequentStationaryTimes(int topN) {
-        return mStationaryTimeManager.getMostFrequentStationaryTimes(topN);
-    }
-
-    private List<String> getMostFrequentPublicWifiConnectionTimes(int topN) {
-        return mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(topN);
     }
 }

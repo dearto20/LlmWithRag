@@ -13,16 +13,6 @@ public interface IMonitoringService {
 
     String getMostFrequentPublicWifiConnectionTime();
 
-    void setDayLocationEnabled(boolean enabled);
-
-    void setNightLocationEnabled(boolean enabled);
-
-    void setWeekendLocationEnabled(boolean enabled);
-
-    void setStationaryTimeEnabled(boolean enabled);
-
-    void setPublicWifiTimeEnabled(boolean enabled);
-
     void startMonitoring();
 
     void stopMonitoring();

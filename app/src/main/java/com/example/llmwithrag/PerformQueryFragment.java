@@ -202,12 +202,15 @@ public class PerformQueryFragment extends Fragment {
             try {
                 double latitude = Double.parseDouble(parts[0]);
                 double longitude = Double.parseDouble(parts[1]);
+                Toast.makeText(getContext(), "destination: " + destination, Toast.LENGTH_SHORT)
+                        .show();
+
                 Uri uri = Uri.parse("tmap://route?goalx=" + longitude + "&goaly=" + latitude + "&name=home");
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
             } catch (ActivityNotFoundException e) {
                 Toast.makeText(getContext(), "Download the App", Toast.LENGTH_SHORT).show();
-                Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=com.skt.tmap.ku");
+                Uri uri = Uri.parse("market://details?id=com.skt.tmap.ku");
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
             } catch (Throwable e) {
@@ -220,17 +223,8 @@ public class PerformQueryFragment extends Fragment {
     private void performQuery(String query) {
         List<CompletionMessage> messages = new ArrayList<>();
         List<Embedding> embeddings = viewModel.findSimilarOnes(fetchEmbeddings(query));
-        if (embeddings.size() > 0) {
-            StringBuilder sb = new StringBuilder("now you're a navigation launcher, and see info below");
-            for (Embedding embedding : embeddings) {
-                sb.append("\n").append(embedding.text);
-            }
-            sb.append("\n").append(query);
-            sb.append("\n").append("If you're asked to find the route, determine 'the destination' based on the provided information above.");
-            sb.append("\n").append("All the addresses found in the information are in the form of 'latitude,longitude'.");
-            sb.append("\n").append("Consider all the correlations between the information carefully and determine the most likely destination");
-            sb.append("\n").append("Ensure you provide the answer in the form of 'latitude, longitude' only, and do not add any other comments.");
-            query = sb.toString();
+        if (!embeddings.isEmpty()) {
+            query = generateQuery(query, embeddings);
         }
 
         Log.i(TAG, "query: " + query);
@@ -246,8 +240,6 @@ public class PerformQueryFragment extends Fragment {
                     String completion = response.body().choices.get(0).message.content;
                     Log.i(TAG, "response: " + completion);
                     resultDisplay.setText(completion);
-                    Toast.makeText(getContext(), "destination: " + completion, Toast.LENGTH_SHORT)
-                            .show();
                     runNaviApp(completion);
                 }
             }
@@ -258,5 +250,19 @@ public class PerformQueryFragment extends Fragment {
                 resultDisplay.setText(t.getMessage());
             }
         });
+    }
+
+    @NonNull
+    private String generateQuery(String query, List<Embedding> embeddings) {
+        StringBuilder sb = new StringBuilder("Now you're a location finder, and check the information below thoroughly.");
+        for (Embedding embedding : embeddings) {
+            sb.append("\n").append(embedding.text);
+        }
+        sb.append("\n").append(query);
+        sb.append("\n").append("If you're asked to find the route, determine 'the destination' based on the provided information above.");
+        sb.append("\n").append("All the addresses found in the information are in the form of 'latitude,longitude'.");
+        sb.append("\n").append("Consider all the correlations between the information carefully and determine the most likely destination");
+        sb.append("\n").append("Ensure you provide the answer in the form of 'latitude, longitude' only, and do not add any other comments.");
+        return sb.toString();
     }
 }

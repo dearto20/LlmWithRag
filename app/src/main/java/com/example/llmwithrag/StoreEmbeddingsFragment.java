@@ -77,11 +77,6 @@ public class StoreEmbeddingsFragment extends Fragment {
         public void onServiceConnected(ComponentName componentName, IBinder binder) {
             Log.i(TAG, "connected to the service");
             mService = ((MonitoringService.LocalBinder) binder).getService();
-            mService.setDayLocationEnabled(isDayLocationEnabled());
-            mService.setNightLocationEnabled(isNightLocationEnabled());
-            mService.setWeekendLocationEnabled(isWeekendLocationEnabled());
-            mService.setStationaryTimeEnabled(isStationaryTimeEnabled());
-            mService.setPublicWifiTimeEnabled(isPublicWifiTimeEnabled());
             mService.startMonitoring();
             updateViews();
 
@@ -527,27 +522,27 @@ public class StoreEmbeddingsFragment extends Fragment {
 
     private boolean isDayLocationEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_DAY_LOCATION, false);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_DAY_LOCATION, true);
     }
 
     private boolean isNightLocationEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_NIGHT_LOCATION, false);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_NIGHT_LOCATION, true);
     }
 
     private boolean isWeekendLocationEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_WEEKEND_LOCATION, false);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_WEEKEND_LOCATION, true);
     }
 
     private boolean isStationaryTimeEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_STATIONARY_TIME, false);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true);
     }
 
     private boolean isPublicWifiTimeEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, false);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, true);
     }
 
     private void setServiceEnabled(boolean enabled) {
@@ -556,26 +551,21 @@ public class StoreEmbeddingsFragment extends Fragment {
 
     private void setDayLocationEnabled(boolean enabled) {
         setSharedPreferences(KEY_DAY_LOCATION, enabled);
-        if (mService != null) mService.setDayLocationEnabled(enabled);
     }
 
     private void setNightLocationEnabled(boolean enabled) {
         setSharedPreferences(KEY_NIGHT_LOCATION, enabled);
-        if (mService != null) mService.setNightLocationEnabled(enabled);
     }
 
     private void setWeekendLocationEnabled(boolean enabled) {
         setSharedPreferences(KEY_WEEKEND_LOCATION, enabled);
-        if (mService != null) mService.setWeekendLocationEnabled(enabled);
     }
 
     private void setStationaryTimeEnabled(boolean enabled) {
         setSharedPreferences(KEY_STATIONARY_TIME, enabled);
-        if (mService != null) mService.setStationaryTimeEnabled(enabled);
     }
 
     private void setPublicWifiTimeEnabled(boolean enabled) {
         setSharedPreferences(KEY_PUBLIC_WIFI_TIME, enabled);
-        if (mService != null) mService.setPublicWifiTimeEnabled(enabled);
     }
 }
