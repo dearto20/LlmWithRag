@@ -207,7 +207,7 @@ public class PerformQueryFragment extends Fragment {
                 startActivity(intent);
             } catch (ActivityNotFoundException e) {
                 Toast.makeText(getContext(), "Download the App", Toast.LENGTH_SHORT).show();
-                Uri uri = Uri.parse("market://details?id=com.skt.tmap.ku");
+                Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=com.skt.tmap.ku");
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
             } catch (Throwable e) {
