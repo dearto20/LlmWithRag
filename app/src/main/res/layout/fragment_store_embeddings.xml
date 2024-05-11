@@ -80,7 +80,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginVertical="4dp"
-                android:drawableStart="@drawable/switch_circle_orange"
+                android:drawableStart="@drawable/switch_circle_yellow"
                 android:drawablePadding="8dp"
                 android:gravity="center_vertical"
                 android:switchMinWidth="36dp"
@@ -186,7 +186,7 @@
                 android:text="@string/night_location_unavailable"
                 android:textColor="@color/black"
                 android:textSize="14sp"
-                app:drawableStartCompat="@drawable/switch_circle_orange"
+                app:drawableStartCompat="@drawable/switch_circle_yellow"
                 tools:ignore="RtlSymmetry" />
 
             <TextView

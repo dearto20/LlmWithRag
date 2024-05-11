@@ -64,7 +64,9 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public void onCreate() {
         super.onCreate();
-        Toast.makeText(getApplicationContext(), "Service Created", Toast.LENGTH_SHORT).show();
+        if (DEBUG) {
+            Toast.makeText(getApplicationContext(), "Service Created", Toast.LENGTH_SHORT).show();
+        }
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(ID_NOTIFICATION, getNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
         } else {
