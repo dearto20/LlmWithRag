@@ -1,6 +1,9 @@
 package com.example.llmwithrag.llm;
 
+import android.content.Context;
 import android.util.Log;
+
+import com.example.llmwithrag.LlmWithRagApplication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +17,8 @@ public class EmbeddingRepository {
     private final EmbeddingDao mEmbeddingDao;
     private final ExecutorService mExecutorService;
 
-    public EmbeddingRepository(EmbeddingDao dao) {
-        mEmbeddingDao = dao;
+    public EmbeddingRepository(Context context) {
+        mEmbeddingDao = EmbeddingDatabase.getInstance(context).getEmbeddingDao();
         mExecutorService = Executors.newSingleThreadExecutor();
     }
 

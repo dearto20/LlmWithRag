@@ -3,7 +3,6 @@ package com.example.llmwithrag;
 import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
-import androidx.room.Room;
 
 import com.example.llmwithrag.llm.Embedding;
 import com.example.llmwithrag.llm.EmbeddingDatabase;
@@ -18,10 +17,7 @@ public class EmbeddingViewModel extends ViewModel {
     private final EmbeddingRepository mRepository;
 
     public EmbeddingViewModel() {
-        mRepository = new EmbeddingRepository(Room.databaseBuilder(
-                        LlmWithRagApplication.getInstance(), EmbeddingDatabase.class, "vector_db")
-                .fallbackToDestructiveMigration()
-                .build().getEmbeddingDao());
+        mRepository = new EmbeddingRepository(LlmWithRagApplication.getInstance());
     }
 
     public void insert(Embedding embedding) {
