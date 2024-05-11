@@ -22,10 +22,9 @@ public class StationaryTimeManager implements IKnowledgeComponent {
     private static final String KEY_STATIONARY_DURATION = "stationary_duration";
     private static final float GRAVITY = 9.8f;
     private static final float THRESHOLD = 0.2f;
-    private static final long MIN_DURATION = 1800000;
+    private static final long MIN_DURATION = 3600000;
     private final StationaryTimeRepository mRepository;
     private final MovementTracker mMovementTracker;
-    private final Context mContext;
     private boolean mIsStationary;
     private long mStartTime;
     private long mCheckTime;
@@ -35,7 +34,6 @@ public class StationaryTimeManager implements IKnowledgeComponent {
                                  MovementTracker movementTracker) {
         mRepository = stationaryTimeRepository;
         mMovementTracker = movementTracker;
-        mContext = context;
     }
 
     private void initialize() {

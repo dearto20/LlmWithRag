@@ -24,14 +24,12 @@ public class PersistentLocationManager implements IKnowledgeComponent {
     private static final String KEY_LOCATION_2_COUNT = "location_2_count";
     private final PersistentLocationRepository mRepository;
     private final LocationTracker mLocationTracker;
-    private final Context mContext;
 
     public PersistentLocationManager(Context context,
                                      PersistentLocationRepository persistentLocationRepository,
                                      LocationTracker locationTracker) {
         mRepository = persistentLocationRepository;
         mLocationTracker = locationTracker;
-        mContext = context;
     }
 
     private void initialize() {

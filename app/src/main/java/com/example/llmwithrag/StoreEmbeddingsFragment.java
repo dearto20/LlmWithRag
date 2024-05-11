@@ -63,13 +63,14 @@ public class StoreEmbeddingsFragment extends Fragment {
     private static final String KEY_WEEKEND_LOCATION = "key_weekend_location";
     private static final String KEY_STATIONARY_TIME = "stationary_time";
     private static final String KEY_PUBLIC_WIFI_TIME = "public_wifi_time";
-    private static final long DELAY_PERIODIC_CHECK = 10000L;
+    private static final long DELAY_PERIODIC_UPDATE = 10000L;
 
     private EmbeddingViewModel mViewModel;
     private ActivityResultLauncher<String[]> mRequestPermissionLauncher;
     private IMonitoringService mService;
     private Handler mHandler;
     private Runnable mCheckRunnable;
+    private boolean mStarted;
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -82,34 +83,15 @@ public class StoreEmbeddingsFragment extends Fragment {
             mService.setStationaryTimeEnabled(isStationaryTimeEnabled());
             mService.setPublicWifiTimeEnabled(isPublicWifiTimeEnabled());
             mService.startMonitoring();
+            updateViews();
 
-            FragmentActivity activity = getActivity();
-            if (activity == null) return;
-            SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-            if (sharedPreferences != null) {
-                boolean enabled = sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
-                Switch enableServiceSwitch = activity.findViewById(R.id.enableServiceSwitch);
-                if (enabled != enableServiceSwitch.isChecked()) {
-                    enableServiceSwitch.setChecked(enabled);
-                }
-            }
-
-            mHandler = new Handler(Looper.getMainLooper());
-            mCheckRunnable = () -> {
-                mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
-                updateViews();
-            };
-            mCheckRunnable.run();
+            mHandler.post(mCheckRunnable);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             Log.i(TAG, "disconnected from the service");
-            mHandler.removeCallbacksAndMessages(null);
-            mHandler = null;
-            mCheckRunnable = null;
-            mService = null;
-            updateService();
+            updateViews();
         }
     };
 
@@ -134,10 +116,9 @@ public class StoreEmbeddingsFragment extends Fragment {
             FragmentActivity activity = getActivity();
             if (activity == null) return;
             SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-            if (sharedPreferences == null) {
-                return;
-            }
+            if (sharedPreferences == null) return;
 
+            Switch enableServiceSwitch = activity.findViewById(R.id.enableServiceSwitch);
             TextView configureKnowledgeView = activity.findViewById(R.id.configureKnowledgeView);
             LinearLayout configureKnowledgeLayout = activity.findViewById(R.id.configureKnowledgeLayout);
             TextView showKnowledgeView = activity.findViewById(R.id.showKnowledgeView);
@@ -145,6 +126,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             Button resetDatabaseButton = activity.findViewById(R.id.resetDatabaseButton);
 
             if (isServiceEnabled()) {
+                enableServiceSwitch.setChecked(true);
                 configureKnowledgeView.setVisibility(View.VISIBLE);
                 configureKnowledgeLayout.setVisibility(View.VISIBLE);
                 showKnowledgeView.setVisibility(View.VISIBLE);
@@ -165,15 +147,16 @@ public class StoreEmbeddingsFragment extends Fragment {
 
                 Switch publicWifiTimeSwitch = activity.findViewById(R.id.publicWifiTimeSwitch);
                 publicWifiTimeSwitch.setChecked(isPublicWifiTimeEnabled());
+
+                updateEmbeddingsList();
             } else {
+                enableServiceSwitch.setChecked(false);
                 configureKnowledgeView.setVisibility(View.GONE);
                 configureKnowledgeLayout.setVisibility(View.GONE);
                 showKnowledgeView.setVisibility(View.GONE);
                 showKnowledgeLayout.setVisibility(View.GONE);
                 resetDatabaseButton.setVisibility(View.GONE);
             }
-
-            updateEmbeddingsList();
         } catch (Throwable e) {
             Log.e(TAG, e.toString());
             e.printStackTrace();
@@ -219,30 +202,27 @@ public class StoreEmbeddingsFragment extends Fragment {
         }
     }
 
+    private boolean isStarted() {
+        return mStarted;
+    }
+
+    private void setStarted(boolean started) {
+        Log.i(TAG, started ? "started" : "stopped");
+        mStarted = started;
+    }
+
     @Override
     public void onStart() {
         super.onStart();
-
-        FragmentActivity activity = getActivity();
-        if (activity == null) return;
-        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        if (sharedPreferences != null) {
-            boolean enabled = sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
-            Switch enableServiceSwitch = getActivity().findViewById(R.id.enableServiceSwitch);
-            enableServiceSwitch.setChecked(enabled);
-        }
+        setStarted(true);
+        updateViews();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (mService != null) {
-            FragmentActivity activity = getActivity();
-            if (activity != null) {
-                activity.unbindService(mConnection);
-            }
-            mService = null;
-        }
+        setStarted(false);
+        updateViews();
     }
 
     @Override
@@ -265,12 +245,19 @@ public class StoreEmbeddingsFragment extends Fragment {
                                 "Permission Denied", Toast.LENGTH_SHORT).show();
                     }
                 });
-    }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        updateViews();
+        if (mHandler == null) {
+            mHandler = new Handler(Looper.getMainLooper());
+        }
+        if (mCheckRunnable == null) {
+            mCheckRunnable = () -> {
+                Log.i(TAG, "periodic update of views");
+                if (getContext() == null) return;
+                mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_UPDATE);
+                updateViews();
+            };
+        }
+        mStarted = false;
     }
 
     @RequiresApi(api = 34)
@@ -330,20 +317,11 @@ public class StoreEmbeddingsFragment extends Fragment {
 
     private void updateService() {
         try {
-            String[] permissions;
+            boolean isSelfStarted = isStarted();
+            boolean isServiceEnabled = isServiceEnabled();
 
-            if (Build.VERSION.SDK_INT >= 34) {
-                permissions = new String[]{
-                        ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO,
-                        FOREGROUND_SERVICE_LOCATION
-                };
-            } else {
-                permissions = new String[]{
-                        ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO
-                };
-            }
-
-            if (isServiceEnabled()) {
+            if (isSelfStarted && isServiceEnabled) {
+                String[] permissions = getPermissions();
                 if (isPermissionGranted(permissions)) {
                     bindToMonitoringService();
                 } else {
@@ -351,17 +329,34 @@ public class StoreEmbeddingsFragment extends Fragment {
                 }
             } else {
                 if (mService != null) {
-                    mService.stopMonitoring();
+                    if (!isServiceEnabled) mService.stopMonitoring();
+                    mService = null;
+                    mHandler.removeCallbacksAndMessages(null);
                     Context context = getContext();
                     if (context == null) return;
                     context.unbindService(mConnection);
-                    mService = null;
                 }
             }
         } catch (Throwable e) {
             Log.e(TAG, e.toString());
             e.printStackTrace();
         }
+    }
+
+    @NonNull
+    private String[] getPermissions() {
+        String[] permissions;
+        if (Build.VERSION.SDK_INT >= 34) {
+            permissions = new String[]{
+                    ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO,
+                    FOREGROUND_SERVICE_LOCATION
+            };
+        } else {
+            permissions = new String[]{
+                    ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO
+            };
+        }
+        return permissions;
     }
 
     private void updateDayLocation(boolean isChecked) {
@@ -438,8 +433,7 @@ public class StoreEmbeddingsFragment extends Fragment {
         try {
             FragmentActivity activity = getActivity();
             if (activity == null) return;
-            Switch enableServiceSwitch = activity.findViewById(R.id.enableServiceSwitch);
-            if (enableServiceSwitch == null || !enableServiceSwitch.isChecked()) return;
+            if (!isStarted() || !isServiceEnabled()) return;
             TextView dayLocationView = activity.findViewById(R.id.dayLocationView);
             TextView nightLocationView = activity.findViewById(R.id.nightLocationView);
             TextView weekendLocationView = activity.findViewById(R.id.weekendLocationView);

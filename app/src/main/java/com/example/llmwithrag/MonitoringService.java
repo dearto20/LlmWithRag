@@ -36,7 +36,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private static final boolean DEBUG = false;
     private static final int ID_NOTIFICATION = 1;
     private static final String ID_MAIN_CHANNEL = "001";
-    private static final long DELAY_PERIODIC_CHECK = 30000L;
+    private static final long DELAY_PERIODIC_UPDATE = 60000L;
     private final IBinder mBinder = new LocalBinder();
     private PersistentLocationManager mPersistentLocationManager;
     private PublicWifiUsageManager mPublicWifiUsageManager;
@@ -78,7 +78,8 @@ public class MonitoringService extends Service implements IMonitoringService {
         Looper looper = handlerThread.getLooper();
         mHandler = new Handler(looper);
         mCheckRunnable = () -> {
-            mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
+            if (mHandler.hasCallbacks(mCheckRunnable)) return;
+            mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_UPDATE);
             updateKnowledge();
         };
 
@@ -202,6 +203,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public void startMonitoring() {
+        Log.i(TAG, "startMonitoring " + mStarted);
         if (mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
         mPersistentLocationManager.startMonitoring();
@@ -213,6 +215,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public void stopMonitoring() {
+        Log.i(TAG, "stopMonitoring " + mStarted);
         if (!mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Stopped", Toast.LENGTH_SHORT).show();
         mStationaryTimeManager.stopMonitoring();
@@ -234,6 +237,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private void updateKnowledge() {
         try {
+            Log.i(TAG, "update knowledge");
             updateDayLocation();
             updateNightLocation();
             updateWeekendLocation();
