@@ -99,7 +99,7 @@ public class StoreEmbeddingsFragment extends Fragment {
                 mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
                 updateViews();
             };
-            mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
+            mCheckRunnable.run();
             updateViews();
         }
 

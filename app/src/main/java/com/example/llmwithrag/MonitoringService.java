@@ -205,7 +205,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         mPersistentLocationManager.startMonitoring();
         mPublicWifiUsageManager.startMonitoring();
         mStationaryTimeManager.startMonitoring();
-        mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_CHECK);
+        mCheckRunnable.run();
         mStarted = true;
     }
 
