@@ -19,7 +19,7 @@ import java.util.List;
 public class MovementTracker implements SensorEventListener, IDataSourceComponent {
     private static final String TAG = MovementTracker.class.getSimpleName();
     private static final boolean DEBUG = false;
-    private static final long INTERVAL = 5000;
+    private static final long INTERVAL = 5000L;
     private final Handler mHandler;
     private final SensorManager mSensorManager;
     private final Sensor mAccelerometerSensor;

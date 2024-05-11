@@ -20,7 +20,7 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
     private static final boolean DEBUG = false;
     private static final String KEY_CONNECTION_TIME = "connection_time";
     private static final String KEY_CONNECTION_DURATION = "connection_duration";
-    private static final long MIN_DURATION = 3600000;
+    private static final long MIN_DURATION = 600000L;
     private final PublicWifiUsageRepository mRepository;
 
     private final ConnectivityTracker mConnectivityTracker;
