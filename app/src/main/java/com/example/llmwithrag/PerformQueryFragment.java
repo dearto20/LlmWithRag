@@ -33,17 +33,11 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.llmwithrag.llm.CompletionMessage;
 import com.example.llmwithrag.llm.CompletionRequest;
 import com.example.llmwithrag.llm.CompletionResponse;
-import com.example.llmwithrag.llm.Embedding;
-import com.example.llmwithrag.llm.EmbeddingRequest;
-import com.example.llmwithrag.llm.EmbeddingResponse;
 import com.example.llmwithrag.llm.OpenAiService;
 import com.example.llmwithrag.llm.RetrofitClient;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -51,8 +45,9 @@ import retrofit2.Response;
 
 public class PerformQueryFragment extends Fragment {
     private static final String TAG = PerformQueryFragment.class.getSimpleName();
-    private EmbeddingViewModel viewModel;
-    private TextView resultDisplay;
+    private ServiceViewModel mViewModel;
+    private IMonitoringService mService;
+    private TextView mResultDisplay;
     private ActivityResultLauncher<String> requestPermissionLauncher;
     private ActivityResultLauncher<Intent> speechResultLauncher;
 
@@ -60,36 +55,34 @@ public class PerformQueryFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_perform_query, container, false);
-        viewModel = new ViewModelProvider(this).get(EmbeddingViewModel.class);
+        mViewModel = new ViewModelProvider(requireActivity()).get(ServiceViewModel.class);
+        mViewModel.getService().observe(getViewLifecycleOwner(), service -> mService = service);
 
         initResultLaunchers();
 
         Button startVoiceRecognitionButton = view.findViewById(R.id.startVoiceRecognitionButton);
-        startVoiceRecognitionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (isPermissionGranted()) {
-                    startVoiceRecognition();
+        startVoiceRecognitionButton.setOnClickListener(view1 -> {
+            if (isPermissionGranted()) {
+                startVoiceRecognition();
+            } else {
+                if (shouldShowRequestPermissionRationale(RECORD_AUDIO)) {
+                    showRationaleDialog();
                 } else {
-                    if (shouldShowRequestPermissionRationale(RECORD_AUDIO)) {
-                        showRationaleDialog();
-                    } else {
-                        requestPermissionLauncher.launch(RECORD_AUDIO);
-                    }
+                    requestPermissionLauncher.launch(RECORD_AUDIO);
                 }
             }
         });
 
         EditText queryInput = view.findViewById(R.id.queryInput);
         Button queryButton = view.findViewById(R.id.performQueryButton);
-        resultDisplay = view.findViewById(R.id.resultDisplay);
+        mResultDisplay = view.findViewById(R.id.resultDisplay);
         queryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String text = queryInput.getText().toString();
                 queryInput.setText("");
                 hideKeyboardFromFragment();
-                resultDisplay.setText(R.string.wait_answer);
+                mResultDisplay.setText(R.string.wait_answer);
                 Log.i(TAG, "perform query of " + text);
                 performQuery(text);
             }
@@ -117,7 +110,6 @@ public class PerformQueryFragment extends Fragment {
                         if (matches != null && !matches.isEmpty()) {
                             String query = matches.get(0);
                             Log.i(TAG, "query from voice: " + query);
-                            Toast.makeText(getContext(), query, Toast.LENGTH_LONG).show();
                             performQuery(query);
                         }
                     }
@@ -147,35 +139,6 @@ public class PerformQueryFragment extends Fragment {
                 .show();
     }
 
-    private Embedding fetchEmbeddings(String text) {
-        EmbeddingRequest request = new EmbeddingRequest(text, "text-embedding-3-small", "float");
-        OpenAiService service = RetrofitClient.getInstance().create(OpenAiService.class);
-        Call<EmbeddingResponse> call = service.getEmbedding(request);
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        final Embedding[] result = {null};
-        try {
-            new Thread(() -> {
-                try {
-                    Response<EmbeddingResponse> response = call.execute();
-                    if (response.isSuccessful() && response.body() != null) {
-                        float[] embedding = response.body().data.get(0).embedding;
-                        Log.i(TAG, "response: " + Arrays.toString(embedding));
-                        result[0] = new Embedding(text, "", "", embedding);
-                    }
-                    countDownLatch.countDown();
-                } catch (IOException e) {
-                    Log.e(TAG, e.toString());
-                    e.printStackTrace();
-                }
-            }).start();
-            countDownLatch.await();
-        } catch (Throwable e) {
-            Log.e(TAG, e.toString());
-            e.printStackTrace();
-        }
-        return result[0];
-    }
-
     private void hideKeyboardFromFragment() {
         Activity activity = getActivity();
         if (activity != null) {
@@ -188,7 +151,7 @@ public class PerformQueryFragment extends Fragment {
     }
 
     @SuppressLint("QueryPermissionsNeeded")
-    private void runNaviApp(String destination) {
+    private boolean runNaviApp(String destination) {
         /*
         Intent intent = new Intent();
         intent.setComponent(new ComponentName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity"));
@@ -197,34 +160,63 @@ public class PerformQueryFragment extends Fragment {
         startActivity(intent);
          */
 
+        boolean foundLocation = false;
         String[] parts = destination.split(",\\s*");
         if (parts.length == 2) {
             try {
                 double latitude = Double.parseDouble(parts[0]);
                 double longitude = Double.parseDouble(parts[1]);
+                foundLocation = true;
                 Toast.makeText(getContext(), "destination: " + destination, Toast.LENGTH_SHORT)
                         .show();
 
                 Uri uri = Uri.parse("tmap://route?goalx=" + longitude + "&goaly=" + latitude + "&name=home");
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(getContext(), "Download the App", Toast.LENGTH_SHORT).show();
-                Uri uri = Uri.parse("market://details?id=com.skt.tmap.ku");
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                startActivity(intent);
+                return true;
+            } catch (ActivityNotFoundException e1) {
+                try {
+                    Uri uri = Uri.parse("market://details?id=com.skt.tmap.ku");
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e2) {
+                    Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=com.skt.tmap.ku");
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    startActivity(intent);
+                }
             } catch (Throwable e) {
                 Log.e(TAG, e.toString());
                 e.printStackTrace();
             }
         }
+
+        if (!foundLocation) {
+            Toast.makeText(getContext(), "Unable to Find the Location", Toast.LENGTH_LONG).show();
+        }
+
+        return false;
+    }
+
+    private void redirectToPlayStore(String appPackageName) {
+        try {
+            // Try to open the Play Store app
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+        } catch (android.content.ActivityNotFoundException anfe) {
+            // If the Play Store app is not installed, open the web browser
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+        }
     }
 
     private void performQuery(String query) {
+        if (mService == null) {
+            Toast.makeText(getContext(), "Service Is Not Ready", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         List<CompletionMessage> messages = new ArrayList<>();
-        List<Embedding> embeddings = viewModel.findSimilarOnes(fetchEmbeddings(query));
-        if (!embeddings.isEmpty()) {
-            query = generateQuery(query, embeddings);
+        List<String> result = mService.findSimilarOnes(query);
+        if (!result.isEmpty()) {
+            query = generateQuery(query, result);
         }
 
         Log.i(TAG, "query: " + query);
@@ -239,30 +231,32 @@ public class PerformQueryFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     String completion = response.body().choices.get(0).message.content;
                     Log.i(TAG, "response: " + completion);
-                    resultDisplay.setText(completion);
-                    runNaviApp(completion);
+                    if (runNaviApp(completion)) {
+                        mResultDisplay.setText(completion);
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<CompletionResponse> call, Throwable t) {
                 Log.e(TAG, "failed in performing query: " + t.getMessage());
-                resultDisplay.setText(t.getMessage());
+                mResultDisplay.setText(t.getMessage());
             }
         });
     }
 
     @NonNull
-    private String generateQuery(String query, List<Embedding> embeddings) {
+    private String generateQuery(String query, List<String> results) {
         StringBuilder sb = new StringBuilder("Now you're a location finder, and check the information below thoroughly.");
-        for (Embedding embedding : embeddings) {
-            sb.append("\n").append(embedding.text);
+        for (String result : results) {
+            sb.append("\n").append(result);
         }
         sb.append("\n").append(query);
         sb.append("\n").append("If you're asked to find the route, determine 'the destination' based on the provided information above.");
         sb.append("\n").append("All the addresses found in the information are in the form of 'latitude,longitude'.");
-        sb.append("\n").append("Consider all the correlations between the information carefully and determine the most likely destination");
+        sb.append("\n").append("Out of the addresses found, find out the most likely one.");
         sb.append("\n").append("Ensure you provide the answer in the form of 'latitude, longitude' only, and do not add any other comments.");
+        sb.append("\n").append("Tell me you're unable to find it if the address you've found is not the one of the addresses above.");
         return sb.toString();
     }
 }

@@ -1,5 +1,11 @@
 package com.example.llmwithrag;
 
+import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_DAY_LOCATION;
+import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_NIGHT_LOCATION;
+import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_PUBLIC_WIFI_TIME;
+import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_STATIONARY_TIME;
+import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_WEEKEND_LOCATION;
+
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,6 +13,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
 import android.os.Binder;
 import android.os.Build;
@@ -14,6 +21,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -30,11 +38,19 @@ import com.example.llmwithrag.knowledge.location.PersistentLocationManager;
 import com.example.llmwithrag.knowledge.location.PersistentLocationRepository;
 import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
 import com.example.llmwithrag.knowledge.status.StationaryTimeRepository;
+import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.util.List;
 
 public class MonitoringService extends Service implements IMonitoringService {
     private static final String TAG = MonitoringService.class.getSimpleName();
+    private static final String NAME_SHARED_PREFS = "default_storage";
+    private static final String KEY_SERVICE_ENABLED = "service_enabled";
+    private static final String KEY_DAY_LOCATION = "key_day_location";
+    private static final String KEY_NIGHT_LOCATION = "key_night_location";
+    private static final String KEY_WEEKEND_LOCATION = "key_weekend_location";
+    private static final String KEY_STATIONARY_TIME = "stationary_time";
+    private static final String KEY_PUBLIC_WIFI_TIME = "public_wifi_time";
     private static final long MIN_DELAY_PERIODIC_UPDATE = 5000L;
     private static final long MAX_DELAY_PERIODIC_UPDATE = 600000L;
     private static final boolean DEBUG = false;
@@ -52,6 +68,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private PersistentLocationManager mPersistentLocationManager;
     private PublicWifiUsageManager mPublicWifiUsageManager;
     private StationaryTimeManager mStationaryTimeManager;
+    private EmbeddingManager mEmbeddingManager;
     private boolean mStarted;
 
     public class LocalBinder extends Binder {
@@ -63,6 +80,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.i(TAG, "Service Created");
         if (DEBUG) {
             Toast.makeText(getApplicationContext(), "Service Created", Toast.LENGTH_SHORT).show();
         }
@@ -83,16 +101,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             mCurrentDelay = Math.min(mCurrentDelay + MIN_DELAY_PERIODIC_UPDATE,
                     MAX_DELAY_PERIODIC_UPDATE);
             Log.i(TAG, "run periodic update");
-            mTheMostFrequentlyVisitedPlaceDuringTheDay.postValue(
-                    getTheMostFrequentlyVisitedPlaceDuringTheDayInternal());
-            mTheMostFrequentlyVisitedPlaceDuringTheNight.postValue(
-                    getTheMostFrequentlyVisitedPlaceDuringTheNightInternal());
-            mTheMostFrequentlyVisitedPlaceDuringTheWeekend.postValue(
-                    getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal());
-            mTheMostFrequentStationaryTime.postValue(
-                    getTheMostFrequentStationaryTimeInternal());
-            mTheMostFrequentPublicWifiConnectionTime.postValue(
-                    getTheMostFrequentPublicWifiConnectionTimeInternal());
+            updateKnowledge();
         };
         mPersistentLocationManager = new PersistentLocationManager(context,
                 new PersistentLocationRepository(context), new LocationTracker(context, looper));
@@ -100,7 +109,35 @@ public class MonitoringService extends Service implements IMonitoringService {
                 new PublicWifiUsageRepository(context), new ConnectivityTracker(context, looper));
         mStationaryTimeManager = new StationaryTimeManager(context,
                 new StationaryTimeRepository(context), new MovementTracker(context, looper));
+        mEmbeddingManager = new EmbeddingManager(getApplicationContext());
         mStarted = false;
+    }
+
+    private void updateKnowledge() {
+        updateKnowledge(false);
+    }
+
+    private void updateKnowledge(boolean forceUpdate) {
+        updateDayLocation(isDayLocationEnabled(), forceUpdate);
+
+        updateNightLocation(isNightLocationEnabled(), forceUpdate);
+
+        updateWeekendLocation(isWeekendLocationEnabled(), forceUpdate);
+
+        updateStationaryTime(isStationaryTimeEnabled(), forceUpdate);
+
+        updatePublicWifiTime(isPublicWifiTimeEnabled(), forceUpdate);
+    }
+
+    public static class EmbeddingResultListener {
+        public void onSuccess() {
+        }
+
+        public void onError() {
+        }
+
+        public void onFailure() {
+        }
     }
 
     private Notification getNotification() {
@@ -144,6 +181,13 @@ public class MonitoringService extends Service implements IMonitoringService {
         mPersistentLocationManager.deleteAll();
         mPublicWifiUsageManager.deleteAll();
         mStationaryTimeManager.deleteAll();
+        mEmbeddingManager.deleteAll();
+        updateKnowledge(true);
+    }
+
+    @Override
+    public List<String> findSimilarOnes(String query) {
+        return mEmbeddingManager.findSimilarOnes(query);
     }
 
     @Override
@@ -199,6 +243,97 @@ public class MonitoringService extends Service implements IMonitoringService {
         return mTheMostFrequentPublicWifiConnectionTime;
     }
 
+    @Override
+    public boolean isServiceEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
+    }
+
+    @Override
+    public boolean isDayLocationEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
+    }
+
+    @Override
+    public boolean isNightLocationEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_NIGHT_LOCATION, true);
+    }
+
+    @Override
+    public boolean isWeekendLocationEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_WEEKEND_LOCATION, true);
+    }
+
+    @Override
+    public boolean isStationaryTimeEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true);
+    }
+
+    @Override
+    public boolean isPublicWifiTimeEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true);
+    }
+
+    @Override
+    public boolean setServiceEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_SERVICE_ENABLED, enabled)) {
+            if (enabled) startMonitoring();
+            else stopMonitoring();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setDayLocationEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_DAY_LOCATION, enabled)) {
+            updateDayLocation(enabled, true);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setNightLocationEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_NIGHT_LOCATION, enabled)) {
+            updateNightLocation(enabled, true);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setWeekendLocationEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_WEEKEND_LOCATION, enabled)) {
+            updateWeekendLocation(enabled, true);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setStationaryTimeEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_STATIONARY_TIME, enabled)) {
+            updateStationaryTime(enabled, true);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setPublicWifiTimeEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_PUBLIC_WIFI_TIME, enabled)) {
+            updatePublicWifiTime(enabled, true);
+            return true;
+        }
+        return false;
+    }
+
     private String getTheMostFrequentPublicWifiConnectionTimeInternal() {
         String result = "";
         List<String> results = mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(1);
@@ -206,8 +341,131 @@ public class MonitoringService extends Service implements IMonitoringService {
         return result;
     }
 
-    @Override
-    public void startMonitoring() {
+    private void updateDayLocation(boolean isChecked, boolean forceUpdate) {
+        EmbeddingResultListener listener = new EmbeddingResultListener() {
+            @Override
+            public void onSuccess() {
+                mTheMostFrequentlyVisitedPlaceDuringTheDay.postValue(
+                        mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheDay());
+                Log.i(TAG, "day location is updated");
+            }
+        };
+
+        String oldValue = mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheDay();
+        if (isChecked) {
+            String newValue = getTheMostFrequentlyVisitedPlaceDuringTheDayInternal();
+            if (forceUpdate || !TextUtils.equals(oldValue, newValue)) {
+                mEmbeddingManager.addEmbeddings(newValue, newValue, CATEGORY_DAY_LOCATION, listener);
+            }
+        } else {
+            mEmbeddingManager.removeEmbeddings(CATEGORY_DAY_LOCATION, listener);
+            TextUtils.isEmpty(oldValue);
+        }
+    }
+
+    private void updateNightLocation(boolean isChecked, boolean forceUpdate) {
+        EmbeddingResultListener listener = new EmbeddingResultListener() {
+            @Override
+            public void onSuccess() {
+                String location = mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheNight();
+                mTheMostFrequentlyVisitedPlaceDuringTheNight.postValue(location
+                );
+                Log.i(TAG, "night location is updated");
+            }
+        };
+
+        String oldValue = mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheNight();
+        if (isChecked) {
+            String newValue = getTheMostFrequentlyVisitedPlaceDuringTheNightInternal();
+            if (forceUpdate || !TextUtils.equals(oldValue, newValue)) {
+                mEmbeddingManager.addEmbeddings(newValue, newValue, CATEGORY_NIGHT_LOCATION, listener);
+            }
+        } else {
+            mEmbeddingManager.removeEmbeddings(CATEGORY_NIGHT_LOCATION, listener);
+            TextUtils.isEmpty(oldValue);
+        }
+    }
+
+    private void updateWeekendLocation(boolean isChecked, boolean forceUpdate) {
+        EmbeddingResultListener listener = new EmbeddingResultListener() {
+            @Override
+            public void onSuccess() {
+                mTheMostFrequentlyVisitedPlaceDuringTheWeekend.postValue(
+                        mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheWeekend());
+                Log.i(TAG, "weekend location is updated");
+            }
+        };
+
+        String oldValue = mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheWeekend();
+        if (isChecked) {
+            String newValue = getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal();
+            if (forceUpdate || !TextUtils.equals(oldValue, newValue)) {
+                mEmbeddingManager.addEmbeddings(newValue, newValue, CATEGORY_WEEKEND_LOCATION, listener);
+            }
+        } else {
+            mEmbeddingManager.removeEmbeddings(CATEGORY_WEEKEND_LOCATION, listener);
+            TextUtils.isEmpty(oldValue);
+        }
+    }
+
+    private void updateStationaryTime(boolean isChecked, boolean forceUpdate) {
+        EmbeddingResultListener listener = new EmbeddingResultListener() {
+            @Override
+            public void onSuccess() {
+                mTheMostFrequentStationaryTime.postValue(
+                        mEmbeddingManager.getTheMostFrequentStationaryTime());
+                Log.i(TAG, "stationary time is updated");
+            }
+        };
+
+        String oldValue = mEmbeddingManager.getTheMostFrequentStationaryTime();
+        if (isChecked) {
+            String newValue = getTheMostFrequentStationaryTimeInternal();
+            if (forceUpdate || !TextUtils.equals(oldValue, newValue)) {
+                mEmbeddingManager.addEmbeddings(newValue, newValue, CATEGORY_STATIONARY_TIME, listener);
+            }
+        } else {
+            mEmbeddingManager.removeEmbeddings(CATEGORY_STATIONARY_TIME, listener);
+            TextUtils.isEmpty(oldValue);
+        }
+    }
+
+    private void updatePublicWifiTime(boolean isChecked, boolean forceUpdate) {
+        EmbeddingResultListener listener = new EmbeddingResultListener() {
+            @Override
+            public void onSuccess() {
+                mTheMostFrequentPublicWifiConnectionTime.postValue(
+                        mEmbeddingManager.getTheMostFrequentPublicWifiConnectionTime());
+                Log.i(TAG, "public wifi time is updated");
+            }
+        };
+
+        String oldValue = mEmbeddingManager.getTheMostFrequentPublicWifiConnectionTime();
+        if (isChecked) {
+            String newValue = getTheMostFrequentPublicWifiConnectionTimeInternal();
+            if (forceUpdate || !TextUtils.equals(oldValue, newValue)) {
+                mEmbeddingManager.addEmbeddings(newValue, newValue, CATEGORY_PUBLIC_WIFI_TIME, listener);
+            }
+        } else {
+            mEmbeddingManager.removeEmbeddings(CATEGORY_PUBLIC_WIFI_TIME, listener);
+            TextUtils.isEmpty(oldValue);
+        }
+    }
+
+    private SharedPreferences getSharedPreferences(String name) {
+        return getSharedPreferences(name, Context.MODE_PRIVATE);
+    }
+
+    private boolean setSharedPreferences(String key, boolean value) {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        if (sharedPreferences == null) return false;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(key, value);
+        editor.apply();
+        return true;
+    }
+
+    private void startMonitoring() {
         Log.i(TAG, "startMonitoring " + mStarted);
         if (mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
@@ -217,10 +475,10 @@ public class MonitoringService extends Service implements IMonitoringService {
         mHandler.removeCallbacksAndMessages(null);
         mUpdateCallback.run();
         mStarted = true;
+        updateKnowledge(true);
     }
 
-    @Override
-    public void stopMonitoring() {
+    private void stopMonitoring() {
         Log.i(TAG, "stopMonitoring " + mStarted);
         if (!mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Stopped", Toast.LENGTH_SHORT).show();
@@ -229,10 +487,5 @@ public class MonitoringService extends Service implements IMonitoringService {
         mPersistentLocationManager.stopMonitoring();
         mHandler.removeCallbacksAndMessages(null);
         mStarted = false;
-    }
-
-    @Override
-    public boolean isStarted() {
-        return mStarted;
     }
 }
