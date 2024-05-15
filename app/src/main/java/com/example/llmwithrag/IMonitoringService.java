@@ -1,17 +1,19 @@
 package com.example.llmwithrag;
 
+import androidx.lifecycle.LiveData;
+
 public interface IMonitoringService {
     void deleteAll();
 
-    String getMostFrequentlyVisitedPlaceDuringTheDay();
+    LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheDay();
 
-    String getMostFrequentlyVisitedPlaceDuringTheNight();
+    LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheNight();
 
-    String getMostFrequentlyVisitedPlaceDuringTheWeekend();
+    LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheWeekend();
 
-    String getMostFrequentStationaryTime();
+    LiveData<String> getTheMostFrequentStationaryTime();
 
-    String getMostFrequentPublicWifiConnectionTime();
+    LiveData<String> getTheMostFrequentPublicWifiConnectionTime();
 
     void startMonitoring();
 

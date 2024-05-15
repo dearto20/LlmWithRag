@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
@@ -17,6 +18,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
 import com.example.llmwithrag.datasource.location.LocationTracker;
@@ -32,10 +35,20 @@ import java.util.List;
 
 public class MonitoringService extends Service implements IMonitoringService {
     private static final String TAG = MonitoringService.class.getSimpleName();
+    private static final long MIN_DELAY_PERIODIC_UPDATE = 5000L;
+    private static final long MAX_DELAY_PERIODIC_UPDATE = 600000L;
     private static final boolean DEBUG = false;
     private static final int ID_NOTIFICATION = 1;
     private static final String ID_MAIN_CHANNEL = "001";
     private final IBinder mBinder = new LocalBinder();
+    private Handler mHandler;
+    private Runnable mUpdateCallback;
+    private long mCurrentDelay;
+    private final MutableLiveData<String> mTheMostFrequentlyVisitedPlaceDuringTheDay = new MutableLiveData<>();
+    private final MutableLiveData<String> mTheMostFrequentlyVisitedPlaceDuringTheNight = new MutableLiveData<>();
+    private final MutableLiveData<String> mTheMostFrequentlyVisitedPlaceDuringTheWeekend = new MutableLiveData<>();
+    private final MutableLiveData<String> mTheMostFrequentStationaryTime = new MutableLiveData<>();
+    private final MutableLiveData<String> mTheMostFrequentPublicWifiConnectionTime = new MutableLiveData<>();
     private PersistentLocationManager mPersistentLocationManager;
     private PublicWifiUsageManager mPublicWifiUsageManager;
     private StationaryTimeManager mStationaryTimeManager;
@@ -63,6 +76,24 @@ public class MonitoringService extends Service implements IMonitoringService {
         handlerThread.start();
         Looper looper = handlerThread.getLooper();
         Context context = getApplicationContext();
+        mHandler = new Handler(looper);
+        mCurrentDelay = MIN_DELAY_PERIODIC_UPDATE;
+        mUpdateCallback = () -> {
+            mHandler.postDelayed(mUpdateCallback, mCurrentDelay);
+            mCurrentDelay = Math.min(mCurrentDelay + MIN_DELAY_PERIODIC_UPDATE,
+                    MAX_DELAY_PERIODIC_UPDATE);
+            Log.i(TAG, "run periodic update");
+            mTheMostFrequentlyVisitedPlaceDuringTheDay.postValue(
+                    getTheMostFrequentlyVisitedPlaceDuringTheDayInternal());
+            mTheMostFrequentlyVisitedPlaceDuringTheNight.postValue(
+                    getTheMostFrequentlyVisitedPlaceDuringTheNightInternal());
+            mTheMostFrequentlyVisitedPlaceDuringTheWeekend.postValue(
+                    getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal());
+            mTheMostFrequentStationaryTime.postValue(
+                    getTheMostFrequentStationaryTimeInternal());
+            mTheMostFrequentPublicWifiConnectionTime.postValue(
+                    getTheMostFrequentPublicWifiConnectionTimeInternal());
+        };
         mPersistentLocationManager = new PersistentLocationManager(context,
                 new PersistentLocationRepository(context), new LocationTracker(context, looper));
         mPublicWifiUsageManager = new PublicWifiUsageManager(context,
@@ -116,7 +147,11 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public String getMostFrequentlyVisitedPlaceDuringTheDay() {
+    public LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheDay() {
+        return mTheMostFrequentlyVisitedPlaceDuringTheDay;
+    }
+
+    private String getTheMostFrequentlyVisitedPlaceDuringTheDayInternal() {
         String result = "";
         List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheDay(1);
         if (results != null && !results.isEmpty()) result = results.get(0);
@@ -124,7 +159,11 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public String getMostFrequentlyVisitedPlaceDuringTheNight() {
+    public LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheNight() {
+        return mTheMostFrequentlyVisitedPlaceDuringTheNight;
+    }
+
+    private String getTheMostFrequentlyVisitedPlaceDuringTheNightInternal() {
         String result = "";
         List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheNight(1);
         if (results != null && !results.isEmpty()) result = results.get(0);
@@ -132,7 +171,11 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public String getMostFrequentlyVisitedPlaceDuringTheWeekend() {
+    public LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheWeekend() {
+        return mTheMostFrequentlyVisitedPlaceDuringTheWeekend;
+    }
+
+    private String getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal() {
         String result = "";
         List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
         if (results != null && !results.isEmpty()) result = results.get(0);
@@ -140,7 +183,11 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public String getMostFrequentStationaryTime() {
+    public LiveData<String> getTheMostFrequentStationaryTime() {
+        return mTheMostFrequentStationaryTime;
+    }
+
+    private String getTheMostFrequentStationaryTimeInternal() {
         String result = "";
         List<String> results = mStationaryTimeManager.getMostFrequentStationaryTimes(1);
         if (results != null && !results.isEmpty()) result = results.get(0);
@@ -148,7 +195,11 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public String getMostFrequentPublicWifiConnectionTime() {
+    public LiveData<String> getTheMostFrequentPublicWifiConnectionTime() {
+        return mTheMostFrequentPublicWifiConnectionTime;
+    }
+
+    private String getTheMostFrequentPublicWifiConnectionTimeInternal() {
         String result = "";
         List<String> results = mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(1);
         if (results != null && !results.isEmpty()) result = results.get(0);
@@ -163,6 +214,8 @@ public class MonitoringService extends Service implements IMonitoringService {
         mPersistentLocationManager.startMonitoring();
         mPublicWifiUsageManager.startMonitoring();
         mStationaryTimeManager.startMonitoring();
+        mHandler.removeCallbacksAndMessages(null);
+        mUpdateCallback.run();
         mStarted = true;
     }
 
@@ -174,6 +227,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         mStationaryTimeManager.stopMonitoring();
         mPublicWifiUsageManager.stopMonitoring();
         mPersistentLocationManager.stopMonitoring();
+        mHandler.removeCallbacksAndMessages(null);
         mStarted = false;
     }
 

@@ -15,9 +15,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -63,13 +61,16 @@ public class StoreEmbeddingsFragment extends Fragment {
     private static final String KEY_WEEKEND_LOCATION = "key_weekend_location";
     private static final String KEY_STATIONARY_TIME = "stationary_time";
     private static final String KEY_PUBLIC_WIFI_TIME = "public_wifi_time";
-    private static final long DELAY_PERIODIC_UPDATE = 10000L;
 
     private EmbeddingViewModel mViewModel;
     private ActivityResultLauncher<String[]> mRequestPermissionLauncher;
     private IMonitoringService mService;
-    private Handler mHandler;
-    private Runnable mCheckRunnable;
+    private String mLastTheMostFrequentlyVisitedPlaceDuringTheDay;
+    private String mLastTheMostFrequentlyVisitedPlaceDuringTheNight;
+    private String mLastTheMostFrequentlyVisitedPlaceDuringTheWeekend;
+    private String mLastTheMostFrequentStationaryTime;
+    private String mLastTheMostFrequentPublicWifiConnectionTime;
+
     private boolean mStarted;
 
     private final ServiceConnection mConnection = new ServiceConnection() {
@@ -78,9 +79,43 @@ public class StoreEmbeddingsFragment extends Fragment {
             Log.i(TAG, "connected to the service");
             mService = ((MonitoringService.LocalBinder) binder).getService();
             mService.startMonitoring();
-            updateViews();
 
-            mHandler.post(mCheckRunnable);
+            mService.getTheMostFrequentlyVisitedPlaceDuringTheDay().observe(
+                    getViewLifecycleOwner(),
+                    result -> {
+                        mLastTheMostFrequentlyVisitedPlaceDuringTheDay = result;
+                        updateDayLocation(isDayLocationEnabled());
+                    });
+
+            mService.getTheMostFrequentlyVisitedPlaceDuringTheNight().observe(
+                    getViewLifecycleOwner(),
+                    result -> {
+                        mLastTheMostFrequentlyVisitedPlaceDuringTheNight = result;
+                        updateNightLocation(isNightLocationEnabled());
+                    });
+
+            mService.getTheMostFrequentlyVisitedPlaceDuringTheWeekend().observe(
+                    getViewLifecycleOwner(),
+                    result -> {
+                        mLastTheMostFrequentlyVisitedPlaceDuringTheWeekend = result;
+                        updateWeekendLocation(isWeekendLocationEnabled());
+                    });
+
+            mService.getTheMostFrequentStationaryTime().observe(
+                    getViewLifecycleOwner(),
+                    result -> {
+                        mLastTheMostFrequentStationaryTime = result;
+                        updateStationaryTime(isStationaryTimeEnabled());
+                    });
+
+            mService.getTheMostFrequentPublicWifiConnectionTime().observe(
+                    getViewLifecycleOwner(),
+                    result -> {
+                        mLastTheMostFrequentPublicWifiConnectionTime = result;
+                        updatePublicWifiTime(isPublicWifiTimeEnabled());
+                    });
+
+            updateViews();
         }
 
         @Override
@@ -240,18 +275,6 @@ public class StoreEmbeddingsFragment extends Fragment {
                                 "Permission Denied", Toast.LENGTH_SHORT).show();
                     }
                 });
-
-        if (mHandler == null) {
-            mHandler = new Handler(Looper.getMainLooper());
-        }
-        if (mCheckRunnable == null) {
-            mCheckRunnable = () -> {
-                Log.i(TAG, "periodic update of views");
-                if (getContext() == null) return;
-                mHandler.postDelayed(mCheckRunnable, DELAY_PERIODIC_UPDATE);
-                updateViews();
-            };
-        }
         mStarted = false;
     }
 
@@ -260,6 +283,12 @@ public class StoreEmbeddingsFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup
             container, @Nullable Bundle savedInstanceState) {
+        mLastTheMostFrequentlyVisitedPlaceDuringTheDay = null;
+        mLastTheMostFrequentlyVisitedPlaceDuringTheNight = null;
+        mLastTheMostFrequentlyVisitedPlaceDuringTheWeekend = null;
+        mLastTheMostFrequentStationaryTime = null;
+        mLastTheMostFrequentPublicWifiConnectionTime = null;
+
         View view = inflater.inflate(R.layout.fragment_store_embeddings, container, false);
         mViewModel = new ViewModelProvider(this).get(EmbeddingViewModel.class);
 
@@ -326,7 +355,6 @@ public class StoreEmbeddingsFragment extends Fragment {
                 if (mService != null) {
                     if (!isServiceEnabled) mService.stopMonitoring();
                     mService = null;
-                    mHandler.removeCallbacksAndMessages(null);
                     Context context = getContext();
                     if (context == null) return;
                     context.unbindService(mConnection);
@@ -357,7 +385,7 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateDayLocation(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = mService.getMostFrequentlyVisitedPlaceDuringTheDay();
+            String result = mLastTheMostFrequentlyVisitedPlaceDuringTheDay;
             if (TextUtils.isEmpty(result)) {
                 result = "Unavailable";
             }
@@ -371,7 +399,7 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateNightLocation(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = mService.getMostFrequentlyVisitedPlaceDuringTheNight();
+            String result = mLastTheMostFrequentlyVisitedPlaceDuringTheNight;
             if (TextUtils.isEmpty(result)) {
                 result = "Unavailable";
             }
@@ -385,7 +413,7 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateWeekendLocation(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = mService.getMostFrequentlyVisitedPlaceDuringTheWeekend();
+            String result = mLastTheMostFrequentlyVisitedPlaceDuringTheWeekend;
             if (TextUtils.isEmpty(result)) {
                 result = "Unavailable";
             }
@@ -399,7 +427,7 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updateStationaryTime(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = mService.getMostFrequentStationaryTime();
+            String result = mLastTheMostFrequentStationaryTime;
             if (TextUtils.isEmpty(result)) {
                 result = "Unavailable";
             }
@@ -413,7 +441,7 @@ public class StoreEmbeddingsFragment extends Fragment {
     private void updatePublicWifiTime(boolean isChecked) {
         if (mService == null) return;
         if (isChecked) {
-            String result = mService.getMostFrequentPublicWifiConnectionTime();
+            String result = mLastTheMostFrequentPublicWifiConnectionTime;
             if (TextUtils.isEmpty(result)) {
                 result = "Unavailable";
             }
