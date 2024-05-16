@@ -51,94 +51,38 @@ public class EmbeddingManager {
         return mRepository.getAll();
     }
 
-    public String getTheMostFrequentlyVisitedPlaceDuringTheDay() {
+    private String getEmbedding(String category) {
         String result = "";
         List<Embedding> embeddings = getAll();
         if (embeddings != null && !embeddings.isEmpty()) {
             for (Embedding embedding : embeddings) {
-                if (embedding.category.equals(CATEGORY_DAY_LOCATION)) {
+                if (embedding.category.equals(category)) {
                     result = embedding.text;
                     break;
                 }
             }
         }
+        return result;
+    }
 
-        if (TextUtils.isEmpty(result)) {
-            result = "Unavailable";
-        }
-        return mContext.getString(R.string.day_location) + " is " + result;
+    public String getTheMostFrequentlyVisitedPlaceDuringTheDay() {
+        return getEmbedding(CATEGORY_DAY_LOCATION);
     }
 
     public String getTheMostFrequentlyVisitedPlaceDuringTheNight() {
-        String result = "";
-        List<Embedding> embeddings = getAll();
-        if (embeddings != null && !embeddings.isEmpty()) {
-            for (Embedding embedding : embeddings) {
-                if (embedding.category.equals(CATEGORY_NIGHT_LOCATION)) {
-                    result = embedding.text;
-                    break;
-                }
-            }
-        }
-
-        if (TextUtils.isEmpty(result)) {
-            result = "Unavailable";
-        }
-        return mContext.getString(R.string.night_location) + " is " + result;
+        return getEmbedding(CATEGORY_NIGHT_LOCATION);
     }
 
     public String getTheMostFrequentlyVisitedPlaceDuringTheWeekend() {
-        String result = "";
-        List<Embedding> embeddings = getAll();
-        if (embeddings != null && !embeddings.isEmpty()) {
-            for (Embedding embedding : embeddings) {
-                if (embedding.category.equals(CATEGORY_WEEKEND_LOCATION)) {
-                    result = embedding.text;
-                    break;
-                }
-            }
-        }
-
-        if (TextUtils.isEmpty(result)) {
-            result = "Unavailable";
-        }
-        return mContext.getString(R.string.weekend_location) + " is " + result;
+        return getEmbedding(CATEGORY_WEEKEND_LOCATION);
     }
 
     public String getTheMostFrequentStationaryTime() {
-        String result = "";
-        List<Embedding> embeddings = getAll();
-        if (embeddings != null && !embeddings.isEmpty()) {
-            for (Embedding embedding : embeddings) {
-                if (embedding.category.equals(CATEGORY_STATIONARY_TIME)) {
-                    result = embedding.text;
-                    break;
-                }
-            }
-        }
-
-        if (TextUtils.isEmpty(result)) {
-            result = "Unavailable";
-        }
-        return mContext.getString(R.string.stationary_time) + " is " + result;
+        return getEmbedding(CATEGORY_STATIONARY_TIME);
     }
 
     public String getTheMostFrequentPublicWifiConnectionTime() {
-        String result = "";
-        List<Embedding> embeddings = getAll();
-        if (embeddings != null && !embeddings.isEmpty()) {
-            for (Embedding embedding : embeddings) {
-                if (embedding.category.equals(CATEGORY_PUBLIC_WIFI_TIME)) {
-                    result = embedding.text;
-                    break;
-                }
-            }
-        }
-
-        if (TextUtils.isEmpty(result)) {
-            result = "Unavailable";
-        }
-        return mContext.getString(R.string.public_wifi_time) + " is " + result;
+        return getEmbedding(CATEGORY_PUBLIC_WIFI_TIME);
     }
 
     private static class Element {

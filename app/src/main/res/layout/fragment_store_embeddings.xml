@@ -13,12 +13,14 @@
         android:padding="16dp">
 
         <TextView
+            android:id="@+id/enableServiceView"
             style="@style/SubHeaderStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/service" />
 
         <LinearLayout
+            android:id="@+id/enableServiceLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_background"

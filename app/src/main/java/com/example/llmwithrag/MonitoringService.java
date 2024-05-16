@@ -198,8 +198,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private String getTheMostFrequentlyVisitedPlaceDuringTheDayInternal() {
         String result = "";
         List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheDay(1);
-        if (results != null && !results.isEmpty()) result = results.get(0);
-        return result;
+        return getExplanatoryDayLocation((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
     @Override
@@ -210,8 +209,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private String getTheMostFrequentlyVisitedPlaceDuringTheNightInternal() {
         String result = "";
         List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheNight(1);
-        if (results != null && !results.isEmpty()) result = results.get(0);
-        return result;
+        return getExplanatoryNightLocation((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
     @Override
@@ -222,8 +220,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private String getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal() {
         String result = "";
         List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
-        if (results != null && !results.isEmpty()) result = results.get(0);
-        return result;
+        return getExplanatoryWeekendLocation((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
     @Override
@@ -234,13 +231,18 @@ public class MonitoringService extends Service implements IMonitoringService {
     private String getTheMostFrequentStationaryTimeInternal() {
         String result = "";
         List<String> results = mStationaryTimeManager.getMostFrequentStationaryTimes(1);
-        if (results != null && !results.isEmpty()) result = results.get(0);
-        return result;
+        return getExplanatoryStationaryTime((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
     @Override
     public LiveData<String> getTheMostFrequentPublicWifiConnectionTime() {
         return mTheMostFrequentPublicWifiConnectionTime;
+    }
+
+    private String getTheMostFrequentPublicWifiConnectionTimeInternal() {
+        String result = "";
+        List<String> results = mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(1);
+        return getExplanatoryPublicWifiConnectionTime((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
     @Override
@@ -335,20 +337,16 @@ public class MonitoringService extends Service implements IMonitoringService {
         return false;
     }
 
-    private String getTheMostFrequentPublicWifiConnectionTimeInternal() {
-        String result = "";
-        List<String> results = mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(1);
-        if (results != null && !results.isEmpty()) result = results.get(0);
-        return result;
-    }
-
     private void updateDayLocation(boolean isChecked, boolean forceUpdate) {
         EmbeddingResultListener listener = new EmbeddingResultListener() {
             @Override
             public void onSuccess() {
-                mTheMostFrequentlyVisitedPlaceDuringTheDay.postValue(
-                        mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheDay());
-                Log.i(TAG, "day location is updated");
+                String location = mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheDay();
+                if (TextUtils.isEmpty(location)) {
+                    location = getExplanatoryDayLocation("");
+                }
+                mTheMostFrequentlyVisitedPlaceDuringTheDay.postValue(location);
+                if (DEBUG) Log.i(TAG, "day location is updated to " + location);
             }
         };
 
@@ -369,9 +367,11 @@ public class MonitoringService extends Service implements IMonitoringService {
             @Override
             public void onSuccess() {
                 String location = mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheNight();
-                mTheMostFrequentlyVisitedPlaceDuringTheNight.postValue(location
-                );
-                Log.i(TAG, "night location is updated");
+                if (TextUtils.isEmpty(location)) {
+                    location = getExplanatoryNightLocation("");
+                }
+                mTheMostFrequentlyVisitedPlaceDuringTheNight.postValue(location);
+                if (DEBUG) Log.i(TAG, "night location is updated to " + location);
             }
         };
 
@@ -391,9 +391,12 @@ public class MonitoringService extends Service implements IMonitoringService {
         EmbeddingResultListener listener = new EmbeddingResultListener() {
             @Override
             public void onSuccess() {
-                mTheMostFrequentlyVisitedPlaceDuringTheWeekend.postValue(
-                        mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheWeekend());
-                Log.i(TAG, "weekend location is updated");
+                String location = mEmbeddingManager.getTheMostFrequentlyVisitedPlaceDuringTheWeekend();
+                if (TextUtils.isEmpty(location)) {
+                    location = getExplanatoryWeekendLocation("");
+                }
+                mTheMostFrequentlyVisitedPlaceDuringTheWeekend.postValue(location);
+                if (DEBUG) Log.i(TAG, "weekend location is updated to " + location);
             }
         };
 
@@ -413,9 +416,12 @@ public class MonitoringService extends Service implements IMonitoringService {
         EmbeddingResultListener listener = new EmbeddingResultListener() {
             @Override
             public void onSuccess() {
-                mTheMostFrequentStationaryTime.postValue(
-                        mEmbeddingManager.getTheMostFrequentStationaryTime());
-                Log.i(TAG, "stationary time is updated");
+                String time = mEmbeddingManager.getTheMostFrequentStationaryTime();
+                if (TextUtils.isEmpty(time)) {
+                    time = getExplanatoryStationaryTime("");
+                }
+                mTheMostFrequentStationaryTime.postValue(time);
+                if (DEBUG) Log.i(TAG, "stationary time is updated to " + time);
             }
         };
 
@@ -435,9 +441,12 @@ public class MonitoringService extends Service implements IMonitoringService {
         EmbeddingResultListener listener = new EmbeddingResultListener() {
             @Override
             public void onSuccess() {
-                mTheMostFrequentPublicWifiConnectionTime.postValue(
-                        mEmbeddingManager.getTheMostFrequentPublicWifiConnectionTime());
-                Log.i(TAG, "public wifi time is updated");
+                String time = mEmbeddingManager.getTheMostFrequentPublicWifiConnectionTime();
+                if (TextUtils.isEmpty(time)) {
+                    time = getExplanatoryPublicWifiConnectionTime("");
+                }
+                mTheMostFrequentPublicWifiConnectionTime.postValue(time);
+                if (DEBUG) Log.i(TAG, "public wifi time is updated to " + time);
             }
         };
 
@@ -450,6 +459,46 @@ public class MonitoringService extends Service implements IMonitoringService {
         } else {
             mEmbeddingManager.removeEmbeddings(CATEGORY_PUBLIC_WIFI_TIME, listener);
             TextUtils.isEmpty(oldValue);
+        }
+    }
+
+    private String getExplanatoryDayLocation(String text) {
+        if (!TextUtils.isEmpty(text)) {
+            return getApplicationContext().getString(R.string.day_location) + " is " + text;
+        } else {
+            return getApplicationContext().getString(R.string.day_location_unavailable);
+        }
+    }
+
+    private String getExplanatoryNightLocation(String text) {
+        if (!TextUtils.isEmpty(text)) {
+            return getApplicationContext().getString(R.string.night_location) + " is " + text;
+        } else {
+            return getApplicationContext().getString(R.string.night_location_unavailable);
+        }
+    }
+
+    private String getExplanatoryWeekendLocation(String text) {
+        if (!TextUtils.isEmpty(text)) {
+            return getApplicationContext().getString(R.string.weekend_location) + " is " + text;
+        } else {
+            return getApplicationContext().getString(R.string.weekend_location_unavailable);
+        }
+    }
+
+    private String getExplanatoryStationaryTime(String text) {
+        if (!TextUtils.isEmpty(text)) {
+            return getApplicationContext().getString(R.string.stationary_time) + " is " + text;
+        } else {
+            return getApplicationContext().getString(R.string.stationary_time_unavailable);
+        }
+    }
+
+    private String getExplanatoryPublicWifiConnectionTime(String text) {
+        if (!TextUtils.isEmpty(text)) {
+            return getApplicationContext().getString(R.string.public_wifi_time) + " is " + text;
+        } else {
+            return getApplicationContext().getString(R.string.public_wifi_time_unavailable);
         }
     }
 

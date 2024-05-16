@@ -191,7 +191,8 @@ public class PerformQueryFragment extends Fragment {
         }
 
         if (!foundLocation) {
-            Toast.makeText(getContext(), "Unable to Find the Location", Toast.LENGTH_LONG).show();
+            Log.i(TAG, "failed to find the location");
+            Toast.makeText(getContext(), "I can only help you find the route!", Toast.LENGTH_LONG).show();
         }
 
         return false;
@@ -247,16 +248,16 @@ public class PerformQueryFragment extends Fragment {
 
     @NonNull
     private String generateQuery(String query, List<String> results) {
-        StringBuilder sb = new StringBuilder("Now you're a location finder, and check the information below thoroughly.");
+        StringBuilder sb = new StringBuilder("my query is \"" + query + "\".");
+        sb.append("\nFirst, figure out if I'm asking you to find the route to some place.");
+        sb.append("\nIf it's not, tell me \"unable to find the location\"");
+        sb.append("\nIf it is, you're a location finder from now on, then go through the information below thoroughly.");
         for (String result : results) {
             sb.append("\n").append(result);
         }
-        sb.append("\n").append(query);
-        sb.append("\n").append("If you're asked to find the route, determine 'the destination' based on the provided information above.");
         sb.append("\n").append("All the addresses found in the information are in the form of 'latitude,longitude'.");
-        sb.append("\n").append("Out of the addresses found, find out the most likely one.");
+        sb.append("\n").append("Out of all the addresses, find out the most likely one.");
         sb.append("\n").append("Ensure you provide the answer in the form of 'latitude, longitude' only, and do not add any other comments.");
-        sb.append("\n").append("Tell me you're unable to find it if the address you've found is not the one of the addresses above.");
         return sb.toString();
     }
 }

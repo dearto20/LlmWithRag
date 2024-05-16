@@ -32,14 +32,21 @@ public class StoreEmbeddingsFragment extends Fragment {
         try {
             FragmentActivity activity = getActivity();
             if (activity == null) return;
+            TextView enableServiceView = activity.findViewById(R.id.enableServiceView);
+            LinearLayout enableServiceLayout = activity.findViewById(R.id.enableServiceLayout);
             Switch enableServiceSwitch = activity.findViewById(R.id.enableServiceSwitch);
+
             TextView configureKnowledgeView = activity.findViewById(R.id.configureKnowledgeView);
             LinearLayout configureKnowledgeLayout = activity.findViewById(R.id.configureKnowledgeLayout);
             TextView showKnowledgeView = activity.findViewById(R.id.showKnowledgeView);
+
             LinearLayout showKnowledgeLayout = activity.findViewById(R.id.showKnowledgeLayout);
             Button resetDatabaseButton = activity.findViewById(R.id.resetDatabaseButton);
 
-            enableServiceSwitch.setVisibility(mService != null ? View.VISIBLE : View.GONE);
+            int visibility = mService != null ? View.VISIBLE : View.GONE;
+            enableServiceView.setVisibility(visibility);
+            enableServiceLayout.setVisibility(visibility);
+
             if (isServiceEnabled()) {
                 enableServiceSwitch.setChecked(true);
                 configureKnowledgeView.setVisibility(View.VISIBLE);
