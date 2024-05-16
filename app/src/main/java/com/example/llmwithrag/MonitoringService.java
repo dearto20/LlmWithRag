@@ -252,7 +252,8 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public boolean isDayLocationEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
+        boolean result = sharedPreferences != null && sharedPreferences.getBoolean(KEY_DAY_LOCATION, true);
+        return result;
     }
 
     @Override
@@ -276,7 +277,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public boolean isPublicWifiTimeEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_STATIONARY_TIME, true);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, true);
     }
 
     @Override

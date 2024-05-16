@@ -1,7 +1,6 @@
 package com.example.llmwithrag.datasource.movement;
 
 import static android.hardware.Sensor.TYPE_ACCELEROMETER;
-import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -36,7 +35,8 @@ public class MovementTracker implements SensorEventListener, IDataSourceComponen
 
     @Override
     public void startMonitoring() {
-        mSensorManager.registerListener(this, mAccelerometerSensor, SENSOR_DELAY_NORMAL, mHandler);
+        mSensorManager.registerListener(this, mAccelerometerSensor,
+                mAccelerometerSensor.getMaxDelay(), mHandler);
     }
 
     @Override

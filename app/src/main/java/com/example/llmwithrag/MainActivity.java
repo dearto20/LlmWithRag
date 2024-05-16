@@ -77,17 +77,16 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     if (allPermissionsGranted) {
+                        Context context = getApplicationContext();
+                        Intent serviceIntent = new Intent(context, MonitoringService.class);
+                        ContextCompat.startForegroundService(context, serviceIntent);
+
                         bindToMonitoringService();
                     } else {
                         Toast.makeText(getApplicationContext(),
                                 "Permission Denied", Toast.LENGTH_SHORT).show();
                     }
                 });
-
-        Context context = getApplicationContext();
-        Intent serviceIntent = new Intent(context, MonitoringService.class);
-        ContextCompat.startForegroundService(context, serviceIntent);
-
         updateService();
     }
 
