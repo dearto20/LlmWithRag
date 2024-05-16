@@ -175,15 +175,7 @@ public class PerformQueryFragment extends Fragment {
                 startActivity(intent);
                 return true;
             } catch (ActivityNotFoundException e1) {
-                try {
-                    Uri uri = Uri.parse("market://details?id=com.skt.tmap.ku");
-                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    startActivity(intent);
-                } catch (ActivityNotFoundException e2) {
-                    Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=com.skt.tmap.ku");
-                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    startActivity(intent);
-                }
+                redirectToPlayStore("com.skt.tmap.ku");
             } catch (Throwable e) {
                 Log.e(TAG, e.toString());
                 e.printStackTrace();
