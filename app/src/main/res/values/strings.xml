@@ -10,8 +10,10 @@
     <string name="weekend_location_unavailable">Location During the Weekend is Unavailable</string>
     <string name="stationary_time">Time for Not Using the Phone</string>
     <string name="stationary_time_unavailable">Time for Not Using the Phone is Unavailable</string>
-    <string name="public_wifi_time">Time for Using Personal Wi-Fi</string>
-    <string name="public_wifi_time_unavailable">Time for Using Personal Wi-Fi is Unavailable</string>
+    <string name="enterprise_wifi_time">Time for Using Enterprise Wi-Fi</string>
+    <string name="enterprise_wifi_time_unavailable">Time for Using Enterprise Wi-Fi is Unavailable</string>
+    <string name="personal_wifi_time">Time for Using Personal Wi-Fi</string>
+    <string name="personal_wifi_time_unavailable">Time for Using Personal Wi-Fi is Unavailable</string>
     <string name="add_to_database">Add</string>
     <string name="remove_from_database">Remove</string>
     <string name="reset_database">Reset Database</string>

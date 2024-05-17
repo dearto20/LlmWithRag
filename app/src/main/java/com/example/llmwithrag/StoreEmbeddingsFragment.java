@@ -67,8 +67,11 @@ public class StoreEmbeddingsFragment extends Fragment {
                 Switch stationaryTimeSwitch = activity.findViewById(R.id.stationaryTimeSwitch);
                 stationaryTimeSwitch.setChecked(isStationaryTimeEnabled());
 
-                Switch publicWifiTimeSwitch = activity.findViewById(R.id.publicWifiTimeSwitch);
-                publicWifiTimeSwitch.setChecked(isPublicWifiTimeEnabled());
+                Switch enterpriseWifiTimeSwitch = activity.findViewById(R.id.enterpriseWifiTimeSwitch);
+                enterpriseWifiTimeSwitch.setChecked(isEnterpriseWifiTimeEnabled());
+
+                Switch personalWifiTimeSwitch = activity.findViewById(R.id.personalWifiTimeSwitch);
+                personalWifiTimeSwitch.setChecked(isPersonalWifiTimeEnabled());
 
                 updateEmbeddingsList();
             } else {
@@ -133,8 +136,10 @@ public class StoreEmbeddingsFragment extends Fragment {
                         mService.getTheMostFrequentlyVisitedPlaceDuringTheWeekend().getValue());
                 mViewModel.setLastTheMostFrequentStationaryTime(
                         mService.getTheMostFrequentStationaryTime().getValue());
-                mViewModel.setLastTheMostFrequentPublicWifiConnectionTime(
-                        mService.getTheMostFrequentPublicWifiConnectionTime().getValue());
+                mViewModel.setLastTheMostFrequentEnterpriseWifiConnectionTime(
+                        mService.getTheMostFrequentEnterpriseWifiConnectionTime().getValue());
+                mViewModel.setLastTheMostFrequentPersonalWifiConnectionTime(
+                        mService.getTheMostFrequentPersonalWifiConnectionTime().getValue());
 
                 mService.getTheMostFrequentlyVisitedPlaceDuringTheDay().observe(
                         getViewLifecycleOwner(),
@@ -164,10 +169,17 @@ public class StoreEmbeddingsFragment extends Fragment {
                             updateEmbeddingsList();
                         });
 
-                mService.getTheMostFrequentPublicWifiConnectionTime().observe(
+                mService.getTheMostFrequentEnterpriseWifiConnectionTime().observe(
                         getViewLifecycleOwner(),
                         result -> {
-                            mViewModel.setLastTheMostFrequentPublicWifiConnectionTime(result);
+                            mViewModel.setLastTheMostFrequentEnterpriseWifiConnectionTime(result);
+                            updateEmbeddingsList();
+                        });
+
+                mService.getTheMostFrequentPersonalWifiConnectionTime().observe(
+                        getViewLifecycleOwner(),
+                        result -> {
+                            mViewModel.setLastTheMostFrequentPersonalWifiConnectionTime(result);
                             updateEmbeddingsList();
                         });
 
@@ -183,7 +195,8 @@ public class StoreEmbeddingsFragment extends Fragment {
         Switch nightLocationSwitch = view.findViewById(R.id.nightLocationSwitch);
         Switch weekendLocationSwitch = view.findViewById(R.id.weekendLocationSwitch);
         Switch stationaryTimeSwitch = view.findViewById(R.id.stationaryTimeSwitch);
-        Switch publicWifiTimeSwitch = view.findViewById(R.id.publicWifiTimeSwitch);
+        Switch enterpriseWifiTimeSwitch = view.findViewById(R.id.enterpriseWifiTimeSwitch);
+        Switch personalWifiTimeSwitch = view.findViewById(R.id.personalWifiTimeSwitch);
         Button resetButton = view.findViewById(R.id.resetDatabaseButton);
 
         enableServiceSwitch.setOnCheckedChangeListener((button, isChecked) -> {
@@ -226,8 +239,16 @@ public class StoreEmbeddingsFragment extends Fragment {
             }
         });
 
-        publicWifiTimeSwitch.setOnCheckedChangeListener((button, isChecked) -> {
-            if (setPublicWifiTimeEnabled(isChecked)) {
+        enterpriseWifiTimeSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            if (setEnterpriseWifiTimeEnabled(isChecked)) {
+                updateViews();
+            } else {
+                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        personalWifiTimeSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            if (setPersonalWifiTimeEnabled(isChecked)) {
                 updateViews();
             } else {
                 Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
@@ -252,7 +273,8 @@ public class StoreEmbeddingsFragment extends Fragment {
             TextView nightLocationView = activity.findViewById(R.id.nightLocationView);
             TextView weekendLocationView = activity.findViewById(R.id.weekendLocationView);
             TextView stationaryTimeView = activity.findViewById(R.id.stationaryTimeView);
-            TextView publicWifiTimeView = activity.findViewById(R.id.publicWifiTimeView);
+            TextView enterpriseWifiTimeView = activity.findViewById(R.id.enterpriseWifiTimeView);
+            TextView personalWifiTimeView = activity.findViewById(R.id.personalWifiTimeView);
 
             dayLocationView.setText(
                     mViewModel.getLastTheMostFrequentlyVisitedPlaceDuringTheDay());
@@ -262,8 +284,10 @@ public class StoreEmbeddingsFragment extends Fragment {
                     mViewModel.getLastTheMostFrequentlyVisitedPlaceDuringTheWeekend());
             stationaryTimeView.setText(
                     mViewModel.getLastTheMostFrequentStationaryTime());
-            publicWifiTimeView.setText(
-                    mViewModel.getLastTheMostFrequentPublicWifiConnectionTime());
+            enterpriseWifiTimeView.setText(
+                    mViewModel.getLastTheMostFrequentEnterpriseWifiConnectionTime());
+            personalWifiTimeView.setText(
+                    mViewModel.getLastTheMostFrequentPersonalWifiConnectionTime());
         } catch (Throwable e) {
             Log.e(TAG, e.toString());
             e.printStackTrace();
@@ -290,8 +314,12 @@ public class StoreEmbeddingsFragment extends Fragment {
         return mService != null && mService.isStationaryTimeEnabled();
     }
 
-    private boolean isPublicWifiTimeEnabled() {
-        return mService != null && mService.isPublicWifiTimeEnabled();
+    private boolean isEnterpriseWifiTimeEnabled() {
+        return mService != null && mService.isEnterpriseWifiTimeEnabled();
+    }
+
+    private boolean isPersonalWifiTimeEnabled() {
+        return mService != null && mService.isPersonalWifiTimeEnabled();
     }
 
     private boolean setServiceEnabled(boolean enabled) {
@@ -314,7 +342,11 @@ public class StoreEmbeddingsFragment extends Fragment {
         return mService != null && mService.setStationaryTimeEnabled(enabled);
     }
 
-    private boolean setPublicWifiTimeEnabled(boolean enabled) {
-        return mService != null && mService.setPublicWifiTimeEnabled(enabled);
+    private boolean setEnterpriseWifiTimeEnabled(boolean enabled) {
+        return mService != null && mService.setEnterpriseWifiTimeEnabled(enabled);
+    }
+
+    private boolean setPersonalWifiTimeEnabled(boolean enabled) {
+        return mService != null && mService.setPersonalWifiTimeEnabled(enabled);
     }
 }

@@ -1,7 +1,5 @@
 package com.example.llmwithrag;
 
-import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -13,14 +11,16 @@ public class ServiceViewModel extends ViewModel {
     private String mLastTheMostFrequentlyVisitedPlaceDuringTheNight;
     private String mLastTheMostFrequentlyVisitedPlaceDuringTheWeekend;
     private String mLastTheMostFrequentStationaryTime;
-    private String mLastTheMostFrequentPublicWifiConnectionTime;
+    private String mLastTheMostFrequentEnterpriseWifiConnectionTime;
+    private String mLastTheMostFrequentPersonalWifiConnectionTime;
 
     public ServiceViewModel() {
         mLastTheMostFrequentlyVisitedPlaceDuringTheDay = null;
         mLastTheMostFrequentlyVisitedPlaceDuringTheNight = null;
         mLastTheMostFrequentlyVisitedPlaceDuringTheWeekend = null;
         mLastTheMostFrequentStationaryTime = null;
-        mLastTheMostFrequentPublicWifiConnectionTime = null;
+        mLastTheMostFrequentEnterpriseWifiConnectionTime = null;
+        mLastTheMostFrequentPersonalWifiConnectionTime = null;
     }
 
     public LiveData<IMonitoringService> getService() {
@@ -63,11 +63,19 @@ public class ServiceViewModel extends ViewModel {
         mLastTheMostFrequentStationaryTime = text;
     }
 
-    public String getLastTheMostFrequentPublicWifiConnectionTime() {
-        return mLastTheMostFrequentPublicWifiConnectionTime;
+    public String getLastTheMostFrequentEnterpriseWifiConnectionTime() {
+        return mLastTheMostFrequentEnterpriseWifiConnectionTime;
     }
 
-    public void setLastTheMostFrequentPublicWifiConnectionTime(String text) {
-        mLastTheMostFrequentPublicWifiConnectionTime = text;
+    public void setLastTheMostFrequentEnterpriseWifiConnectionTime(String text) {
+        mLastTheMostFrequentEnterpriseWifiConnectionTime = text;
+    }
+
+    public String getLastTheMostFrequentPersonalWifiConnectionTime() {
+        return mLastTheMostFrequentPersonalWifiConnectionTime;
+    }
+
+    public void setLastTheMostFrequentPersonalWifiConnectionTime(String text) {
+        mLastTheMostFrequentPersonalWifiConnectionTime = text;
     }
 }

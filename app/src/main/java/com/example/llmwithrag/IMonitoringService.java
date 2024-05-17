@@ -2,8 +2,6 @@ package com.example.llmwithrag;
 
 import androidx.lifecycle.LiveData;
 
-import com.example.llmwithrag.llm.Embedding;
-
 import java.util.List;
 
 public interface IMonitoringService {
@@ -19,7 +17,9 @@ public interface IMonitoringService {
 
     LiveData<String> getTheMostFrequentStationaryTime();
 
-    LiveData<String> getTheMostFrequentPublicWifiConnectionTime();
+    LiveData<String> getTheMostFrequentEnterpriseWifiConnectionTime();
+
+    LiveData<String> getTheMostFrequentPersonalWifiConnectionTime();
 
     boolean isServiceEnabled();
 
@@ -31,7 +31,9 @@ public interface IMonitoringService {
 
     boolean isStationaryTimeEnabled();
 
-    boolean isPublicWifiTimeEnabled();
+    boolean isEnterpriseWifiTimeEnabled();
+
+    boolean isPersonalWifiTimeEnabled();
 
     boolean setServiceEnabled(boolean enabled);
 
@@ -43,5 +45,7 @@ public interface IMonitoringService {
 
     boolean setStationaryTimeEnabled(boolean enabled);
 
-    boolean setPublicWifiTimeEnabled(boolean enabled);
+    boolean setEnterpriseWifiTimeEnabled(boolean enabled);
+
+    boolean setPersonalWifiTimeEnabled(boolean enabled);
 }

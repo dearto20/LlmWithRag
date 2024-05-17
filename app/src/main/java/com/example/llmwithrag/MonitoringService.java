@@ -2,7 +2,8 @@ package com.example.llmwithrag;
 
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_DAY_LOCATION;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_NIGHT_LOCATION;
-import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_PUBLIC_WIFI_TIME;
+import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_ENTERPRISE_WIFI_TIME;
+import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_PERSONAL_WIFI_TIME;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_STATIONARY_TIME;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_WEEKEND_LOCATION;
 
@@ -32,8 +33,10 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
 import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
-import com.example.llmwithrag.knowledge.connectivity.PublicWifiUsageManager;
-import com.example.llmwithrag.knowledge.connectivity.PublicWifiUsageRepository;
+import com.example.llmwithrag.knowledge.connectivity.EnterpriseWifiUsageManager;
+import com.example.llmwithrag.knowledge.connectivity.EnterpriseWifiUsageRepository;
+import com.example.llmwithrag.knowledge.connectivity.PersonalWifiUsageManager;
+import com.example.llmwithrag.knowledge.connectivity.PersonalWifiUsageRepository;
 import com.example.llmwithrag.knowledge.location.PersistentLocationManager;
 import com.example.llmwithrag.knowledge.location.PersistentLocationRepository;
 import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
@@ -50,7 +53,8 @@ public class MonitoringService extends Service implements IMonitoringService {
     private static final String KEY_NIGHT_LOCATION = "key_night_location";
     private static final String KEY_WEEKEND_LOCATION = "key_weekend_location";
     private static final String KEY_STATIONARY_TIME = "stationary_time";
-    private static final String KEY_PUBLIC_WIFI_TIME = "public_wifi_time";
+    private static final String KEY_ENTERPRISE_WIFI_TIME = "enterprise_wifi_time";
+    private static final String KEY_PERSONAL_WIFI_TIME = "personal_wifi_time";
     private static final long MIN_DELAY_PERIODIC_UPDATE = 5000L;
     private static final long MAX_DELAY_PERIODIC_UPDATE = 600000L;
     private static final boolean DEBUG = false;
@@ -64,9 +68,11 @@ public class MonitoringService extends Service implements IMonitoringService {
     private final MutableLiveData<String> mTheMostFrequentlyVisitedPlaceDuringTheNight = new MutableLiveData<>();
     private final MutableLiveData<String> mTheMostFrequentlyVisitedPlaceDuringTheWeekend = new MutableLiveData<>();
     private final MutableLiveData<String> mTheMostFrequentStationaryTime = new MutableLiveData<>();
-    private final MutableLiveData<String> mTheMostFrequentPublicWifiConnectionTime = new MutableLiveData<>();
+    private final MutableLiveData<String> mTheMostFrequentEnterpriseWifiConnectionTime = new MutableLiveData<>();
+    private final MutableLiveData<String> mTheMostFrequentPersonalWifiConnectionTime = new MutableLiveData<>();
     private PersistentLocationManager mPersistentLocationManager;
-    private PublicWifiUsageManager mPublicWifiUsageManager;
+    private EnterpriseWifiUsageManager mEnterpriseWifiUsageManager;
+    private PersonalWifiUsageManager mPersonalWifiUsageManager;
     private StationaryTimeManager mStationaryTimeManager;
     private EmbeddingManager mEmbeddingManager;
     private boolean mStarted;
@@ -105,8 +111,10 @@ public class MonitoringService extends Service implements IMonitoringService {
         };
         mPersistentLocationManager = new PersistentLocationManager(context,
                 new PersistentLocationRepository(context), new LocationTracker(context, looper));
-        mPublicWifiUsageManager = new PublicWifiUsageManager(context,
-                new PublicWifiUsageRepository(context), new ConnectivityTracker(context, looper));
+        mEnterpriseWifiUsageManager = new EnterpriseWifiUsageManager(context,
+                new EnterpriseWifiUsageRepository(context), new ConnectivityTracker(context, looper));
+        mPersonalWifiUsageManager = new PersonalWifiUsageManager(context,
+                new PersonalWifiUsageRepository(context), new ConnectivityTracker(context, looper));
         mStationaryTimeManager = new StationaryTimeManager(context,
                 new StationaryTimeRepository(context), new MovementTracker(context, looper));
         mEmbeddingManager = new EmbeddingManager(getApplicationContext());
@@ -119,14 +127,11 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private void updateKnowledge(boolean forceUpdate) {
         updateDayLocation(isDayLocationEnabled(), forceUpdate);
-
         updateNightLocation(isNightLocationEnabled(), forceUpdate);
-
         updateWeekendLocation(isWeekendLocationEnabled(), forceUpdate);
-
         updateStationaryTime(isStationaryTimeEnabled(), forceUpdate);
-
-        updatePublicWifiTime(isPublicWifiTimeEnabled(), forceUpdate);
+        updateEnterpriseWifiTime(isEnterpriseWifiTimeEnabled(), forceUpdate);
+        updatePersonalWifiTime(isPersonalWifiTimeEnabled(), forceUpdate);
     }
 
     public static class EmbeddingResultListener {
@@ -179,7 +184,8 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public void deleteAll() {
         mPersistentLocationManager.deleteAll();
-        mPublicWifiUsageManager.deleteAll();
+        mEnterpriseWifiUsageManager.deleteAll();
+        mPersonalWifiUsageManager.deleteAll();
         mStationaryTimeManager.deleteAll();
         mEmbeddingManager.deleteAll();
         updateKnowledge(true);
@@ -235,14 +241,25 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public LiveData<String> getTheMostFrequentPublicWifiConnectionTime() {
-        return mTheMostFrequentPublicWifiConnectionTime;
+    public LiveData<String> getTheMostFrequentEnterpriseWifiConnectionTime() {
+        return mTheMostFrequentEnterpriseWifiConnectionTime;
     }
 
-    private String getTheMostFrequentPublicWifiConnectionTimeInternal() {
+    private String getTheMostFrequentEnterpriseWifiConnectionTimeInternal() {
         String result = "";
-        List<String> results = mPublicWifiUsageManager.getMostFrequentPublicWifiConnectionTimes(1);
-        return getExplanatoryPublicWifiConnectionTime((results != null && !results.isEmpty()) ? results.get(0) : "");
+        List<String> results = mEnterpriseWifiUsageManager.getMostFrequentEnterpriseWifiConnectionTimes(1);
+        return getExplanatoryEnterpriseWifiConnectionTime((results != null && !results.isEmpty()) ? results.get(0) : "");
+    }
+
+    @Override
+    public LiveData<String> getTheMostFrequentPersonalWifiConnectionTime() {
+        return mTheMostFrequentPersonalWifiConnectionTime;
+    }
+
+    private String getTheMostFrequentPersonalWifiConnectionTimeInternal() {
+        String result = "";
+        List<String> results = mPersonalWifiUsageManager.getMostFrequentPersonalWifiConnectionTimes(1);
+        return getExplanatoryPersonalWifiConnectionTime((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
     @Override
@@ -277,9 +294,15 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public boolean isPublicWifiTimeEnabled() {
+    public boolean isEnterpriseWifiTimeEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_PUBLIC_WIFI_TIME, true);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_ENTERPRISE_WIFI_TIME, true);
+    }
+
+    @Override
+    public boolean isPersonalWifiTimeEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_PERSONAL_WIFI_TIME, true);
     }
 
     @Override
@@ -329,9 +352,18 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public boolean setPublicWifiTimeEnabled(boolean enabled) {
-        if (setSharedPreferences(KEY_PUBLIC_WIFI_TIME, enabled)) {
-            updatePublicWifiTime(enabled, true);
+    public boolean setEnterpriseWifiTimeEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_ENTERPRISE_WIFI_TIME, enabled)) {
+            updateEnterpriseWifiTime(enabled, true);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setPersonalWifiTimeEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_PERSONAL_WIFI_TIME, enabled)) {
+            updatePersonalWifiTime(enabled, true);
             return true;
         }
         return false;
@@ -437,27 +469,52 @@ public class MonitoringService extends Service implements IMonitoringService {
         }
     }
 
-    private void updatePublicWifiTime(boolean isChecked, boolean forceUpdate) {
+    private void updateEnterpriseWifiTime(boolean isChecked, boolean forceUpdate) {
         EmbeddingResultListener listener = new EmbeddingResultListener() {
             @Override
             public void onSuccess() {
-                String time = mEmbeddingManager.getTheMostFrequentPublicWifiConnectionTime();
+                String time = mEmbeddingManager.getTheMostFrequentEnterpriseWifiConnectionTime();
                 if (TextUtils.isEmpty(time)) {
-                    time = getExplanatoryPublicWifiConnectionTime("");
+                    time = getExplanatoryEnterpriseWifiConnectionTime("");
                 }
-                mTheMostFrequentPublicWifiConnectionTime.postValue(time);
-                if (DEBUG) Log.i(TAG, "public wifi time is updated to " + time);
+                mTheMostFrequentEnterpriseWifiConnectionTime.postValue(time);
+                if (DEBUG) Log.i(TAG, "enterprise wifi time is updated to " + time);
             }
         };
 
-        String oldValue = mEmbeddingManager.getTheMostFrequentPublicWifiConnectionTime();
+        String oldValue = mEmbeddingManager.getTheMostFrequentEnterpriseWifiConnectionTime();
         if (isChecked) {
-            String newValue = getTheMostFrequentPublicWifiConnectionTimeInternal();
+            String newValue = getTheMostFrequentEnterpriseWifiConnectionTimeInternal();
             if (forceUpdate || !TextUtils.equals(oldValue, newValue)) {
-                mEmbeddingManager.addEmbeddings(newValue, newValue, CATEGORY_PUBLIC_WIFI_TIME, listener);
+                mEmbeddingManager.addEmbeddings(newValue, newValue, CATEGORY_ENTERPRISE_WIFI_TIME, listener);
             }
         } else {
-            mEmbeddingManager.removeEmbeddings(CATEGORY_PUBLIC_WIFI_TIME, listener);
+            mEmbeddingManager.removeEmbeddings(CATEGORY_ENTERPRISE_WIFI_TIME, listener);
+            TextUtils.isEmpty(oldValue);
+        }
+    }
+
+    private void updatePersonalWifiTime(boolean isChecked, boolean forceUpdate) {
+        EmbeddingResultListener listener = new EmbeddingResultListener() {
+            @Override
+            public void onSuccess() {
+                String time = mEmbeddingManager.getTheMostFrequentPersonalWifiConnectionTime();
+                if (TextUtils.isEmpty(time)) {
+                    time = getExplanatoryPersonalWifiConnectionTime("");
+                }
+                mTheMostFrequentPersonalWifiConnectionTime.postValue(time);
+                if (DEBUG) Log.i(TAG, "personal wifi time is updated to " + time);
+            }
+        };
+
+        String oldValue = mEmbeddingManager.getTheMostFrequentPersonalWifiConnectionTime();
+        if (isChecked) {
+            String newValue = getTheMostFrequentPersonalWifiConnectionTimeInternal();
+            if (forceUpdate || !TextUtils.equals(oldValue, newValue)) {
+                mEmbeddingManager.addEmbeddings(newValue, newValue, CATEGORY_PERSONAL_WIFI_TIME, listener);
+            }
+        } else {
+            mEmbeddingManager.removeEmbeddings(CATEGORY_PERSONAL_WIFI_TIME, listener);
             TextUtils.isEmpty(oldValue);
         }
     }
@@ -494,11 +551,19 @@ public class MonitoringService extends Service implements IMonitoringService {
         }
     }
 
-    private String getExplanatoryPublicWifiConnectionTime(String text) {
+    private String getExplanatoryEnterpriseWifiConnectionTime(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.public_wifi_time) + " is " + text;
+            return getApplicationContext().getString(R.string.enterprise_wifi_time) + " is " + text;
         } else {
-            return getApplicationContext().getString(R.string.public_wifi_time_unavailable);
+            return getApplicationContext().getString(R.string.enterprise_wifi_time_unavailable);
+        }
+    }
+
+    private String getExplanatoryPersonalWifiConnectionTime(String text) {
+        if (!TextUtils.isEmpty(text)) {
+            return getApplicationContext().getString(R.string.personal_wifi_time) + " is " + text;
+        } else {
+            return getApplicationContext().getString(R.string.personal_wifi_time_unavailable);
         }
     }
 
@@ -520,7 +585,8 @@ public class MonitoringService extends Service implements IMonitoringService {
         if (mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
         mPersistentLocationManager.startMonitoring();
-        mPublicWifiUsageManager.startMonitoring();
+        mEnterpriseWifiUsageManager.startMonitoring();
+        mPersonalWifiUsageManager.startMonitoring();
         mStationaryTimeManager.startMonitoring();
         mHandler.removeCallbacksAndMessages(null);
         mUpdateCallback.run();
@@ -533,7 +599,8 @@ public class MonitoringService extends Service implements IMonitoringService {
         if (!mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Stopped", Toast.LENGTH_SHORT).show();
         mStationaryTimeManager.stopMonitoring();
-        mPublicWifiUsageManager.stopMonitoring();
+        mPersonalWifiUsageManager.stopMonitoring();
+        mEnterpriseWifiUsageManager.stopMonitoring();
         mPersistentLocationManager.stopMonitoring();
         mHandler.removeCallbacksAndMessages(null);
         mStarted = false;

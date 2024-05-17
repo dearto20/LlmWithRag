@@ -15,23 +15,23 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class PublicWifiUsageManager implements IKnowledgeComponent {
-    private static final String TAG = PublicWifiUsageManager.class.getSimpleName();
+public class PersonalWifiUsageManager implements IKnowledgeComponent {
+    private static final String TAG = PersonalWifiUsageManager.class.getSimpleName();
     private static final boolean DEBUG = false;
     private static final String KEY_CONNECTION_TIME = "connection_time";
     private static final String KEY_CONNECTION_DURATION = "connection_duration";
     private static final long MIN_DURATION = 600000L;
-    private final PublicWifiUsageRepository mRepository;
+    private final PersonalWifiUsageRepository mRepository;
 
     private final ConnectivityTracker mConnectivityTracker;
     private boolean mIsConnected;
     private long mStartTime;
     private long mCheckTime;
 
-    public PublicWifiUsageManager(Context context,
-                                  PublicWifiUsageRepository publicWifiUsageRepository,
-                                  ConnectivityTracker connectivityTracker) {
-        mRepository = publicWifiUsageRepository;
+    public PersonalWifiUsageManager(Context context,
+                                    PersonalWifiUsageRepository personalWifiUsageRepository,
+                                    ConnectivityTracker connectivityTracker) {
+        mRepository = personalWifiUsageRepository;
         mConnectivityTracker = connectivityTracker;
     }
 
@@ -41,13 +41,13 @@ public class PublicWifiUsageManager implements IKnowledgeComponent {
         mCheckTime = 0;
     }
 
-    public List<String> getMostFrequentPublicWifiConnectionTimes(int topN) {
+    public List<String> getMostFrequentPersonalWifiConnectionTimes(int topN) {
         List<ConnectivityData> allData = mConnectivityTracker.getAllData();
         Map<String, Long> durationMap = new HashMap<>();
         long currentTime = System.currentTimeMillis();
 
         for (ConnectivityData data : allData) {
-            if (data.timestamp < mCheckTime) continue;
+            if (data.timestamp < mCheckTime || data.enterprise) continue;
             boolean isNewConnected = data.connected;
             long timestamp = data.timestamp;
 

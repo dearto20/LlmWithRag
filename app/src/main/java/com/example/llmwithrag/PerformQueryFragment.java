@@ -241,14 +241,16 @@ public class PerformQueryFragment extends Fragment {
     @NonNull
     private String generateQuery(String query, List<String> results) {
         StringBuilder sb = new StringBuilder("my query is \"" + query + "\".");
-        sb.append("\nFirst, figure out if I'm asking you to find the route to some place.");
-        sb.append("\nIf it's not, tell me \"unable to find the location\"");
-        sb.append("\nIf it is, you're a location finder from now on, then go through the information below thoroughly.");
+        sb.append("\nFirst, figure out if I'm asking you to find the route to the specific location.");
+        sb.append("\nIf it is not, just tell me \"unable to find the location\".");
+        sb.append("\nOtherwise, please make sure where exactly am I asking to find the route to.");
+        sb.append("\nAnd here are my activities throughout the day.");
         for (String result : results) {
             sb.append("\n").append(result);
         }
-        sb.append("\n").append("All the addresses found in the information are in the form of 'latitude,longitude'.");
-        sb.append("\n").append("Out of all the addresses, find out the most likely one.");
+        sb.append("\n").append("All the addresses found above are in the form of 'latitude,longitude'.");
+        sb.append("\n").append("Out of all the addresses, find the one that is most likely the location where I've asked to find the route to.");
+        sb.append("\n").append("Please note that 'home' or '집' refers to the location where I sleep and 'office' or '회사' refers to the location where I work.");
         sb.append("\n").append("Ensure you provide the answer in the form of 'latitude, longitude' only, and do not add any other comments.");
         return sb.toString();
     }
