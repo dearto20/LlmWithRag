@@ -124,6 +124,21 @@ public class MonitoringService extends Service implements IMonitoringService {
         mStarted = false;
     }
 
+    private void initKnowledge() {
+        mTheMostFrequentlyVisitedPlaceDuringTheDay.postValue(
+                getTheMostFrequentlyVisitedPlaceDuringTheDayInternal(false));
+        mTheMostFrequentlyVisitedPlaceDuringTheNight.postValue(
+                getTheMostFrequentlyVisitedPlaceDuringTheNightInternal(false));
+        mTheMostFrequentlyVisitedPlaceDuringTheWeekend.postValue(
+                getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal(false));
+        mTheMostFrequentStationaryTime.postValue(
+                getTheMostFrequentStationaryTimeInternal(false));
+        mTheMostFrequentEnterpriseWifiConnectionTime.postValue(
+                getTheMostFrequentEnterpriseWifiConnectionTimeInternal(false));
+        mTheMostFrequentPersonalWifiConnectionTime.postValue(
+                getTheMostFrequentPersonalWifiConnectionTimeInternal(false));
+    }
+
     private void updateKnowledge() {
         updateKnowledge(false);
     }
@@ -205,8 +220,13 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentlyVisitedPlaceDuringTheDayInternal() {
+        return getTheMostFrequentlyVisitedPlaceDuringTheDayInternal(true);
+    }
+
+    private String getTheMostFrequentlyVisitedPlaceDuringTheDayInternal(boolean update) {
         String result = "";
-        List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheDay(1);
+        List<String> results = update ?
+                mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheDay(1) : null;
         return getExplanatoryDayLocation((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
@@ -216,8 +236,13 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentlyVisitedPlaceDuringTheNightInternal() {
+        return getTheMostFrequentlyVisitedPlaceDuringTheNightInternal(true);
+    }
+
+    private String getTheMostFrequentlyVisitedPlaceDuringTheNightInternal(boolean update) {
         String result = "";
-        List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheNight(1);
+        List<String> results = update ?
+                mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheNight(1) : null;
         return getExplanatoryNightLocation((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
@@ -227,8 +252,13 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal() {
+        return getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal(true);
+    }
+
+    private String getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal(boolean update) {
         String result = "";
-        List<String> results = mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
+        List<String> results = update ?
+                mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheWeekend(1) : null;
         return getExplanatoryWeekendLocation((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
@@ -238,8 +268,13 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentStationaryTimeInternal() {
+        return getTheMostFrequentStationaryTimeInternal(true);
+    }
+
+    private String getTheMostFrequentStationaryTimeInternal(boolean update) {
         String result = "";
-        List<String> results = mStationaryTimeManager.getMostFrequentStationaryTimes(1);
+        List<String> results = update ?
+                mStationaryTimeManager.getMostFrequentStationaryTimes(1) : null;
         return getExplanatoryStationaryTime((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
@@ -249,8 +284,13 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentEnterpriseWifiConnectionTimeInternal() {
+        return getTheMostFrequentEnterpriseWifiConnectionTimeInternal(true);
+    }
+
+    private String getTheMostFrequentEnterpriseWifiConnectionTimeInternal(boolean update) {
         String result = "";
-        List<String> results = mEnterpriseWifiUsageManager.getMostFrequentEnterpriseWifiConnectionTimes(1);
+        List<String> results = update ?
+                mEnterpriseWifiUsageManager.getMostFrequentEnterpriseWifiConnectionTimes(1) : null;
         return getExplanatoryEnterpriseWifiConnectionTime((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
@@ -260,8 +300,13 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentPersonalWifiConnectionTimeInternal() {
+        return getTheMostFrequentPersonalWifiConnectionTimeInternal(true);
+    }
+
+    private String getTheMostFrequentPersonalWifiConnectionTimeInternal(boolean update) {
         String result = "";
-        List<String> results = mPersonalWifiUsageManager.getMostFrequentPersonalWifiConnectionTimes(1);
+        List<String> results = update ?
+                mPersonalWifiUsageManager.getMostFrequentPersonalWifiConnectionTimes(1) : null;
         return getExplanatoryPersonalWifiConnectionTime((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
@@ -594,6 +639,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         mHandler.removeCallbacksAndMessages(null);
         mUpdateCallback.run();
         mStarted = true;
+        initKnowledge();
         updateKnowledge(true);
     }
 

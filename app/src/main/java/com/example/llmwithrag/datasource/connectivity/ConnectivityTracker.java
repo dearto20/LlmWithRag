@@ -1,8 +1,5 @@
 package com.example.llmwithrag.datasource.connectivity;
 
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.content.pm.PackageManager.PERMISSION_GRANTED;
-
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -14,8 +11,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
-
-import androidx.core.content.ContextCompat;
 
 import com.example.llmwithrag.datasource.IDataSourceComponent;
 
@@ -80,9 +75,12 @@ public class ConnectivityTracker implements IDataSourceComponent {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     private boolean hasEnterpriseWifiConfig(Context context) {
-        if (ContextCompat.checkSelfPermission(context, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
-            List<WifiConfiguration> configuredNetworks = mWifiManager.getConfiguredNetworks();
+        try {
+            List<WifiConfiguration> configuredNetworks = (List<WifiConfiguration>)
+                    mWifiManager.getClass().getMethod("getPrivilegedConfiguredNetworks")
+                            .invoke(mWifiManager);
             if (configuredNetworks != null) {
                 for (WifiConfiguration config : configuredNetworks) {
                     if (config.allowedKeyManagement.get(WifiConfiguration.KeyMgmt.WPA_EAP) ||
@@ -91,6 +89,9 @@ public class ConnectivityTracker implements IDataSourceComponent {
                     }
                 }
             }
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
         }
         return false;
     }
