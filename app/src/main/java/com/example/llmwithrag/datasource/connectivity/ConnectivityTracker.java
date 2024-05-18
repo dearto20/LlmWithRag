@@ -1,13 +1,21 @@
 package com.example.llmwithrag.datasource.connectivity;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
 
 import com.example.llmwithrag.datasource.IDataSourceComponent;
 
@@ -15,17 +23,22 @@ import java.util.List;
 
 public class ConnectivityTracker implements IDataSourceComponent {
     private static final String TAG = ConnectivityTracker.class.getSimpleName();
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private final ConnectivityManager mConnectivityManager;
     private final ConnectivityRepository mRepository;
+    private final Context mContext;
     private final Handler mHandler;
+    private final WifiManager mWifiManager;
     private ConnectivityManager.NetworkCallback mNetworkCallback;
 
     public ConnectivityTracker(Context context, Looper looper) {
+        mContext = context;
         mHandler = new Handler(looper);
         mRepository = new ConnectivityRepository(context);
         mConnectivityManager = (ConnectivityManager)
                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mWifiManager = (WifiManager)
+                context.getSystemService(Context.WIFI_SERVICE);
     }
 
     @Override
@@ -48,12 +61,38 @@ public class ConnectivityTracker implements IDataSourceComponent {
     }
 
     private boolean isEnterpriseNetwork(Network network) {
+        boolean hasEnterpriseCapability = hasEnterpriseCapability(network);
+        boolean hasEnterpriseWifiConfig = hasEnterpriseWifiConfig(mContext);
+        int result = (hasEnterpriseCapability ? 1 : 0) + (hasEnterpriseWifiConfig ? 2 : 0);
+        if (DEBUG) {
+            Log.i(TAG, "isEnterpriseNetwork : " + result);
+            Toast.makeText(mContext, "isEnterpriseNetwork : " + result, Toast.LENGTH_SHORT).show();
+        }
+        return (result > 0);
+    }
+
+    private boolean hasEnterpriseCapability(Network network) {
         boolean result = false;
         NetworkCapabilities capabilities = mConnectivityManager.getNetworkCapabilities(network);
         if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
             result = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_ENTERPRISE);
         }
         return result;
+    }
+
+    private boolean hasEnterpriseWifiConfig(Context context) {
+        if (ContextCompat.checkSelfPermission(context, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED) {
+            List<WifiConfiguration> configuredNetworks = mWifiManager.getConfiguredNetworks();
+            if (configuredNetworks != null) {
+                for (WifiConfiguration config : configuredNetworks) {
+                    if (config.allowedKeyManagement.get(WifiConfiguration.KeyMgmt.WPA_EAP) ||
+                            config.allowedKeyManagement.get(WifiConfiguration.KeyMgmt.IEEE8021X)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public void registerNetworkCallback() {

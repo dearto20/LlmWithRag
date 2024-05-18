@@ -1,8 +1,8 @@
 package com.example.llmwithrag;
 
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_DAY_LOCATION;
-import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_NIGHT_LOCATION;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_ENTERPRISE_WIFI_TIME;
+import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_NIGHT_LOCATION;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_PERSONAL_WIFI_TIME;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_STATIONARY_TIME;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_WEEKEND_LOCATION;
@@ -16,6 +16,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -44,6 +46,7 @@ import com.example.llmwithrag.knowledge.status.StationaryTimeRepository;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.util.List;
+import java.util.Locale;
 
 public class MonitoringService extends Service implements IMonitoringService {
     private static final String TAG = MonitoringService.class.getSimpleName();
@@ -521,7 +524,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getExplanatoryDayLocation(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.day_location) + " is " + text;
+            return getApplicationContext().getString(R.string.day_location) + " is\n" + getReadableAddress(text);
         } else {
             return getApplicationContext().getString(R.string.day_location_unavailable);
         }
@@ -529,7 +532,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getExplanatoryNightLocation(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.night_location) + " is " + text;
+            return getApplicationContext().getString(R.string.night_location) + " is\n" + getReadableAddress(text);
         } else {
             return getApplicationContext().getString(R.string.night_location_unavailable);
         }
@@ -537,7 +540,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getExplanatoryWeekendLocation(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.weekend_location) + " is " + text;
+            return getApplicationContext().getString(R.string.weekend_location) + " is\n" + getReadableAddress(text);
         } else {
             return getApplicationContext().getString(R.string.weekend_location_unavailable);
         }
@@ -545,7 +548,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getExplanatoryStationaryTime(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.stationary_time) + " is " + text;
+            return getApplicationContext().getString(R.string.stationary_time) + " is\n" + text;
         } else {
             return getApplicationContext().getString(R.string.stationary_time_unavailable);
         }
@@ -553,7 +556,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getExplanatoryEnterpriseWifiConnectionTime(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.enterprise_wifi_time) + " is " + text;
+            return getApplicationContext().getString(R.string.enterprise_wifi_time) + " is\n" + text;
         } else {
             return getApplicationContext().getString(R.string.enterprise_wifi_time_unavailable);
         }
@@ -561,7 +564,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getExplanatoryPersonalWifiConnectionTime(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.personal_wifi_time) + " is " + text;
+            return getApplicationContext().getString(R.string.personal_wifi_time) + " is\n" + text;
         } else {
             return getApplicationContext().getString(R.string.personal_wifi_time_unavailable);
         }
@@ -604,5 +607,29 @@ public class MonitoringService extends Service implements IMonitoringService {
         mPersistentLocationManager.stopMonitoring();
         mHandler.removeCallbacksAndMessages(null);
         mStarted = false;
+    }
+
+    private String getReadableAddress(String location) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            String[] values = location.split(",");
+            double latitude = Double.parseDouble(values[0].trim());
+            double longitude = Double.parseDouble(values[1].trim());
+
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                StringBuilder result = new StringBuilder();
+                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                    result.append(address.getAddressLine(i));
+                    if (i < address.getMaxAddressLineIndex()) result.append("\n");
+                }
+                return result.toString();
+            }
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
+        }
+        return location;
     }
 }
