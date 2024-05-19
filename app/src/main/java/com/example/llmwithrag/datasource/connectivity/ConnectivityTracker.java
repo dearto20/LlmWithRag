@@ -10,7 +10,6 @@ import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.llmwithrag.datasource.IDataSourceComponent;
 
@@ -18,7 +17,7 @@ import java.util.List;
 
 public class ConnectivityTracker implements IDataSourceComponent {
     private static final String TAG = ConnectivityTracker.class.getSimpleName();
-    private static final boolean DEBUG = true; // yong4531
+    private static final boolean DEBUG = false;
     private final ConnectivityManager mConnectivityManager;
     private final ConnectivityRepository mRepository;
     private final Context mContext;
@@ -59,10 +58,7 @@ public class ConnectivityTracker implements IDataSourceComponent {
         boolean hasEnterpriseCapability = hasEnterpriseCapability(network);
         boolean hasEnterpriseWifiConfig = hasEnterpriseWifiConfig(mContext);
         int result = (hasEnterpriseCapability ? 1 : 0) + (hasEnterpriseWifiConfig ? 2 : 0);
-        if (DEBUG) {
-            Log.i(TAG, "isEnterpriseNetwork : " + result);
-            Toast.makeText(mContext, "isEnterpriseNetwork : " + result, Toast.LENGTH_SHORT).show();
-        }
+        if (DEBUG) Log.i(TAG, "isEnterpriseNetwork : " + result);
         return (result > 0);
     }
 
