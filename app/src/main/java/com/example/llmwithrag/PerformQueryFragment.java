@@ -241,7 +241,7 @@ public class PerformQueryFragment extends Fragment {
     @NonNull
     private String generateQuery(String query, List<String> results) {
         StringBuilder sb = new StringBuilder("my query is \"" + query + "\".");
-        sb.append("\nFirst, figure out if I'm asking you to find the route to or would like to go to some place.");
+        sb.append("\nFirst, figure out if I'm asking you to find the route to or would like to go to the location either implicitly or explicitly.");
         sb.append("\nIf it is not, just tell me \"unable to find the location\".");
         sb.append("\nOtherwise, please go through my activities throughout the day thoroughly.");
         for (String result : results) {
