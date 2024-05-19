@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 
 import retrofit2.Call;
@@ -114,7 +113,7 @@ public class EmbeddingManager {
         int count = 0;
         for (Element element : elements) {
             Log.i(TAG, "* " + element.distance + " : " + element.embedding.text);
-            result.add(element.embedding.text);
+            result.add(element.embedding.description);
             if (++count == 10) break;
         }
 
