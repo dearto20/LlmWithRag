@@ -117,7 +117,7 @@ public class EmbeddingManager {
             if (++count == 10) break;
         }
 
-        /* TODO : yong4531 Test Result [
+        ///* TODO : yong4531 Test Result [
         result.clear();
         result.add("Location During the Day is 37.2582, 127.0554");
         result.add("Location During the Night is 37.3861, 127.071");
@@ -126,7 +126,7 @@ public class EmbeddingManager {
         //result.add("Time for Using Enterprise Wi-Fi is 09:25 to 16:38");
         result.add("Time for Using Enterprise Wi-Fi is Unavailable");
         result.add("Time for Using Personal Wi-Fi is Unavailable");
-         */
+         //*/
         return result;
     }
 
