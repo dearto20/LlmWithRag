@@ -9,18 +9,18 @@ import com.example.llmwithrag.knowledge.KnowledgeRepository;
 import java.util.List;
 import java.util.Map;
 
-public class EnterpriseWifiUsageRepository extends KnowledgeRepository<Long> {
-    private static final String TAG = EnterpriseWifiUsageRepository.class.getSimpleName();
-    private static final String NAME_SHARED_PREFS = "enterprise_wifi_usage";
+public class WifiConnectionTimeRepository extends KnowledgeRepository<Long> {
+    private static final String TAG = WifiConnectionTimeRepository.class.getSimpleName();
+    private static final String NAME_SHARED_PREFS = "personal_wifi_usage";
     private final Context mContext;
 
-    public EnterpriseWifiUsageRepository(Context context) {
+    public WifiConnectionTimeRepository(Context context) {
         mContext = context;
     }
 
     @Override
     public void updateCandidateList(Map<String, Long> durationMap, String timeKey,
-                                    String durationKey) {
+                                     String durationKey) {
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(
                 NAME_SHARED_PREFS, Context.MODE_PRIVATE);
         String oldKey = sharedPreferences.getString(timeKey, null);
@@ -36,7 +36,7 @@ public class EnterpriseWifiUsageRepository extends KnowledgeRepository<Long> {
 
     @Override
     public void updateLastResult(Map<String, Long> durationMap, String timeKey,
-                                 String durationKey, List<String> result) {
+                                  String durationKey, List<String> result) {
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(
                 NAME_SHARED_PREFS, Context.MODE_PRIVATE);
         if (!result.isEmpty()) {

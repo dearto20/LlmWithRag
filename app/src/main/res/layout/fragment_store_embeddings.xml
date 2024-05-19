@@ -133,7 +133,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginVertical="4dp"
-                android:drawableStart="@drawable/switch_circle_purple"
+                android:drawableStart="@drawable/switch_circle_dark_blue"
                 android:drawablePadding="8dp"
                 android:gravity="center_vertical"
                 android:switchMinWidth="36dp"
@@ -247,7 +247,7 @@
                 android:text="@string/enterprise_wifi_time_unavailable"
                 android:textColor="@color/black"
                 android:textSize="14sp"
-                app:drawableStartCompat="@drawable/switch_circle_purple"
+                app:drawableStartCompat="@drawable/switch_circle_dark_blue"
                 tools:ignore="RtlSymmetry" />
 
             <TextView

@@ -35,10 +35,8 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
 import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
-import com.example.llmwithrag.knowledge.connectivity.EnterpriseWifiUsageManager;
-import com.example.llmwithrag.knowledge.connectivity.EnterpriseWifiUsageRepository;
-import com.example.llmwithrag.knowledge.connectivity.PersonalWifiUsageManager;
-import com.example.llmwithrag.knowledge.connectivity.PersonalWifiUsageRepository;
+import com.example.llmwithrag.knowledge.connectivity.WifiConnectionTimeManager;
+import com.example.llmwithrag.knowledge.connectivity.WifiConnectionTimeRepository;
 import com.example.llmwithrag.knowledge.location.PersistentLocationManager;
 import com.example.llmwithrag.knowledge.location.PersistentLocationRepository;
 import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
@@ -74,8 +72,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private final MutableLiveData<String> mTheMostFrequentEnterpriseWifiConnectionTime = new MutableLiveData<>();
     private final MutableLiveData<String> mTheMostFrequentPersonalWifiConnectionTime = new MutableLiveData<>();
     private PersistentLocationManager mPersistentLocationManager;
-    private EnterpriseWifiUsageManager mEnterpriseWifiUsageManager;
-    private PersonalWifiUsageManager mPersonalWifiUsageManager;
+    private WifiConnectionTimeManager mWifiConnectionTimeManager;
     private StationaryTimeManager mStationaryTimeManager;
     private EmbeddingManager mEmbeddingManager;
     private boolean mStarted;
@@ -114,10 +111,8 @@ public class MonitoringService extends Service implements IMonitoringService {
         };
         mPersistentLocationManager = new PersistentLocationManager(context,
                 new PersistentLocationRepository(context), new LocationTracker(context, looper));
-        mEnterpriseWifiUsageManager = new EnterpriseWifiUsageManager(context,
-                new EnterpriseWifiUsageRepository(context), new ConnectivityTracker(context, looper));
-        mPersonalWifiUsageManager = new PersonalWifiUsageManager(context,
-                new PersonalWifiUsageRepository(context), new ConnectivityTracker(context, looper));
+        mWifiConnectionTimeManager = new WifiConnectionTimeManager(context,
+                new WifiConnectionTimeRepository(context), new ConnectivityTracker(context, looper));
         mStationaryTimeManager = new StationaryTimeManager(context,
                 new StationaryTimeRepository(context), new MovementTracker(context, looper));
         mEmbeddingManager = new EmbeddingManager(getApplicationContext());
@@ -202,8 +197,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public void deleteAll() {
         mPersistentLocationManager.deleteAll();
-        mEnterpriseWifiUsageManager.deleteAll();
-        mPersonalWifiUsageManager.deleteAll();
+        mWifiConnectionTimeManager.deleteAll();
         mStationaryTimeManager.deleteAll();
         mEmbeddingManager.deleteAll();
         updateKnowledge(true);
@@ -224,7 +218,6 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentlyVisitedPlaceDuringTheDayInternal(boolean update) {
-        String result = "";
         List<String> results = update ?
                 mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheDay(1) : null;
         return getExplanatoryDayLocation((results != null && !results.isEmpty()) ? results.get(0) : "");
@@ -240,7 +233,6 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentlyVisitedPlaceDuringTheNightInternal(boolean update) {
-        String result = "";
         List<String> results = update ?
                 mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheNight(1) : null;
         return getExplanatoryNightLocation((results != null && !results.isEmpty()) ? results.get(0) : "");
@@ -256,7 +248,6 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentlyVisitedPlaceDuringTheWeekendInternal(boolean update) {
-        String result = "";
         List<String> results = update ?
                 mPersistentLocationManager.getMostFrequentlyVisitedPlacesDuringTheWeekend(1) : null;
         return getExplanatoryWeekendLocation((results != null && !results.isEmpty()) ? results.get(0) : "");
@@ -272,7 +263,6 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentStationaryTimeInternal(boolean update) {
-        String result = "";
         List<String> results = update ?
                 mStationaryTimeManager.getMostFrequentStationaryTimes(1) : null;
         return getExplanatoryStationaryTime((results != null && !results.isEmpty()) ? results.get(0) : "");
@@ -288,9 +278,8 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentEnterpriseWifiConnectionTimeInternal(boolean update) {
-        String result = "";
         List<String> results = update ?
-                mEnterpriseWifiUsageManager.getMostFrequentEnterpriseWifiConnectionTimes(1) : null;
+                mWifiConnectionTimeManager.getMostFrequentEnterpriseWifiConnectionTimes(1) : null;
         return getExplanatoryEnterpriseWifiConnectionTime((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
@@ -304,9 +293,8 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     private String getTheMostFrequentPersonalWifiConnectionTimeInternal(boolean update) {
-        String result = "";
         List<String> results = update ?
-                mPersonalWifiUsageManager.getMostFrequentPersonalWifiConnectionTimes(1) : null;
+                mWifiConnectionTimeManager.getMostFrequentPersonalWifiConnectionTimes(1) : null;
         return getExplanatoryPersonalWifiConnectionTime((results != null && !results.isEmpty()) ? results.get(0) : "");
     }
 
@@ -319,8 +307,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public boolean isDayLocationEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
-        boolean result = sharedPreferences != null && sharedPreferences.getBoolean(KEY_DAY_LOCATION, true);
-        return result;
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_DAY_LOCATION, true);
     }
 
     @Override
@@ -593,7 +580,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getExplanatoryStationaryTime(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.stationary_time) + " is\n" + text;
+            return getApplicationContext().getString(R.string.stationary_time) + " is " + text;
         } else {
             return getApplicationContext().getString(R.string.stationary_time_unavailable);
         }
@@ -601,7 +588,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getExplanatoryEnterpriseWifiConnectionTime(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.enterprise_wifi_time) + " is\n" + text;
+            return getApplicationContext().getString(R.string.enterprise_wifi_time) + " is " + text;
         } else {
             return getApplicationContext().getString(R.string.enterprise_wifi_time_unavailable);
         }
@@ -609,7 +596,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getExplanatoryPersonalWifiConnectionTime(String text) {
         if (!TextUtils.isEmpty(text)) {
-            return getApplicationContext().getString(R.string.personal_wifi_time) + " is\n" + text;
+            return getApplicationContext().getString(R.string.personal_wifi_time) + " is " + text;
         } else {
             return getApplicationContext().getString(R.string.personal_wifi_time_unavailable);
         }
@@ -633,8 +620,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         if (mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
         mPersistentLocationManager.startMonitoring();
-        mEnterpriseWifiUsageManager.startMonitoring();
-        mPersonalWifiUsageManager.startMonitoring();
+        mWifiConnectionTimeManager.startMonitoring();
         mStationaryTimeManager.startMonitoring();
         mHandler.removeCallbacksAndMessages(null);
         mUpdateCallback.run();
@@ -648,8 +634,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         if (!mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Stopped", Toast.LENGTH_SHORT).show();
         mStationaryTimeManager.stopMonitoring();
-        mPersonalWifiUsageManager.stopMonitoring();
-        mEnterpriseWifiUsageManager.stopMonitoring();
+        mWifiConnectionTimeManager.stopMonitoring();
         mPersistentLocationManager.stopMonitoring();
         mHandler.removeCallbacksAndMessages(null);
         mStarted = false;
@@ -657,6 +642,8 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     private String getReadableAddress(String location) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        String result = "";
+
         try {
             String[] values = location.split(",");
             double latitude = Double.parseDouble(values[0].trim());
@@ -665,12 +652,15 @@ public class MonitoringService extends Service implements IMonitoringService {
             List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
             if (addresses != null && !addresses.isEmpty()) {
                 Address address = addresses.get(0);
-                StringBuilder result = new StringBuilder();
-                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
-                    result.append(address.getAddressLine(i));
-                    if (i < address.getMaxAddressLineIndex()) result.append("\n");
+                String countryName = address.getCountryName();
+                result = address.getAddressLine(0);
+                if (!TextUtils.isEmpty(countryName)) {
+                    result = result.replace(countryName, "")
+                            .replaceAll(",\\s*,", ",")
+                            .replaceAll("^,\\s*", "")
+                            .replaceAll(",\\s*$", "");
                 }
-                return result.toString();
+                return result;
             }
         } catch (Throwable e) {
             Log.e(TAG, e.toString());

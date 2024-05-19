@@ -18,7 +18,7 @@ import java.util.List;
 
 public class ConnectivityTracker implements IDataSourceComponent {
     private static final String TAG = ConnectivityTracker.class.getSimpleName();
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = true; // yong4531
     private final ConnectivityManager mConnectivityManager;
     private final ConnectivityRepository mRepository;
     private final Context mContext;
@@ -106,7 +106,7 @@ public class ConnectivityTracker implements IDataSourceComponent {
                 super.onAvailable(network);
                 boolean isEnterpriseNetwork = isEnterpriseNetwork(network);
                 mRepository.insertData(new ConnectivityData(true,
-                        isEnterpriseNetwork(network), System.currentTimeMillis()));
+                        isEnterpriseNetwork, System.currentTimeMillis()));
                 if (DEBUG) Log.i(TAG, "connected to " +
                         ((isEnterpriseNetwork) ? "an enterprise" : "a non-enterprise") + " network");
             }
@@ -116,7 +116,7 @@ public class ConnectivityTracker implements IDataSourceComponent {
                 super.onLost(network);
                 boolean isEnterpriseNetwork = isEnterpriseNetwork(network);
                 mRepository.insertData(new ConnectivityData(false,
-                        isEnterpriseNetwork(network), System.currentTimeMillis()));
+                        isEnterpriseNetwork, System.currentTimeMillis()));
                 if (DEBUG) Log.i(TAG, "disconnected from " +
                         ((isEnterpriseNetwork) ? "an enterprise" : "a non-enterprise") + " network");
             }

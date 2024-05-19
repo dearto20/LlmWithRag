@@ -23,7 +23,7 @@ import java.util.List;
 public class LocationTracker implements IDataSourceComponent {
     private static final String TAG = LocationTracker.class.getSimpleName();
     private static final boolean DEBUG = false;
-    private static final long INTERVAL = 1000 * 10; // TODO: 1000 * 60 * 10;
+    private static final long INTERVAL = 1000 * 10;;
     private final Context mContext;
     private final Handler mHandler;
     private final LocationManager mLocationManager;
@@ -79,7 +79,7 @@ public class LocationTracker implements IDataSourceComponent {
     private final LocationListener mLocationListener = new LocationListener() {
         @Override
         public void onLocationChanged(@NonNull Location location) {
-            double scale = Math.pow(10, 4);
+            double scale = Math.pow(10, 6);
             double latitude = Math.floor(location.getLatitude() * scale) / scale;
             double longitude = Math.floor(location.getLongitude() * scale) / scale;
             if (DEBUG) Log.d(TAG, "location update : (" + latitude + ", " + longitude + ")");

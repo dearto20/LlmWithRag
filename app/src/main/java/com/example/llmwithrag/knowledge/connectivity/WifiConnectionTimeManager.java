@@ -13,67 +13,86 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class PersonalWifiUsageManager implements IKnowledgeComponent {
-    private static final String TAG = PersonalWifiUsageManager.class.getSimpleName();
+public class WifiConnectionTimeManager implements IKnowledgeComponent {
+    private static final String TAG = WifiConnectionTimeManager.class.getSimpleName();
     private static final boolean DEBUG = false;
-    private static final String KEY_CONNECTION_TIME = "connection_time";
-    private static final String KEY_CONNECTION_DURATION = "connection_duration";
+    private static final int NUMBER_OF_TYPES = 2;
+    private static final String[] KEY_CONNECTION_TIME = {"connection_0_time", "connection_1_time"};
+    private static final String[] KEY_CONNECTION_DURATION = {"connection_0_duration", "connection_1_duration"};
     private static final long MIN_DURATION = 600000L;
-    private final PersonalWifiUsageRepository mRepository;
+    private final WifiConnectionTimeRepository mRepository;
 
     private final ConnectivityTracker mConnectivityTracker;
-    private boolean mIsConnected;
-    private long mStartTime;
-    private long mCheckTime;
+    private boolean[] mIsConnected;
+    private long[] mStartTime;
+    private long[] mCheckTime;
 
-    public PersonalWifiUsageManager(Context context,
-                                    PersonalWifiUsageRepository personalWifiUsageRepository,
-                                    ConnectivityTracker connectivityTracker) {
-        mRepository = personalWifiUsageRepository;
+    public WifiConnectionTimeManager(Context context,
+                                     WifiConnectionTimeRepository wifiConnectionTimeRepository,
+                                     ConnectivityTracker connectivityTracker) {
+        mRepository = wifiConnectionTimeRepository;
         mConnectivityTracker = connectivityTracker;
     }
 
     private void initialize() {
-        mIsConnected = false;
-        mStartTime = System.currentTimeMillis();
-        mCheckTime = 0;
+        long startTime = System.currentTimeMillis();
+        mIsConnected = new boolean[2];
+        mStartTime = new long[2];
+        mCheckTime = new long[2];
+        for (int i = 0; i < NUMBER_OF_TYPES; i++) {
+            mIsConnected[i] = false;
+            mStartTime[i] = startTime;
+            mCheckTime[i] = 0;
+        }
+    }
+
+    public List<String> getMostFrequentEnterpriseWifiConnectionTimes(int topN) {
+        Predicate<ConnectivityData> isEnterprise = connectivityData -> connectivityData.enterprise;
+        return getMostFrequentWifiConnectionTimes(0, isEnterprise, topN);
     }
 
     public List<String> getMostFrequentPersonalWifiConnectionTimes(int topN) {
+        Predicate<ConnectivityData> isPersonal = connectivityData -> !connectivityData.enterprise;
+        return getMostFrequentWifiConnectionTimes(1, isPersonal, topN);
+    }
+
+    private List<String> getMostFrequentWifiConnectionTimes(int type, Predicate<ConnectivityData> condition, int topN) {
         List<ConnectivityData> allData = mConnectivityTracker.getAllData();
         Map<String, Long> durationMap = new HashMap<>();
         long currentTime = System.currentTimeMillis();
 
         for (ConnectivityData data : allData) {
-            if (data.timestamp < mCheckTime || data.enterprise) continue;
+            if (data.timestamp < mCheckTime[type] || !condition.test(data)) continue;
             boolean isNewConnected = data.connected;
             long timestamp = data.timestamp;
 
-            if (mIsConnected != isNewConnected) {
+            if (mIsConnected[type] != isNewConnected) {
                 if (DEBUG) Log.d(TAG, "connection status change to " + isNewConnected);
                 if (isNewConnected) {
-                    mStartTime = timestamp;
-                    mIsConnected = true;
+                    mStartTime[type] = timestamp;
+                    mIsConnected[type] = true;
                 } else {
-                    long duration = timestamp - mStartTime;
+                    long duration = timestamp - mStartTime[type];
                     if (DEBUG) Log.d(TAG, "duration : " + duration + ", min duration : " +
                             MIN_DURATION);
                     if (duration >= MIN_DURATION) {
-                        durationMap.put(periodOf(mStartTime, timestamp), duration);
-                        mStartTime = timestamp;
+                        durationMap.put(periodOf(mStartTime[type], timestamp), duration);
+                        mStartTime[type] = timestamp;
                         Log.i(TAG, "period of duration " + duration + " is added");
                     }
-                    mIsConnected = false;
+                    mIsConnected[type] = false;
                 }
             }
         }
 
-        mCheckTime = currentTime;
+        mCheckTime[type] = currentTime;
 
         // Add last top value to the candidate list.
-        mRepository.updateCandidateList(durationMap, KEY_CONNECTION_TIME, KEY_CONNECTION_DURATION);
+        mRepository.updateCandidateList(durationMap,
+                KEY_CONNECTION_TIME[type], KEY_CONNECTION_DURATION[type]);
 
         List<String> result = durationMap.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
@@ -82,8 +101,9 @@ public class PersonalWifiUsageManager implements IKnowledgeComponent {
                 .collect(Collectors.toList());
 
         // Update last top value
-        mRepository.updateLastResult(durationMap, KEY_CONNECTION_TIME, KEY_CONNECTION_DURATION, result);
-        Log.i(TAG, "get most frequent connection time : " + result);
+        mRepository.updateLastResult(durationMap,
+                KEY_CONNECTION_TIME[type], KEY_CONNECTION_DURATION[type], result);
+        Log.i(TAG, "get most frequent connection time of type" + type + " : " + result);
         return result;
     }
 
