@@ -23,7 +23,7 @@ import java.util.List;
 public class LocationTracker implements IDataSourceComponent {
     private static final String TAG = LocationTracker.class.getSimpleName();
     private static final boolean DEBUG = false;
-    private static final long INTERVAL = 1000 * 10;;
+    private static final long INTERVAL = 1000 * 60 * 10;
     private final Context mContext;
     private final Handler mHandler;
     private final LocationManager mLocationManager;
