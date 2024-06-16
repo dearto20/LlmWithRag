@@ -253,12 +253,18 @@ public class PerformQueryFragment extends Fragment {
                     CompletionRequest request = new CompletionRequest("gpt-4o", messages);
                     Call<CompletionResponse> _call = service.getCompletions(request);
                     _call.enqueue(new Callback<CompletionResponse>() {
+                        private String extractGeoLocation(String answer) {
+                            String[] lines = answer.split("\n");
+                            return lines[lines.length - 1];
+                        }
+
                         @Override
                         public void onResponse(Call<CompletionResponse> call, Response<CompletionResponse> response) {
                             if (response.isSuccessful() && response.body() != null) {
                                 String completion = response.body().choices.get(0).message.content;
                                 Log.i(TAG, "response from the llm: " + completion);
-                                if (runNaviApp(completion)) {
+
+                                if (runNaviApp(extractGeoLocation(completion))) {
                                     mResultDisplay.setText(completion);
                                 } else {
                                     mResultDisplay.setText("");
@@ -335,8 +341,9 @@ public class PerformQueryFragment extends Fragment {
             sb.append("\nThen please adjust the query correctly based on the relevant context.");
             sb.append("\nMake sure the date of the event MUST match the one in the context exactly.");
             sb.append("\nThe location of the Photo or body of the Message could be used for inference.");
-            sb.append("\nPut and show all relevant entities in the adjusted query");
-            sb.append("\nAnd at the end of the response, put either \"Unable to find the location\" or \"longitude, latitude\" with actual value");
+            sb.append("\nPut and show all relevant entities with location info in the adjusted query.");
+            sb.append("\nIf you are unable to find the location just say \"Unable to find the location.\"");
+            sb.append("\nIf found, in the last line, provide the location simply in the form of 'latitude, longitude' with no prefix or postfix.");
         }
         return sb.toString();
     }

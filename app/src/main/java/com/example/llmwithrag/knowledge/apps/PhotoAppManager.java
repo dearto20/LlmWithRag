@@ -27,6 +27,7 @@ import java.util.UUID;
 
 public class PhotoAppManager extends FileObserver implements IKnowledgeComponent {
     private static final String TAG = PhotoAppManager.class.getSimpleName();
+    private final Context mContext;
     private final KnowledgeGraphManager mKgManager;
     private final EmbeddingManager mEmbeddingManager;
 
@@ -34,7 +35,7 @@ public class PhotoAppManager extends FileObserver implements IKnowledgeComponent
                            EmbeddingManager embeddingManager) {
         super(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/",
                 FileObserver.ALL_EVENTS);
-        Log.i(TAG, "path is " + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/");
+        mContext = context;
         mKgManager = kgManager;
         mEmbeddingManager = embeddingManager;
     }
@@ -44,6 +45,8 @@ public class PhotoAppManager extends FileObserver implements IKnowledgeComponent
         if (fileName == null || fileName.startsWith(".")) return;
         String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/"
                 + fileName;
+        if (!new File(path).exists()) return;
+
         String title = getFileName(path);
         Date dateTaken = new Date(getDateTakenFromExif(path));
         String location = getLocationFromExif(path);
