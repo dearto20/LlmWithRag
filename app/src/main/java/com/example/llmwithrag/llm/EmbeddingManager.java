@@ -95,6 +95,10 @@ public class EmbeddingManager {
     }
 
     public List<String> findSimilarOnes(String query) {
+        return findSimilarOnes(query, 1);
+    }
+
+    public List<String> findSimilarOnes(String query, int type) {
         Embedding embedding = fetchEmbeddings(query);
         List<String> result = new ArrayList<>();
         List<Embedding> embeddings = mRepository.getAll();
@@ -113,8 +117,8 @@ public class EmbeddingManager {
         int count = 0;
         for (Element element : elements) {
             Log.i(TAG, "* " + element.distance + " : " + element.embedding.text);
-            result.add(element.embedding.description);
-            if (++count == 10) break;
+            result.add(type == 0 ? element.embedding.text : element.embedding.description);
+            if (++count == 20) break;
         }
 
         /* TODO : yong4531 Test Result [
@@ -160,7 +164,6 @@ public class EmbeddingManager {
             listener.onSuccess();
             return;
         }
-
         EmbeddingRequest request = new EmbeddingRequest(text, "text-embedding-3-small", "float");
         OpenAiService service = RetrofitClient.getInstance().create(OpenAiService.class);
         Call<EmbeddingResponse> call = service.getEmbedding(request);
@@ -172,7 +175,7 @@ public class EmbeddingManager {
                     Log.i(TAG, "response: " + Arrays.toString(embedding));
                     removeEmbeddings(category);
                     insert(new Embedding(text, description, category, embedding));
-                    Log.i(TAG, "embeddings added for " + text);
+                    Log.i(TAG, "[" + getAll().size() + "] embeddings added for " + category);
                     listener.onSuccess();
                 }
                 listener.onError();
@@ -196,7 +199,7 @@ public class EmbeddingManager {
         for (Embedding embedding : embeddings) {
             if (TextUtils.equals(category, embedding.category)) {
                 delete(embedding);
-                Log.i(TAG, "embeddings deleted for " + embedding.text);
+                Log.i(TAG, "[" + getAll().size() + "] embeddings deleted for " + category);
                 listener.onSuccess();
                 break;
             }

@@ -3,8 +3,6 @@ package com.example.llmwithrag.llm;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.llmwithrag.LlmWithRagApplication;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;

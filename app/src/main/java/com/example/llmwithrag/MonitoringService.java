@@ -35,6 +35,12 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
 import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
+import com.example.llmwithrag.kg.Entity;
+import com.example.llmwithrag.kg.KnowledgeGraphManager;
+import com.example.llmwithrag.kg.Relationship;
+import com.example.llmwithrag.knowledge.apps.CalendarAppManager;
+import com.example.llmwithrag.knowledge.apps.PhotoAppManager;
+import com.example.llmwithrag.knowledge.apps.SmsAppManager;
 import com.example.llmwithrag.knowledge.connectivity.WifiConnectionTimeManager;
 import com.example.llmwithrag.knowledge.connectivity.WifiConnectionTimeRepository;
 import com.example.llmwithrag.knowledge.location.PersistentLocationManager;
@@ -43,8 +49,10 @@ import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
 import com.example.llmwithrag.knowledge.status.StationaryTimeRepository;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class MonitoringService extends Service implements IMonitoringService {
     private static final String TAG = MonitoringService.class.getSimpleName();
@@ -71,6 +79,11 @@ public class MonitoringService extends Service implements IMonitoringService {
     private final MutableLiveData<String> mTheMostFrequentStationaryTime = new MutableLiveData<>();
     private final MutableLiveData<String> mTheMostFrequentEnterpriseWifiConnectionTime = new MutableLiveData<>();
     private final MutableLiveData<String> mTheMostFrequentPersonalWifiConnectionTime = new MutableLiveData<>();
+    private KnowledgeGraphManager mKgManager;
+    private EmbeddingManager mKgEmbeddingManager;
+    private CalendarAppManager mCalendarAppManager;
+    private PhotoAppManager mPhotoAppManager;
+    private SmsAppManager mSmsAppManager;
     private PersistentLocationManager mPersistentLocationManager;
     private WifiConnectionTimeManager mWifiConnectionTimeManager;
     private StationaryTimeManager mStationaryTimeManager;
@@ -109,6 +122,14 @@ public class MonitoringService extends Service implements IMonitoringService {
             Log.i(TAG, "run periodic update");
             updateKnowledge();
         };
+
+        if (BuildConfig.IS_SCHEMA_ENABLED) {
+            mKgManager = new KnowledgeGraphManager(getApplicationContext());
+            mKgEmbeddingManager = new EmbeddingManager(getApplicationContext());
+            mCalendarAppManager = new CalendarAppManager(context, mKgManager, mKgEmbeddingManager);
+            mPhotoAppManager = new PhotoAppManager(context, mKgManager, mKgEmbeddingManager);
+            mSmsAppManager = new SmsAppManager(context, mKgManager, mKgEmbeddingManager);
+        }
         mPersistentLocationManager = new PersistentLocationManager(context,
                 new PersistentLocationRepository(context), new LocationTracker(context, looper));
         mWifiConnectionTimeManager = new WifiConnectionTimeManager(context,
@@ -196,6 +217,13 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public void deleteAll() {
+        if (BuildConfig.IS_SCHEMA_ENABLED) {
+            mKgManager.deleteAll();
+            mKgEmbeddingManager.deleteAll();
+            mCalendarAppManager.deleteAll();
+            mPhotoAppManager.deleteAll();
+            mSmsAppManager.deleteAll();
+        }
         mPersistentLocationManager.deleteAll();
         mWifiConnectionTimeManager.deleteAll();
         mStationaryTimeManager.deleteAll();
@@ -206,6 +234,28 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public List<String> findSimilarOnes(String query) {
         return mEmbeddingManager.findSimilarOnes(query);
+    }
+
+    @Override
+    public List<String> findSimilarOnes(String query, String response) {
+        Log.i(TAG, "find similar ones : " + query + ", " + response);
+        Map<String, Entity> entities =
+                mKgManager.parseEntitiesFromResponse(response);
+        List<Relationship> relationships =
+                mKgManager.parseRelationshipsFromResponse(response, entities);
+        Log.i(TAG, "entities : " + entities + ", relationships : " +
+                Arrays.toString(relationships.toArray()));
+
+        String flattened = mKgManager.flattenEntities(entities, relationships);
+        Log.i(TAG, "flattened : " + flattened);
+        List<String> result = mEmbeddingManager.findSimilarOnes(flattened, 0);
+        Log.i(TAG, "result : " + Arrays.toString(result.toArray()));
+        return result;
+    }
+
+    @Override
+    public String getSchema() {
+        return KnowledgeGraphManager.SCHEMA;
     }
 
     @Override
@@ -631,6 +681,11 @@ public class MonitoringService extends Service implements IMonitoringService {
         Log.i(TAG, "startMonitoring " + mStarted);
         if (mStarted) return;
         Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
+        if (BuildConfig.IS_SCHEMA_ENABLED) {
+            mCalendarAppManager.startMonitoring();
+            mPhotoAppManager.startMonitoring();
+            mSmsAppManager.startMonitoring();
+        }
         mPersistentLocationManager.startMonitoring();
         mWifiConnectionTimeManager.startMonitoring();
         mStationaryTimeManager.startMonitoring();
@@ -648,6 +703,11 @@ public class MonitoringService extends Service implements IMonitoringService {
         mStationaryTimeManager.stopMonitoring();
         mWifiConnectionTimeManager.stopMonitoring();
         mPersistentLocationManager.stopMonitoring();
+        if (BuildConfig.IS_SCHEMA_ENABLED) {
+            mSmsAppManager.stopMonitoring();
+            mPhotoAppManager.stopMonitoring();
+            mCalendarAppManager.stopMonitoring();
+        }
         mHandler.removeCallbacksAndMessages(null);
         mStarted = false;
     }

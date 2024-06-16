@@ -1,0 +1,93 @@
+{
+    "entities": [
+        {
+            "type": "Photo",
+            "attributes": [
+                "filePath", "dateTaken", "location"
+            ]
+        },
+        {
+            "type": "Event",
+            "attributes": [
+                "eventId", title", "startDate", "endDate", "location"
+            ]
+        },
+        {
+            "type": "Message",
+            "attributes": [
+                "body", "address", "date"
+            ]
+        },
+        {
+            "type": "User",
+            "attributes": [
+                "name"
+            ]
+        },
+        {
+            "type": "Location",
+            "attributes": [
+                "location"
+            ]
+        },
+        {
+            "type": "Date",
+            "attributes": [
+                "date"
+            ]
+        },
+        {
+            "type": "Time",
+            "attributes": [
+                "time"
+            ]
+        }
+    ],
+    "relationships": [
+        {
+            "type": "taken at location",
+            "from": "Photo",
+            "to": "Location"
+        },
+        {
+            "type": "taken on date",
+            "from": "Photo",
+            "to": "Date"
+        },
+        {
+            "type": "taken at time",
+            "from": "Photo",
+            "to": "Time"
+        },
+        {
+            "type": "takes place at location",
+            "from": "Event",
+            "to": "Location"
+        },
+        {
+            "type": "takes place on date",
+            "from": "Event",
+            "to": "Date"
+        },
+        {
+            "type": "takes place at time",
+            "from": "Event",
+            "to": "Time"
+        },
+        {
+            "type": "sent by",
+            "from": "Message",
+            "to": "User"
+        },
+        {
+            "type": "sent on date",
+            "from": "Message",
+            "to": "Date"
+        },
+        {
+            "type": "sent at time",
+            "from": "Message",
+            "to": "Time"
+        }
+    ]
+}

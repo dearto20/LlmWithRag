@@ -183,8 +183,8 @@ public class PerformQueryFragment extends Fragment {
         }
 
         if (!foundLocation) {
-            Log.i(TAG, "failed to find the location");
-            Toast.makeText(getContext(), "I can only help you find the route!", Toast.LENGTH_LONG).show();
+            Log.i(TAG, "Unable to find the location");
+            Toast.makeText(getContext(), "Unable to find the location", Toast.LENGTH_LONG).show();
         }
 
         return false;
@@ -206,6 +206,85 @@ public class PerformQueryFragment extends Fragment {
             return;
         }
 
+        if (BuildConfig.IS_SCHEMA_ENABLED) {
+            performQueryWithSchema(query);
+        } else {
+            performQueryWithoutSchema(query);
+        }
+    }
+
+    private String adjustResponse(String response) {
+        if (response.startsWith("```json")) {
+            response = response.substring(7).trim();
+        }
+
+        if (response.endsWith("```")) {
+            response = response.substring(0, response.length() - 3).trim();
+        }
+
+        return response;
+    }
+
+    private void performQueryWithSchema(String query) {
+        final String originalQuery = query;
+        final List<CompletionMessage> messages = new ArrayList<>();
+        query = generateQuery(query, mService.getSchema(), null);
+        final String modifiedQuery = query;
+        Log.i(TAG, "query: " + query);
+
+        messages.add(new CompletionMessage("user", query));
+        CompletionRequest request = new CompletionRequest("gpt-4o", messages);
+        OpenAiService service = RetrofitClient.getInstance().create(OpenAiService.class);
+        Call<CompletionResponse> call = service.getCompletions(request);
+        call.enqueue(new Callback<CompletionResponse>() {
+            @Override
+            public void onResponse(Call<CompletionResponse> call, Response<CompletionResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String completion = response.body().choices.get(0).message.content;
+                    completion = adjustResponse(completion);
+                    Log.i(TAG, "converted user query as to the schema: " + completion);
+
+                    List<String> result = mService.findSimilarOnes(modifiedQuery, completion);
+                    String query = generateQuery(completion, null, result);
+                    Log.i(TAG, "augmented query: " + query);
+
+                    messages.clear();
+                    messages.add(new CompletionMessage("user", query));
+                    CompletionRequest request = new CompletionRequest("gpt-4o", messages);
+                    Call<CompletionResponse> _call = service.getCompletions(request);
+                    _call.enqueue(new Callback<CompletionResponse>() {
+                        @Override
+                        public void onResponse(Call<CompletionResponse> call, Response<CompletionResponse> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                String completion = response.body().choices.get(0).message.content;
+                                Log.i(TAG, "response from the llm: " + completion);
+                                if (runNaviApp(completion)) {
+                                    mResultDisplay.setText(completion);
+                                } else {
+                                    mResultDisplay.setText("");
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<CompletionResponse> call, Throwable t) {
+                            Log.e(TAG, "failed in performing query: " + t.getMessage());
+                            mResultDisplay.setText(t.getMessage());
+                        }
+                    });
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CompletionResponse> call, Throwable t) {
+                Log.e(TAG, "failed in performing query: " + t.getMessage());
+                mResultDisplay.setText(t.getMessage());
+            }
+        });
+    }
+
+    private void performQueryWithoutSchema(String query) {
         List<CompletionMessage> messages = new ArrayList<>();
         List<String> result = mService.findSimilarOnes(query);
         if (!result.isEmpty()) {
@@ -236,6 +315,30 @@ public class PerformQueryFragment extends Fragment {
                 mResultDisplay.setText(t.getMessage());
             }
         });
+    }
+
+    private String generateQuery(String query, String schema, List<String> results) {
+        StringBuilder sb = new StringBuilder("My query is \"" + query + "\".");
+        if (schema != null) {
+            sb.append("\nAnd here's schema : " + schema);
+            sb.append("\nGo through the user's query and just rebuild it in the form of given schema and don't try to answer or take any other action.");
+            sb.append("\nInclude entities with their attributes and the relationships between them.");
+            sb.append("\nWhen an event is found in the query, it MUST always be added to both Event entity with title attribute and Message entity with body attributes.");
+            sb.append("\nEnsure you provide only json-formatted string, and do not add any other comments");
+            sb.append("\nIn the bracket, 'entities' and 'relationships' MUST be at the top level of the hierarchy as the schema indicates.");
+            sb.append("\nMake sure 'attributes' MUST be the key-valued map.");
+        } else {
+            sb.append("\nAnd here are relevant context.");
+            for (String result : results) {
+                sb.append("\n").append(result);
+            }
+            sb.append("\nThen please adjust the query correctly based on the relevant context.");
+            sb.append("\nMake sure the date of the event MUST match the one in the context exactly.");
+            sb.append("\nThe location of the Photo or body of the Message could be used for inference.");
+            sb.append("\nPut and show all relevant entities in the adjusted query");
+            sb.append("\nAnd at the end of the response, put either \"Unable to find the location\" or \"longitude, latitude\" with actual value");
+        }
+        return sb.toString();
     }
 
     @NonNull

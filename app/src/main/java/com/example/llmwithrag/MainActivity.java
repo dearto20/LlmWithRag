@@ -2,9 +2,18 @@ package com.example.llmwithrag;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.ACCESS_MEDIA_LOCATION;
 import static android.Manifest.permission.CHANGE_WIFI_STATE;
 import static android.Manifest.permission.FOREGROUND_SERVICE_LOCATION;
+import static android.Manifest.permission.READ_CALENDAR;
+import static android.Manifest.permission.READ_CONTACTS;
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.READ_MEDIA_IMAGES;
+import static android.Manifest.permission.READ_SMS;
 import static android.Manifest.permission.RECORD_AUDIO;
+import static android.Manifest.permission.WRITE_CALENDAR;
+import static android.Manifest.permission.WRITE_CONTACTS;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
@@ -120,11 +129,14 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= 34) {
             permissions = new String[]{
                     ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO,
-                    FOREGROUND_SERVICE_LOCATION
+                    READ_CALENDAR, WRITE_CALENDAR, READ_SMS, READ_CONTACTS, WRITE_CONTACTS,
+                    READ_MEDIA_IMAGES, ACCESS_MEDIA_LOCATION, FOREGROUND_SERVICE_LOCATION
             };
         } else {
             permissions = new String[]{
-                    ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO
+                    ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, CHANGE_WIFI_STATE, RECORD_AUDIO,
+                    READ_CALENDAR, WRITE_CALENDAR, READ_SMS, READ_CONTACTS, WRITE_CONTACTS,
+                    READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE, ACCESS_MEDIA_LOCATION
             };
         }
         return permissions;

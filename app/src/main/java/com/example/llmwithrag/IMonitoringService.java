@@ -9,6 +9,10 @@ public interface IMonitoringService {
 
     List<String> findSimilarOnes(String query);
 
+    List<String> findSimilarOnes(String query, String response);
+
+    String getSchema();
+
     LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheDay();
 
     LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheNight();
