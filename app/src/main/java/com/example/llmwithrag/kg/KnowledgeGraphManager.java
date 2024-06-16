@@ -293,24 +293,29 @@ public class KnowledgeGraphManager {
     public List<Relationship> parseRelationshipsFromResponse(String response,
                                                              Map<String, Entity> entities) {
         List<Relationship> relationships = new ArrayList<>();
-        Gson gson = new Gson();
-        Type responseType = new TypeToken<Map<String, Object>>() {
-        }.getType();
-        Map<String, Object> responseMap = gson.fromJson(response, responseType);
+        try {
+            Gson gson = new Gson();
+            Type responseType = new TypeToken<Map<String, Object>>() {
+            }.getType();
+            Map<String, Object> responseMap = gson.fromJson(response, responseType);
 
-        List<Map<String, String>> relationshipsList =
-                (List<Map<String, String>>) responseMap.get("relationships");
-        if (relationshipsList != null) {
-            for (Map<String, String> relationshipsMap : relationshipsList) {
-                String type = relationshipsMap.get("type");
-                String from = relationshipsMap.get("from");
-                String to = relationshipsMap.get("to");
-                Entity fromEntity = entities.get(from);
-                Entity toEntity = entities.get(to);
-                if (fromEntity != null && toEntity != null) {
-                    relationships.add(new Relationship(fromEntity.getId(), toEntity.getId(), type));
+            List<Map<String, String>> relationshipsList =
+                    (List<Map<String, String>>) responseMap.get("relationships");
+            if (relationshipsList != null) {
+                for (Map<String, String> relationshipsMap : relationshipsList) {
+                    String type = relationshipsMap.get("type");
+                    String from = relationshipsMap.get("from");
+                    String to = relationshipsMap.get("to");
+                    Entity fromEntity = entities.get(from);
+                    Entity toEntity = entities.get(to);
+                    if (fromEntity != null && toEntity != null) {
+                        relationships.add(new Relationship(fromEntity.getId(), toEntity.getId(), type));
+                    }
                 }
             }
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
         }
         return relationships;
     }

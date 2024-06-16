@@ -338,12 +338,19 @@ public class PerformQueryFragment extends Fragment {
             for (String result : results) {
                 sb.append("\n").append(result);
             }
-            sb.append("\nThen please adjust the query correctly based on the relevant context.");
-            sb.append("\nMake sure the date of the event MUST match the one in the context exactly.");
-            sb.append("\nThe location of the Photo or body of the Message could be used for inference.");
-            sb.append("\nPut and show all relevant entities with location info in the adjusted query.");
-            sb.append("\nIf you are unable to find the location just say \"Unable to find the location.\"");
-            sb.append("\nIf found, in the last line, provide the location simply in the form of 'latitude, longitude' with no prefix or postfix.");
+
+            sb.append("\nIdentify and correlate entities with the same Date attribute from the context.");
+            sb.append("\nEnsure the query's conditions, including the specific User and Event, are relevant to identifying the location.");
+            sb.append("\nDo not assume additional messages or events involving the User unless explicitly stated in the context.");
+            sb.append("\nFind messages sent by any user that explicitly mention the specific User and event details on the given date.");
+            sb.append("\nCorrelate these messages with the event that took place on the specified date, ensuring the event's date matches exactly.");
+            sb.append("\nConfirm that the location is clearly linked to the specified event date and user.");
+            sb.append("\nConsider only locations directly connected to the specified event and user on the given date.");
+
+            sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
+            sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
+            sb.append("\nIf no location meets all conditions, respond with \"Unable to find the location.\"");
+            sb.append("\nIf a location is found, provide the answer as 'latitude, longitude' only, without any prefix or postfix of symbols or comments.");
         }
         return sb.toString();
     }
