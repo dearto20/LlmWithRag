@@ -346,11 +346,12 @@ public class PerformQueryFragment extends Fragment {
             sb.append("\nCorrelate these messages with the event that took place on the specified date, ensuring the event's date matches exactly.");
             sb.append("\nConfirm that the location is clearly linked to the specified event date and user.");
             sb.append("\nConsider only locations directly connected to the specified event and user on the given date.");
+            sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event. Do not disqualify the photo based on the date it was taken.");
 
             sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
             sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
             sb.append("\nIf no location meets all conditions, respond with \"Unable to find the location.\"");
-            sb.append("\nIf a location is found, provide the answer as 'latitude, longitude' only, without any prefix or postfix of symbols or comments.");
+            sb.append("\nIf a location is found, it MUST be on a new line and formatted exactly as 'latitude, longitude' without any additional text, symbols, or quotes.");
         }
         return sb.toString();
     }

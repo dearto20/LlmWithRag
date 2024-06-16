@@ -118,7 +118,7 @@ public class EmbeddingManager {
         for (Element element : elements) {
             Log.i(TAG, "* " + element.distance + " : " + element.embedding.text);
             result.add(type == 0 ? element.embedding.text : element.embedding.description);
-            if (++count == 20) break;
+            if (++count == 32) break;
         }
 
         /* TODO : yong4531 Test Result [
