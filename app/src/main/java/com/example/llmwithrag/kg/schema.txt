@@ -9,7 +9,7 @@
         {
             "type": "Event",
             "attributes": [
-                "eventId", title", "startDate", "endDate", "location"
+                "eventId", "title", "startDate", "endDate", "location"
             ]
         },
         {

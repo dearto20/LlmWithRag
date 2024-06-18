@@ -39,13 +39,13 @@ public class KnowledgeGraphManager {
             "        {\n" +
             "            \"type\": \"Photo\",\n" +
             "            \"attributes\": [\n" +
-            "                \"filePath\", \"dateTaken\", \"location\"\n" +
+            "                \"filePath\", \"dateTaken\", \"location\", \"sentBy\"\n" +
             "            ]\n" +
             "        },\n" +
             "        {\n" +
             "            \"type\": \"Event\",\n" +
             "            \"attributes\": [\n" +
-            "                \"eventId\", \"title\", \"startDate\",  \"endDate\", \"location\"\n" +
+            "                \"eventId\", \"title\", \"startDate\", \"endDate\", \"location\"\n" +
             "            ]\n" +
             "        },\n" +
             "        {\n" +
@@ -80,6 +80,11 @@ public class KnowledgeGraphManager {
             "        }\n" +
             "    ],\n" +
             "    \"relationships\": [\n" +
+            "        {\n" +
+            "            \"type\": \"sent by\",\n" +
+            "            \"from\": \"Photo\",\n" +
+            "            \"to\": \"User\"\n" +
+            "        },\n" +
             "        {\n" +
             "            \"type\": \"taken at location\",\n" +
             "            \"from\": \"Photo\",\n" +

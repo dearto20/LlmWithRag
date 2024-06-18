@@ -303,7 +303,6 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
     }
 
     private void handlePhoto(String path, String sentBy) {
-        Log.i(TAG, "yong4531 : " + path + ", from " + sentBy);
         String title = getFileName(path);
         Date dateTaken = new Date(getDateTakenFromExif(path));
         String location = getLocationFromExif(path);
