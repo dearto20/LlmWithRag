@@ -245,7 +245,7 @@ public class PerformQueryFragment extends Fragment {
                     Log.i(TAG, "converted user query as to the schema: " + completion);
 
                     List<String> result = mService.findSimilarOnes(modifiedQuery, completion);
-                    String query = generateQuery(completion, null, result);
+                    String query = generateQuery(originalQuery, mService.getSchema(), result);
                     Log.i(TAG, "augmented query: " + query);
 
                     messages.clear();
@@ -325,8 +325,8 @@ public class PerformQueryFragment extends Fragment {
 
     private String generateQuery(String query, String schema, List<String> results) {
         StringBuilder sb = new StringBuilder("My query is \"" + query + "\".");
-        if (schema != null) {
-            sb.append("\nAnd here's schema : " + schema);
+        if (schema != null) sb.append("\nAnd here's schema : " + schema);
+        if (results == null) {
             sb.append("\nGo through the user's query and just rebuild it in the form of given schema and don't try to answer or take any other action.");
             sb.append("\nInclude entities with their attributes and the relationships between them.");
             sb.append("\nWhen an event is found in the query, it MUST always be added to both Event entity with title attribute and Message entity with body attributes.");
@@ -334,12 +334,12 @@ public class PerformQueryFragment extends Fragment {
             sb.append("\nIn the bracket, 'entities' and 'relationships' MUST be at the top level of the hierarchy as the schema indicates.");
             sb.append("\nMake sure 'attributes' MUST be the key-valued map.");
         } else {
-            sb.append("\nAnd here are relevant context.");
+            sb.append("\nAnd also here are relevant context.");
             for (String result : results) {
                 sb.append("\n").append(result);
             }
 
-            sb.append("\nIdentify and correlate entities with the same Date attribute from the context.");
+            sb.append("\nIdentify and correlate all the entities based on the relationships in the given context.");
             sb.append("\nEnsure the query's conditions, including the specific User and Event, are relevant to identifying the location.");
             sb.append("\nDo not assume additional messages or events involving the User unless explicitly stated in the context.");
             sb.append("\nFind messages sent by any user that explicitly mention the specific User and event details on the given date.");
