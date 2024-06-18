@@ -124,7 +124,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                     String messageId = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Mms._ID));
                     String address = getMmsAddress(messageId);
                     String body = getMmsText(messageId);
-                    handleImage(messageId, address);
+                    handleImage(messageId, getContactName(address));
                     long date = cursor.getLong(cursor.getColumnIndexOrThrow(Telephony.Mms.DATE)) * 1000L;
                     handleMessage(address, body, date);
                 }
