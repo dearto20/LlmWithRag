@@ -3,7 +3,7 @@
         {
             "type": "Photo",
             "attributes": [
-                "filePath", "dateTaken", "location"
+                "filePath", "dateTaken", "location", "sentBy"
             ]
         },
         {
@@ -44,6 +44,11 @@
         }
     ],
     "relationships": [
+        {
+            "type": "sent by",
+            "from": "Photo",
+            "to": "User"
+        },
         {
             "type": "taken at location",
             "from": "Photo",

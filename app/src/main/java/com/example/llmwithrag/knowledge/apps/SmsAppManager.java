@@ -1,7 +1,9 @@
 package com.example.llmwithrag.knowledge.apps;
 
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_DATE;
+import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_LOCATION;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_MESSAGE;
+import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_PHOTO;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_TIME;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_USER;
 
@@ -18,6 +20,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.exifinterface.media.ExifInterface;
 
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeGraphManager;
@@ -25,6 +28,7 @@ import com.example.llmwithrag.kg.Relationship;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -117,6 +121,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                     String messageId = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Mms._ID));
                     String address = getMmsAddress(messageId);
                     String body = getMmsText(messageId);
+                    handleImage(messageId, address);
                     long date = cursor.getLong(cursor.getColumnIndexOrThrow(Telephony.Mms.DATE)) * 1000L;
                     handleMessage(address, body, date);
                 }
@@ -202,6 +207,150 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
             cursor.close();
         }
         return null;
+    }
+
+    private void extractPhotoMetadata(File photoFile) {
+        try {
+            ExifInterface exifInterface = new ExifInterface(photoFile.getAbsolutePath());
+            String latitude = exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+            String longitude = exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+            String dateTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
+            // Process the metadata
+            Log.d("Metadata", "Latitude: " + latitude + ", Longitude: " + longitude + ", DateTime: " + dateTime);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleImage(String id, String sentBy) {
+        Uri partUri = Telephony.Mms.CONTENT_URI.buildUpon().appendPath(id).appendPath("part").build();
+        Cursor cursor = mContentResolver.query(partUri, null, null, null, null);
+        if (cursor == null) return;
+        try {
+            StringBuilder sb = new StringBuilder();
+            while (cursor.moveToNext()) {
+                String type = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Mms.Part.CONTENT_TYPE));
+                if ("image/jpeg".equals(type) || "image/bmp".equals(type) ||
+                        "image/gif".equals(type) || "image/jpg".equals(type) ||
+                        "image/png".equals(type)) {
+                    // Handle image part
+                    String partId = cursor.getString(cursor.getColumnIndexOrThrow("_id"));
+                    String dataPath = cursor.getString(cursor.getColumnIndexOrThrow("_data"));
+                    if (dataPath != null) {
+                        File photoFile = new File(dataPath);
+                        handlePhoto(photoFile.getAbsolutePath(), sentBy);
+                    }
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+    }
+
+    private String getLocationFromExif(String filePath) {
+        try {
+            ExifInterface exifInterface = new ExifInterface(filePath);
+            double[] latLong = exifInterface.getLatLong();
+            if (latLong != null && latLong.length == 2) {
+                double scale = Math.pow(10, 4);
+                double latitude = Math.round(latLong[0] * scale) / scale;
+                double longitude = Math.round(latLong[1] * scale) / scale;
+                return latitude + ", " + longitude;
+            }
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    private long getDateTakenFromExif(String filePath) {
+        try {
+            ExifInterface exifInterface = new ExifInterface(filePath);
+            String dateTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL);
+            if (dateTime == null) {
+                dateTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
+            }
+            if (dateTime != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss",
+                        Locale.getDefault());
+                Date date = sdf.parse(dateTime);
+                if (date != null) return date.getTime();
+            }
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
+        }
+        Log.i(TAG, "failed to find creation time");
+        return System.currentTimeMillis();
+    }
+
+    private String getFileName(String filePath) {
+        return new File(filePath).getName();
+    }
+
+    private void handlePhoto(String path, String sentBy) {
+        Log.i(TAG, "yong4531 : " + path + ", from " + sentBy);
+        String title = getFileName(path);
+        Date dateTaken = new Date(getDateTakenFromExif(path));
+        String location = getLocationFromExif(path);
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(dateTaken);
+        String time = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(dateTaken);
+
+        Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, title);
+        photoEntity.addAttribute("sentBy", sentBy);
+        photoEntity.addAttribute("filePath", path);
+        photoEntity.addAttribute("dateTaken", String.valueOf(dateTaken.getTime()));
+        if (!location.isEmpty()) photoEntity.addAttribute("location", location);
+        Entity oldPhotoEntity = mKgManager.getEntity(photoEntity);
+        if (oldPhotoEntity == null) mKgManager.addEntity(photoEntity);
+        else return;
+
+        Entity locationEntity = null;
+        if (!location.isEmpty()) {
+            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION, title);
+            locationEntity.addAttribute("location", location);
+            Entity oldLocationEntity = mKgManager.getEntity(locationEntity);
+            if (oldLocationEntity == null) mKgManager.addEntity(locationEntity);
+            else locationEntity = oldLocationEntity;
+        }
+
+        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, date);
+        dateEntity.addAttribute("date", date);
+        Entity oldDateEntity = mKgManager.getEntity(dateEntity);
+        if (oldDateEntity == null) mKgManager.addEntity(dateEntity);
+        else dateEntity = oldDateEntity;
+
+        Entity timeEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_TIME, time);
+        timeEntity.addAttribute("time", time);
+        Entity oldTimeEntity = mKgManager.getEntity(timeEntity);
+        if (oldTimeEntity == null) mKgManager.addEntity(timeEntity);
+        else timeEntity = oldTimeEntity;
+
+        if (locationEntity != null) {
+            if (mKgManager.getRelationship(photoEntity.getId(),
+                    locationEntity.getId(), "taken at location") == null) {
+                mKgManager.addRelationship(new Relationship(photoEntity.getId(),
+                        locationEntity.getId(), "taken at location"));
+            }
+        }
+
+        if (mKgManager.getRelationship(photoEntity.getId(),
+                dateEntity.getId(), "taken at date") == null) {
+            mKgManager.addRelationship(new Relationship(photoEntity.getId(),
+                    dateEntity.getId(), "taken on date"));
+        }
+
+        if (mKgManager.getRelationship(photoEntity.getId(),
+                timeEntity.getId(), "taken at time") == null) {
+            mKgManager.addRelationship(new Relationship(photoEntity.getId(),
+                    timeEntity.getId(), "taken at time"));
+        }
+
+        mKgManager.removeEmbedding(mEmbeddingManager, photoEntity);
+        mKgManager.addEmbedding(mEmbeddingManager, photoEntity);
+        Log.i(TAG, "content id is " + photoEntity.getContentId());
+        Log.i(TAG, "added " + photoEntity);
     }
 
     private String getMmsText(String id) {
