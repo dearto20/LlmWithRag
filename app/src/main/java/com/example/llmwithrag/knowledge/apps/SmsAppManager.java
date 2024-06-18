@@ -29,6 +29,7 @@ import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -41,6 +42,7 @@ import java.util.UUID;
 public class SmsAppManager extends ContentObserver implements IKnowledgeComponent {
     private static final String TAG = SmsAppManager.class.getSimpleName();
     private final ContentResolver mContentResolver;
+    private final Context mContext;
     private final KnowledgeGraphManager mKgManager;
     private final EmbeddingManager mEmbeddingManager;
     private long mLastUpdated;
@@ -49,6 +51,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                          EmbeddingManager embeddingManager) {
         super(new Handler(Looper.getMainLooper()));
         mContentResolver = context.getApplicationContext().getContentResolver();
+        mContext = context;
         mKgManager = kgManager;
         mEmbeddingManager = embeddingManager;
         mLastUpdated = 0;
@@ -209,14 +212,26 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         return null;
     }
 
-    private void extractPhotoMetadata(File photoFile) {
+    private void extractPhotoMetadata(Context context, Uri dataUri, String sentBy) {
         try {
-            ExifInterface exifInterface = new ExifInterface(photoFile.getAbsolutePath());
-            String latitude = exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-            String longitude = exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-            String dateTime = exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
-            // Process the metadata
-            Log.d("Metadata", "Latitude: " + latitude + ", Longitude: " + longitude + ", DateTime: " + dateTime);
+            InputStream inputStream = context.getContentResolver().openInputStream(dataUri);
+            if (inputStream != null) {
+                // Save the input stream to a temporary file to read EXIF metadata
+                File tempFile = File.createTempFile("mms_image", ".jpg", context.getCacheDir());
+                FileOutputStream outputStream = new FileOutputStream(tempFile);
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, len);
+                }
+                outputStream.close();
+                inputStream.close();
+
+                handlePhoto(tempFile.getAbsolutePath(), sentBy);
+
+                // Delete the temporary file
+                tempFile.delete();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -233,13 +248,11 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                 if ("image/jpeg".equals(type) || "image/bmp".equals(type) ||
                         "image/gif".equals(type) || "image/jpg".equals(type) ||
                         "image/png".equals(type)) {
-                    // Handle image part
-                    String partId = cursor.getString(cursor.getColumnIndexOrThrow("_id"));
-                    String dataPath = cursor.getString(cursor.getColumnIndexOrThrow("_data"));
-                    if (dataPath != null) {
-                        File photoFile = new File(dataPath);
-                        handlePhoto(photoFile.getAbsolutePath(), sentBy);
-                    }
+                    int index = cursor.getColumnIndex("_id");
+                    if (index < 0) return;
+                    String partId = cursor.getString(index);
+                    Uri dataUri = Uri.parse("content://mms/part/" + partId);
+                    extractPhotoMetadata(mContext, dataUri, sentBy);
                 }
             }
         } finally {
