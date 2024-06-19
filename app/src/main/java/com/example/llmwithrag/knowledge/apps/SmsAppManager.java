@@ -1,10 +1,7 @@
 package com.example.llmwithrag.knowledge.apps;
 
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_DATE;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_LOCATION;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_MESSAGE;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_PHOTO;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_TIME;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_USER;
 
 import android.content.ContentResolver;
@@ -24,7 +21,6 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeGraphManager;
-import com.example.llmwithrag.kg.Relationship;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
@@ -143,9 +139,11 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
 
         Entity messageEntity = new Entity(UUID.randomUUID().toString(),
                 ENTITY_TYPE_MESSAGE, body);
+        messageEntity.addAttribute("sentBy", getContactName(address));
         messageEntity.addAttribute("body", body);
         messageEntity.addAttribute("address", address);
-        messageEntity.addAttribute("date", String.valueOf(date));
+        messageEntity.addAttribute("date", dateString);
+        messageEntity.addAttribute("time", timeString);
         Entity oldMessageEntity = mKgManager.getEntity(messageEntity);
         if (oldMessageEntity == null) mKgManager.addEntity(messageEntity);
         else return;
@@ -153,42 +151,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         Entity userEntity = new Entity(UUID.randomUUID().toString(),
                 ENTITY_TYPE_USER, userName);
         userEntity.addAttribute("name", userName);
-        Entity oldUserEntity = mKgManager.getEntity(userEntity);
-        if (oldUserEntity == null) mKgManager.addEntity(userEntity);
-        else userEntity = oldUserEntity;
-
-        Entity dateEntity = new Entity(UUID.randomUUID().toString(),
-                ENTITY_TYPE_DATE, dateString);
-        dateEntity.addAttribute("date", dateString);
-        Entity oldDateEntity = mKgManager.getEntity(dateEntity);
-        if (oldDateEntity == null) mKgManager.addEntity(dateEntity);
-        else dateEntity = oldDateEntity;
-
-        Entity timeEntity = new Entity(UUID.randomUUID().toString(),
-                ENTITY_TYPE_TIME, timeString);
-        timeEntity.addAttribute("time", timeString);
-        Entity oldTimeEntity = mKgManager.getEntity(timeEntity);
-        if (oldTimeEntity == null) mKgManager.addEntity(timeEntity);
-        else timeEntity = oldTimeEntity;
-
-        if (mKgManager.getRelationship(messageEntity.getId(),
-                userEntity.getId(), "sent by") == null) {
-            mKgManager.addRelationship(new Relationship(messageEntity.getId(),
-                    userEntity.getId(), "sent by"));
-        }
-
-        if (mKgManager.getRelationship(messageEntity.getId(),
-                dateEntity.getId(), "sent on date") == null) {
-            mKgManager.addRelationship(new Relationship(messageEntity.getId(),
-                    dateEntity.getId(), "sent on date"));
-        }
-
-        if (mKgManager.getRelationship(messageEntity.getId(),
-                timeEntity.getId(), "sent at time") == null) {
-            mKgManager.addRelationship(new Relationship(messageEntity.getId(),
-                    timeEntity.getId(), "sent at time"));
-        }
-
+        mKgManager.addEntity(userEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, messageEntity);
         mKgManager.addEmbedding(mEmbeddingManager, messageEntity);
         Log.i(TAG, "added " + messageEntity);
@@ -312,53 +275,10 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, title);
         photoEntity.addAttribute("sentBy", sentBy);
         photoEntity.addAttribute("filePath", path);
-        photoEntity.addAttribute("dateTaken", String.valueOf(dateTaken.getTime()));
+        photoEntity.addAttribute("date", date);
+        photoEntity.addAttribute("time", time);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
-        Entity oldPhotoEntity = mKgManager.getEntity(photoEntity);
-        if (oldPhotoEntity == null) mKgManager.addEntity(photoEntity);
-        else return;
-
-        Entity locationEntity = null;
-        if (!location.isEmpty()) {
-            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION, title);
-            locationEntity.addAttribute("location", location);
-            Entity oldLocationEntity = mKgManager.getEntity(locationEntity);
-            if (oldLocationEntity == null) mKgManager.addEntity(locationEntity);
-            else locationEntity = oldLocationEntity;
-        }
-
-        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, date);
-        dateEntity.addAttribute("date", date);
-        Entity oldDateEntity = mKgManager.getEntity(dateEntity);
-        if (oldDateEntity == null) mKgManager.addEntity(dateEntity);
-        else dateEntity = oldDateEntity;
-
-        Entity timeEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_TIME, time);
-        timeEntity.addAttribute("time", time);
-        Entity oldTimeEntity = mKgManager.getEntity(timeEntity);
-        if (oldTimeEntity == null) mKgManager.addEntity(timeEntity);
-        else timeEntity = oldTimeEntity;
-
-        if (locationEntity != null) {
-            if (mKgManager.getRelationship(photoEntity.getId(),
-                    locationEntity.getId(), "taken at location") == null) {
-                mKgManager.addRelationship(new Relationship(photoEntity.getId(),
-                        locationEntity.getId(), "taken at location"));
-            }
-        }
-
-        if (mKgManager.getRelationship(photoEntity.getId(),
-                dateEntity.getId(), "taken at date") == null) {
-            mKgManager.addRelationship(new Relationship(photoEntity.getId(),
-                    dateEntity.getId(), "taken on date"));
-        }
-
-        if (mKgManager.getRelationship(photoEntity.getId(),
-                timeEntity.getId(), "taken at time") == null) {
-            mKgManager.addRelationship(new Relationship(photoEntity.getId(),
-                    timeEntity.getId(), "taken at time"));
-        }
-
+        mKgManager.addEntity(photoEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, photoEntity);
         mKgManager.addEmbedding(mEmbeddingManager, photoEntity);
         Log.i(TAG, "content id is " + photoEntity.getContentId());

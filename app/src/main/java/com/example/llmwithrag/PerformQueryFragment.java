@@ -255,7 +255,8 @@ public class PerformQueryFragment extends Fragment {
                     _call.enqueue(new Callback<CompletionResponse>() {
                         private String extractGeoLocation(String answer) {
                             String[] lines = answer.split("\n");
-                            return lines[lines.length - 1];
+                            String line = lines[lines.length - 1];
+                            return line != null ? line.trim().replaceAll("^`+|`+$", "") : "";
                         }
 
                         @Override
@@ -328,10 +329,8 @@ public class PerformQueryFragment extends Fragment {
         if (schema != null) sb.append("\nAnd here's schema : " + schema);
         if (results == null) {
             sb.append("\nGo through the user's query and just rebuild it in the form of given schema and don't try to answer or take any other action.");
-            sb.append("\nInclude entities with their attributes and the relationships between them.");
-            sb.append("\nWhen an event is found in the query, it MUST always be added to both Event entity with title attribute and Message entity with body attributes.");
             sb.append("\nEnsure you provide only json-formatted string, and do not add any other comments");
-            sb.append("\nIn the bracket, 'entities' and 'relationships' MUST be at the top level of the hierarchy as the schema indicates.");
+            sb.append("\nIn the bracket, 'entities' MUST be at the top level of the hierarchy as the schema indicates.");
             sb.append("\nMake sure 'attributes' MUST be the key-valued map.");
         } else {
             sb.append("\nAnd also here are relevant context.");
@@ -339,13 +338,7 @@ public class PerformQueryFragment extends Fragment {
                 sb.append("\n").append(result);
             }
 
-            sb.append("\nIdentify and correlate all the entities based on the relationships in the given context.");
-            sb.append("\nEnsure the query's conditions, including the specific User and Event, are relevant to identifying the location.");
-            sb.append("\nDo not assume additional messages or events involving the User unless explicitly stated in the context.");
-            sb.append("\nFind messages sent by any user that explicitly mention the specific User and event details on the given date.");
-            sb.append("\nCorrelate these messages with the event that took place on the specified date, ensuring the event's date matches exactly.");
-            sb.append("\nConfirm that the location is clearly linked to the specified event date and user.");
-            sb.append("\nConsider only locations directly connected to the specified event and user on the given date.");
+            sb.append("\nIdentify and correlate all the entities based on the given context.");
             sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event. Do not disqualify the photo based on the date it was taken.");
 
             sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");

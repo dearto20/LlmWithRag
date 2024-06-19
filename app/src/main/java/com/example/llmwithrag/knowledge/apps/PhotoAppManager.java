@@ -1,9 +1,6 @@
 package com.example.llmwithrag.knowledge.apps;
 
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_DATE;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_LOCATION;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_PHOTO;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_TIME;
 
 import android.content.Context;
 import android.os.Environment;
@@ -15,7 +12,6 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeGraphManager;
-import com.example.llmwithrag.kg.Relationship;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
@@ -55,53 +51,10 @@ public class PhotoAppManager extends FileObserver implements IKnowledgeComponent
 
         Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, title);
         photoEntity.addAttribute("filePath", path);
-        photoEntity.addAttribute("dateTaken", String.valueOf(dateTaken.getTime()));
+        photoEntity.addAttribute("date", date);
+        photoEntity.addAttribute("time", time);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
-        Entity oldPhotoEntity = mKgManager.getEntity(photoEntity);
-        if (oldPhotoEntity == null) mKgManager.addEntity(photoEntity);
-        else return;
-
-        Entity locationEntity = null;
-        if (!location.isEmpty()) {
-            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION, title);
-            locationEntity.addAttribute("location", location);
-            Entity oldLocationEntity = mKgManager.getEntity(locationEntity);
-            if (oldLocationEntity == null) mKgManager.addEntity(locationEntity);
-            else locationEntity = oldLocationEntity;
-        }
-
-        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, date);
-        dateEntity.addAttribute("date", date);
-        Entity oldDateEntity = mKgManager.getEntity(dateEntity);
-        if (oldDateEntity == null) mKgManager.addEntity(dateEntity);
-        else dateEntity = oldDateEntity;
-
-        Entity timeEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_TIME, time);
-        timeEntity.addAttribute("time", time);
-        Entity oldTimeEntity = mKgManager.getEntity(timeEntity);
-        if (oldTimeEntity == null) mKgManager.addEntity(timeEntity);
-        else timeEntity = oldTimeEntity;
-
-        if (locationEntity != null) {
-            if (mKgManager.getRelationship(photoEntity.getId(),
-                    locationEntity.getId(), "taken at location") == null) {
-                mKgManager.addRelationship(new Relationship(photoEntity.getId(),
-                        locationEntity.getId(), "taken at location"));
-            }
-        }
-
-        if (mKgManager.getRelationship(photoEntity.getId(),
-                dateEntity.getId(), "taken at date") == null) {
-            mKgManager.addRelationship(new Relationship(photoEntity.getId(),
-                    dateEntity.getId(), "taken on date"));
-        }
-
-        if (mKgManager.getRelationship(photoEntity.getId(),
-                timeEntity.getId(), "taken at time") == null) {
-            mKgManager.addRelationship(new Relationship(photoEntity.getId(),
-                    timeEntity.getId(), "taken at time"));
-        }
-
+        mKgManager.addEntity(photoEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, photoEntity);
         mKgManager.addEmbedding(mEmbeddingManager, photoEntity);
         Log.i(TAG, "content id is " + photoEntity.getContentId());

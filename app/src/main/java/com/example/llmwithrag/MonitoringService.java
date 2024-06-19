@@ -37,7 +37,6 @@ import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeGraphManager;
-import com.example.llmwithrag.kg.Relationship;
 import com.example.llmwithrag.knowledge.apps.CalendarAppManager;
 import com.example.llmwithrag.knowledge.apps.PhotoAppManager;
 import com.example.llmwithrag.knowledge.apps.SmsAppManager;
@@ -48,6 +47,7 @@ import com.example.llmwithrag.knowledge.location.PersistentLocationRepository;
 import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
 import com.example.llmwithrag.knowledge.status.StationaryTimeRepository;
 import com.example.llmwithrag.llm.EmbeddingManager;
+import com.google.gson.Gson;
 
 import java.util.Arrays;
 import java.util.List;
@@ -241,12 +241,9 @@ public class MonitoringService extends Service implements IMonitoringService {
         Log.i(TAG, "find similar ones : " + query + ", " + response);
         Map<String, Entity> entities =
                 mKgManager.parseEntitiesFromResponse(response);
-        List<Relationship> relationships =
-                mKgManager.parseRelationshipsFromResponse(response, entities);
-        Log.i(TAG, "entities : " + entities + ", relationships : " +
-                Arrays.toString(relationships.toArray()));
+        Log.i(TAG, "entities : " + entities);
 
-        String flattened = mKgManager.flattenEntities(entities, relationships);
+        String flattened = new Gson().toJson(entities);
         Log.i(TAG, "flattened : " + flattened);
         List<String> result = mEmbeddingManager.findSimilarOnes(flattened, 0);
         Log.i(TAG, "result : " + Arrays.toString(result.toArray()));

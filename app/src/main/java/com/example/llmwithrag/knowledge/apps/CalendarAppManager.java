@@ -1,9 +1,6 @@
 package com.example.llmwithrag.knowledge.apps;
 
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_DATE;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_EVENT;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_LOCATION;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_TIME;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -22,7 +19,6 @@ import androidx.annotation.Nullable;
 
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeGraphManager;
-import com.example.llmwithrag.kg.Relationship;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
@@ -107,9 +103,11 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                             ENTITY_TYPE_EVENT, title);
                     eventEntity.addAttribute("eventId", id);
                     eventEntity.addAttribute("title", title);
+                    eventEntity.addAttribute("date", date);
+                    eventEntity.addAttribute("time", time);
+                    if (!location.isEmpty()) eventEntity.addAttribute("location", location);
                     eventEntity.addAttribute("startDate", String.valueOf(startDate));
                     eventEntity.addAttribute("endDate", String.valueOf(endDate));
-                    if (!location.isEmpty()) eventEntity.addAttribute("location", location);
 
                     Entity oldEventEntity = mKgManager.getEntity(eventEntity);
                     if (mKgManager.equals(oldEventEntity, eventEntity)) continue;
@@ -118,51 +116,6 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                         mKgManager.removeEmbedding(mEmbeddingManager, oldEventEntity);
                     }
                     mKgManager.addEntity(eventEntity);
-
-                    Entity locationEntity = null;
-                    if (!location.isEmpty()) {
-                        locationEntity = new Entity(UUID.randomUUID().toString(),
-                                ENTITY_TYPE_LOCATION, title);
-                        locationEntity.addAttribute("location", location);
-                        Entity oldLocationEntity = mKgManager.getEntity(locationEntity);
-                        if (oldLocationEntity == null) mKgManager.addEntity(locationEntity);
-                        else locationEntity = oldLocationEntity;
-                    }
-
-                    Entity dateEntity = new Entity(UUID.randomUUID().toString(),
-                            ENTITY_TYPE_DATE, date);
-                    dateEntity.addAttribute("date", date);
-                    Entity oldDateEntity = mKgManager.getEntity(dateEntity);
-                    if (oldDateEntity == null) mKgManager.addEntity(dateEntity);
-                    else dateEntity = oldDateEntity;
-
-                    Entity timeEntity = new Entity(UUID.randomUUID().toString(),
-                            ENTITY_TYPE_TIME, time);
-                    timeEntity.addAttribute("time", time);
-                    Entity oldTimeEntity = mKgManager.getEntity(timeEntity);
-                    if (oldTimeEntity == null) mKgManager.addEntity(timeEntity);
-                    else timeEntity = oldTimeEntity;
-
-                    if (locationEntity != null) {
-                        if (mKgManager.getRelationship(eventEntity.getId(),
-                                locationEntity.getId(), "takes place at location") == null) {
-                            mKgManager.addRelationship(new Relationship(eventEntity.getId(),
-                                    locationEntity.getId(), "takes place at location"));
-                        }
-                    }
-
-                    if (mKgManager.getRelationship(eventEntity.getId(),
-                            dateEntity.getId(), "takes place on date") == null) {
-                        mKgManager.addRelationship(new Relationship(eventEntity.getId(),
-                                dateEntity.getId(), "takes place on date"));
-                    }
-
-                    if (mKgManager.getRelationship(eventEntity.getId(),
-                            timeEntity.getId(), "takes place at time") == null) {
-                        mKgManager.addRelationship(new Relationship(eventEntity.getId(),
-                                timeEntity.getId(), "takes place at time"));
-                    }
-
                     mKgManager.removeEmbedding(mEmbeddingManager, eventEntity);
                     mKgManager.addEmbedding(mEmbeddingManager, eventEntity);
                     Log.i(TAG, "added " + eventEntity);

@@ -2,6 +2,8 @@ package com.example.llmwithrag.kg;
 
 import androidx.annotation.NonNull;
 
+import com.google.gson.Gson;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
