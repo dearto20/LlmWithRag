@@ -2,8 +2,6 @@ package com.example.llmwithrag.kg;
 
 import androidx.annotation.NonNull;
 
-import com.google.gson.Gson;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -12,19 +10,19 @@ import java.util.Map;
 
 public class Entity {
     private final Map<String, String> mAttributes;
-    private final String mId;
-    private final String mType;
-    private final String mName;
+    private final String id;
+    private final String type;
+    private final String name;
 
     public Entity(String id, String type, String name) {
-        mId = id;
-        mType = type;
-        mName = name;
+        this.id = id;
+        this.type = type;
+        this.name = name;
         mAttributes = new HashMap<>();
     }
 
     public String getId() {
-        return mId;
+        return id;
     }
 
     public String getContentId() {
@@ -32,11 +30,11 @@ public class Entity {
     }
 
     public String getType() {
-        return mType;
+        return type;
     }
 
     public String getName() {
-        return mName;
+        return name;
     }
 
     public void addAttribute(String key, String value) {
@@ -49,8 +47,8 @@ public class Entity {
 
     public Map<String, String> getDescription() {
         Map<String, String> description = new HashMap<>(mAttributes);
-        description.put("type", mType);
-        description.put("name", mName);
+        description.put("type", type);
+        description.put("name", name);
         return description;
     }
 
@@ -70,7 +68,7 @@ public class Entity {
     @Override
     public String toString() {
         Map<String, String> description = new HashMap<>(getDescription());
-        description.put("id", mId);
+        description.put("id", id);
         return description.toString();
     }
 }
