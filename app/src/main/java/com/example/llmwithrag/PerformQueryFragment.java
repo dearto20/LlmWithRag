@@ -1,6 +1,7 @@
 package com.example.llmwithrag;
 
 import static android.Manifest.permission.RECORD_AUDIO;
+import static com.example.llmwithrag.Utils.getCoordinatesFromReadableAddress;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -11,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -151,7 +153,8 @@ public class PerformQueryFragment extends Fragment {
     }
 
     @SuppressLint("QueryPermissionsNeeded")
-    private boolean runNaviApp(String destination) {
+    private String runNaviApp(String destination) {
+        try {
         /*
         Intent intent = new Intent();
         intent.setComponent(new ComponentName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity"));
@@ -160,34 +163,40 @@ public class PerformQueryFragment extends Fragment {
         startActivity(intent);
          */
 
-        boolean foundLocation = false;
-        String[] parts = destination.split(",\\s*");
-        if (parts.length == 2) {
-            try {
+            Uri uri = null;
+            boolean foundLocation = false;
+            String[] parts = destination.split(",\\s*");
+            if (parts.length == 2) {
+                foundLocation = true;
+            } else {
+                Log.i(TAG, "-> destination : " + destination);
+                destination = getCoordinatesFromReadableAddress(
+                        getContext().getApplicationContext(), destination);
+                Log.i(TAG, "<- destination : " + destination);
+                foundLocation = !TextUtils.isEmpty(destination);
+            }
+
+            if (!foundLocation) {
+                Log.i(TAG, "Unable to find the location");
+                Toast.makeText(getContext(), "Unable to find the location", Toast.LENGTH_LONG).show();
+            } else {
+                parts = destination.split(",\\s*");
                 double latitude = Double.parseDouble(parts[0]);
                 double longitude = Double.parseDouble(parts[1]);
-                foundLocation = true;
-                Toast.makeText(getContext(), "destination: " + destination, Toast.LENGTH_SHORT)
-                        .show();
+                uri = Uri.parse("tmap://route?goalx=" + longitude + "&goaly=" + latitude + "&name=home");
 
-                Uri uri = Uri.parse("tmap://route?goalx=" + longitude + "&goaly=" + latitude + "&name=home");
+                Toast.makeText(getContext(), "destination: " + destination, Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
-                return true;
-            } catch (ActivityNotFoundException e1) {
-                redirectToPlayStore("com.skt.tmap.ku");
-            } catch (Throwable e) {
-                Log.e(TAG, e.toString());
-                e.printStackTrace();
             }
+        } catch (ActivityNotFoundException e1) {
+            redirectToPlayStore("com.skt.tmap.ku");
+        } catch (Throwable e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
         }
 
-        if (!foundLocation) {
-            Log.i(TAG, "Unable to find the location");
-            Toast.makeText(getContext(), "Unable to find the location", Toast.LENGTH_LONG).show();
-        }
-
-        return false;
+        return "";
     }
 
     private void redirectToPlayStore(String appPackageName) {
@@ -265,11 +274,7 @@ public class PerformQueryFragment extends Fragment {
                                 String completion = response.body().choices.get(0).message.content;
                                 Log.i(TAG, "response from the llm: " + completion);
 
-                                if (runNaviApp(extractGeoLocation(completion))) {
-                                    mResultDisplay.setText(completion);
-                                } else {
-                                    mResultDisplay.setText("");
-                                }
+                                mResultDisplay.setText(runNaviApp(extractGeoLocation(completion)));
                             }
                         }
 
@@ -310,9 +315,7 @@ public class PerformQueryFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     String completion = response.body().choices.get(0).message.content;
                     Log.i(TAG, "response: " + completion);
-                    if (runNaviApp(completion)) {
-                        mResultDisplay.setText(completion);
-                    }
+                    mResultDisplay.setText(completion);
                 }
             }
 
@@ -343,8 +346,10 @@ public class PerformQueryFragment extends Fragment {
 
             sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
             sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
+            sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
             sb.append("\nIf no location meets all conditions, respond with \"Unable to find the location.\"");
-            sb.append("\nIf a location is found, it MUST be on a new single line and formatted exactly as 'latitude, longitude' without any additional text, symbols, or quotes (```, ', etc).");
+            sb.append("\nIf a location is found, it MUST be on a new single line and formatted either exactly as 'latitude, longitude' or name of the location if the former is unavailable.");
+            sb.append("\nDo not put any additional text, symbols, or quotes (` or ``` or ')");
         }
         return sb.toString();
     }

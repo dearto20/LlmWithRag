@@ -22,6 +22,7 @@ public class KnowledgeGraphManager {
     public static final String ENTITY_TYPE_PHOTO = "Photo";
     public static final String ENTITY_TYPE_USER = "User";
     public static final String ENTITY_TYPE_MESSAGE = "Message";
+    public static final String ENTITY_TYPE_EMAIL = "Email";
     private final Map<String, Entity> mEntities;
 
     public KnowledgeGraphManager(Context context) {
@@ -33,7 +34,7 @@ public class KnowledgeGraphManager {
             "        {\n" +
             "            \"type\": \"Photo\",\n" +
             "            \"attributes\": [\n" +
-            "                \"filePath\", \"date\", \"time\", \"location\", \"sentBy\",\n" +
+            "                \"filePath\", \"date\", \"time\", \"location\", \"sender\",\n" +
             "            ],\n" +
             "        },\n" +
             "        {\n" +
@@ -45,7 +46,13 @@ public class KnowledgeGraphManager {
             "        {\n" +
             "            \"type\": \"Message\",\n" +
             "            \"attributes\": [\n" +
-            "                \"sentBy\", \"body\", \"address\", \"date\", \"time\",\n" +
+            "                \"address\", \"sender\", \"body\", \"date\", \"time\",\n" +
+            "            ],\n" +
+            "        },\n" +
+            "        {\n" +
+            "            \"type\": \"Email\",\n" +
+            "            \"attributes:\" [\n" +
+            "                \"address\", \"sender\", subject\", \"body\", \"date\", \"time\",\n" +
             "            ],\n" +
             "        },\n" +
             "        {\n" +

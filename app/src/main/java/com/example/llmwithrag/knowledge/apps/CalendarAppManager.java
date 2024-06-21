@@ -1,18 +1,16 @@
 package com.example.llmwithrag.knowledge.apps;
 
+import static com.example.llmwithrag.Utils.getCoordinatesFromReadableAddress;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_EVENT;
 
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
-import android.location.Address;
-import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.CalendarContract;
-import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -23,7 +21,6 @@ import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -92,8 +89,9 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                     int endDateIndex = cursor.getColumnIndex(CalendarContract.Events.DTEND);
                     long endDate = (endDateIndex >= 0) ? cursor.getLong(endDateIndex) : -1;
                     int locationIndex = cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION);
-                    String location = getCoordinatesFromReadableAddress(
+                    String location = getCoordinatesFromReadableAddress(mContext,
                             (locationIndex >= 0) ? cursor.getString(locationIndex) : "");
+                    Log.i(TAG, "location : " + location);
                     String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                             .format(startDate);
                     String time = new SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -125,23 +123,5 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
             Log.e(TAG, e.toString());
             e.printStackTrace();
         }
-    }
-
-    private String getCoordinatesFromReadableAddress(String address) {
-        if (TextUtils.isEmpty(address)) return "";
-        Geocoder geocoder = new Geocoder(mContext, Locale.getDefault());
-        try {
-            List<Address> addresses = geocoder.getFromLocationName(address, 1);
-            if (addresses == null || addresses.isEmpty()) return "";
-            Address location = addresses.get(0);
-            double scale = Math.pow(10, 4);
-            double latitude = Math.round(location.getLatitude() * scale) / scale;
-            double longitude = Math.round(location.getLongitude() * scale) / scale;
-            return latitude + ", " + longitude;
-        } catch (Throwable e) {
-            Log.e(TAG, e.toString());
-            e.printStackTrace();
-        }
-        return "";
     }
 }

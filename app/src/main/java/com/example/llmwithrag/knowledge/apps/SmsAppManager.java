@@ -1,5 +1,6 @@
 package com.example.llmwithrag.knowledge.apps;
 
+import static com.example.llmwithrag.Utils.getContactNameByPhoneNumber;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_MESSAGE;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_PHOTO;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_USER;
@@ -11,7 +12,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.ContactsContract;
 import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.Log;
@@ -120,7 +120,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                     String messageId = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Mms._ID));
                     String address = getMmsAddress(messageId);
                     String body = getMmsText(messageId);
-                    handleImage(messageId, getContactName(address));
+                    handleImage(messageId, getContactNameByPhoneNumber(mContext, address));
                     long date = cursor.getLong(cursor.getColumnIndexOrThrow(Telephony.Mms.DATE)) * 1000L;
                     handleMessage(address, body, date);
                 }
@@ -131,30 +131,45 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
     }
 
     private void handleMessage(String address, String body, long date) {
-        String userName = getContactName(address);
+        String sender = getContactNameByPhoneNumber(mContext, address);
         String dateString = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 .format(date);
-        String timeString = new SimpleDateFormat("HH:mm", Locale.getDefault())
+        String timeString = new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
                 .format(date);
 
         Entity messageEntity = new Entity(UUID.randomUUID().toString(),
                 ENTITY_TYPE_MESSAGE, body);
-        messageEntity.addAttribute("sentBy", getContactName(address));
-        messageEntity.addAttribute("body", body);
         messageEntity.addAttribute("address", address);
+        messageEntity.addAttribute("sender", sender);
+        messageEntity.addAttribute("body", body);
         messageEntity.addAttribute("date", dateString);
         messageEntity.addAttribute("time", timeString);
-        Entity oldMessageEntity = mKgManager.getEntity(messageEntity);
-        if (oldMessageEntity == null) mKgManager.addEntity(messageEntity);
-        else return;
 
-        Entity userEntity = new Entity(UUID.randomUUID().toString(),
-                ENTITY_TYPE_USER, userName);
-        userEntity.addAttribute("name", userName);
-        mKgManager.addEntity(userEntity);
+        Entity oldMessageEntity = mKgManager.getEntity(messageEntity);
+        if (mKgManager.equals(oldMessageEntity, messageEntity)) return;
+        if (oldMessageEntity != null) {
+            mKgManager.removeEntity(oldMessageEntity);
+            mKgManager.removeEmbedding(mEmbeddingManager, oldMessageEntity);
+        }
+        mKgManager.addEntity(messageEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, messageEntity);
         mKgManager.addEmbedding(mEmbeddingManager, messageEntity);
         Log.i(TAG, "added " + messageEntity);
+
+        Entity userEntity = new Entity(UUID.randomUUID().toString(),
+                ENTITY_TYPE_USER, sender);
+        userEntity.addAttribute("name", TextUtils.isEmpty(sender) ? address : sender);
+
+        Entity oldUserEntity = mKgManager.getEntity(userEntity);
+        if (mKgManager.equals(oldUserEntity, userEntity)) return;
+        if (oldUserEntity != null) {
+            mKgManager.removeEntity(oldUserEntity);
+            mKgManager.removeEmbedding(mEmbeddingManager, oldUserEntity);
+        }
+        mKgManager.addEntity(userEntity);
+        mKgManager.removeEmbedding(mEmbeddingManager, userEntity);
+        mKgManager.addEmbedding(mEmbeddingManager, userEntity);
+        Log.i(TAG, "added " + userEntity);
         if (date > mLastUpdated) mLastUpdated = date;
     }
 
@@ -175,7 +190,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         return null;
     }
 
-    private void extractPhotoMetadata(Context context, Uri dataUri, String sentBy) {
+    private void extractPhotoMetadata(Context context, Uri dataUri, String sender) {
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(dataUri);
             if (inputStream != null) {
@@ -190,7 +205,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                 outputStream.close();
                 inputStream.close();
 
-                handlePhoto(tempFile.getAbsolutePath(), sentBy);
+                handlePhoto(tempFile.getAbsolutePath(), sender);
 
                 // Delete the temporary file
                 tempFile.delete();
@@ -200,7 +215,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         }
     }
 
-    private void handleImage(String id, String sentBy) {
+    private void handleImage(String id, String sender) {
         Uri partUri = Telephony.Mms.CONTENT_URI.buildUpon().appendPath(id).appendPath("part").build();
         Cursor cursor = mContentResolver.query(partUri, null, null, null, null);
         if (cursor == null) return;
@@ -215,7 +230,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                     if (index < 0) return;
                     String partId = cursor.getString(index);
                     Uri dataUri = Uri.parse("content://mms/part/" + partId);
-                    extractPhotoMetadata(mContext, dataUri, sentBy);
+                    extractPhotoMetadata(mContext, dataUri, sender);
                 }
             }
         } finally {
@@ -265,7 +280,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         return new File(filePath).getName();
     }
 
-    private void handlePhoto(String path, String sentBy) {
+    private void handlePhoto(String path, String sender) {
         String title = getFileName(path);
         Date dateTaken = new Date(getDateTakenFromExif(path));
         String location = getLocationFromExif(path);
@@ -273,15 +288,21 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         String time = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(dateTaken);
 
         Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, title);
-        photoEntity.addAttribute("sentBy", sentBy);
+        photoEntity.addAttribute("sender", sender);
         photoEntity.addAttribute("filePath", path);
         photoEntity.addAttribute("date", date);
         photoEntity.addAttribute("time", time);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
+
+        Entity oldPhotoEntity = mKgManager.getEntity(photoEntity);
+        if (mKgManager.equals(oldPhotoEntity, photoEntity)) return;
+        if (oldPhotoEntity != null) {
+            mKgManager.removeEntity(oldPhotoEntity);
+            mKgManager.removeEmbedding(mEmbeddingManager, oldPhotoEntity);
+        }
         mKgManager.addEntity(photoEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, photoEntity);
         mKgManager.addEmbedding(mEmbeddingManager, photoEntity);
-        Log.i(TAG, "content id is " + photoEntity.getContentId());
         Log.i(TAG, "added " + photoEntity);
     }
 
@@ -335,23 +356,5 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
             }
         }
         return sb.toString();
-    }
-
-    private String getContactName(String phoneNumber) {
-        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
-                Uri.encode(phoneNumber));
-        String[] projection = new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME};
-        try (Cursor cursor = mContentResolver.query(uri, projection, null, null, null)) {
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    int nameIndex = cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME);
-                    return (nameIndex >= 0) ? cursor.getString(nameIndex) : "";
-                }
-            }
-        } catch (Throwable e) {
-            Log.e(TAG, e.toString());
-            e.printStackTrace();
-        }
-        return phoneNumber;
     }
 }

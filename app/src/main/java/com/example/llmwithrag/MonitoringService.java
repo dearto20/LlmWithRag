@@ -38,7 +38,7 @@ import com.example.llmwithrag.datasource.movement.MovementTracker;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeGraphManager;
 import com.example.llmwithrag.knowledge.apps.CalendarAppManager;
-import com.example.llmwithrag.knowledge.apps.PhotoAppManager;
+import com.example.llmwithrag.knowledge.apps.EmailAppManager;
 import com.example.llmwithrag.knowledge.apps.SmsAppManager;
 import com.example.llmwithrag.knowledge.connectivity.WifiConnectionTimeManager;
 import com.example.llmwithrag.knowledge.connectivity.WifiConnectionTimeRepository;
@@ -82,7 +82,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private KnowledgeGraphManager mKgManager;
     private EmbeddingManager mKgEmbeddingManager;
     private CalendarAppManager mCalendarAppManager;
-    private PhotoAppManager mPhotoAppManager;
+    private EmailAppManager mEmailAppManager;
     private SmsAppManager mSmsAppManager;
     private PersistentLocationManager mPersistentLocationManager;
     private WifiConnectionTimeManager mWifiConnectionTimeManager;
@@ -127,7 +127,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             mKgManager = new KnowledgeGraphManager(getApplicationContext());
             mKgEmbeddingManager = new EmbeddingManager(getApplicationContext());
             mCalendarAppManager = new CalendarAppManager(context, mKgManager, mKgEmbeddingManager);
-            mPhotoAppManager = new PhotoAppManager(context, mKgManager, mKgEmbeddingManager);
+            mEmailAppManager = new EmailAppManager(context, mKgManager, mKgEmbeddingManager);
             mSmsAppManager = new SmsAppManager(context, mKgManager, mKgEmbeddingManager);
         }
         mPersistentLocationManager = new PersistentLocationManager(context,
@@ -221,7 +221,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             mKgManager.deleteAll();
             mKgEmbeddingManager.deleteAll();
             mCalendarAppManager.deleteAll();
-            mPhotoAppManager.deleteAll();
+            mEmailAppManager.deleteAll();
             mSmsAppManager.deleteAll();
         }
         mPersistentLocationManager.deleteAll();
@@ -680,7 +680,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
         if (BuildConfig.IS_SCHEMA_ENABLED) {
             mCalendarAppManager.startMonitoring();
-            mPhotoAppManager.startMonitoring();
+            mEmailAppManager.startMonitoring();
             mSmsAppManager.startMonitoring();
         }
         mPersistentLocationManager.startMonitoring();
@@ -702,7 +702,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         mPersistentLocationManager.stopMonitoring();
         if (BuildConfig.IS_SCHEMA_ENABLED) {
             mSmsAppManager.stopMonitoring();
-            mPhotoAppManager.stopMonitoring();
+            mEmailAppManager.stopMonitoring();
             mCalendarAppManager.stopMonitoring();
         }
         mHandler.removeCallbacksAndMessages(null);

@@ -3,7 +3,7 @@
         {
             "type": "Photo",
             "attributes": [
-                "filePath", "date", "time", "location", "sentBy",
+                "filePath", "date", "time", "location", "sender",
             ],
         },
         {
@@ -15,7 +15,13 @@
         {
             "type": "Message",
             "attributes": [
-                "sentBy", "body", "address", "date", "time",
+                "address", "sender", "body", "date", "time",
+            ],
+        },
+        {
+            "type": "Email",
+            "attributes:" [
+                "address", "sender", subject", "body", "date", "time",
             ],
         },
         {

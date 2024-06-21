@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Entity {
-    private final Map<String, String> mAttributes;
+    private final Map<String, String> attributes;
     private final String id;
     private final String type;
     private final String name;
@@ -18,7 +18,7 @@ public class Entity {
         this.id = id;
         this.type = type;
         this.name = name;
-        mAttributes = new HashMap<>();
+        attributes = new HashMap<>();
     }
 
     public String getId() {
@@ -38,15 +38,15 @@ public class Entity {
     }
 
     public void addAttribute(String key, String value) {
-        mAttributes.put(key, value);
+        attributes.put(key, value);
     }
 
     public Map<String, String> getAttributes() {
-        return mAttributes;
+        return attributes;
     }
 
     public Map<String, String> getDescription() {
-        Map<String, String> description = new HashMap<>(mAttributes);
+        Map<String, String> description = new HashMap<>(attributes);
         description.put("type", type);
         description.put("name", name);
         return description;

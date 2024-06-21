@@ -21,14 +21,14 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
 
-public class PhotoAppManager extends FileObserver implements IKnowledgeComponent {
-    private static final String TAG = PhotoAppManager.class.getSimpleName();
+public class FileDirManager extends FileObserver implements IKnowledgeComponent {
+    private static final String TAG = FileDirManager.class.getSimpleName();
     private final Context mContext;
     private final KnowledgeGraphManager mKgManager;
     private final EmbeddingManager mEmbeddingManager;
 
-    public PhotoAppManager(Context context, KnowledgeGraphManager kgManager,
-                           EmbeddingManager embeddingManager) {
+    public FileDirManager(Context context, KnowledgeGraphManager kgManager,
+                          EmbeddingManager embeddingManager) {
         super(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/",
                 FileObserver.ALL_EVENTS);
         mContext = context;
@@ -54,10 +54,16 @@ public class PhotoAppManager extends FileObserver implements IKnowledgeComponent
         photoEntity.addAttribute("date", date);
         photoEntity.addAttribute("time", time);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
+
+        Entity oldPhotoEntity = mKgManager.getEntity(photoEntity);
+        if (mKgManager.equals(oldPhotoEntity, photoEntity)) return;
+        if (oldPhotoEntity != null) {
+            mKgManager.removeEntity(oldPhotoEntity);
+            mKgManager.removeEmbedding(mEmbeddingManager, oldPhotoEntity);
+        }
         mKgManager.addEntity(photoEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, photoEntity);
         mKgManager.addEmbedding(mEmbeddingManager, photoEntity);
-        Log.i(TAG, "content id is " + photoEntity.getContentId());
         Log.i(TAG, "added " + photoEntity);
     }
 
