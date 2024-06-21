@@ -344,9 +344,9 @@ public class PerformQueryFragment extends Fragment {
             sb.append("\nIdentify and correlate all the entities based on the given context.");
             sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event. Do not disqualify the photo based on the date it was taken.");
 
-            sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
-            sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
-            sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
+            //sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
+            //sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
+            //sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
             sb.append("\nIf no location meets all conditions, respond with \"Unable to find the location.\"");
             sb.append("\nIf a location is found, it MUST be on a new single line and formatted either exactly as 'latitude, longitude' or name of the location if the former is unavailable.");
             sb.append("\nDo not put any additional text, symbols, or quotes (` or ``` or ')");

@@ -91,7 +91,6 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                     int locationIndex = cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION);
                     String location = getCoordinatesFromReadableAddress(mContext,
                             (locationIndex >= 0) ? cursor.getString(locationIndex) : "");
-                    Log.i(TAG, "location : " + location);
                     String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                             .format(startDate);
                     String time = new SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -108,6 +107,9 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                     eventEntity.addAttribute("endDate", String.valueOf(endDate));
 
                     Entity oldEventEntity = mKgManager.getEntity(eventEntity);
+                    Log.i(TAG, "iterating entity : " + eventEntity);
+                    Log.i(TAG, "has entity ?" + mKgManager.equals(oldEventEntity, eventEntity));
+
                     if (mKgManager.equals(oldEventEntity, eventEntity)) continue;
                     if (oldEventEntity != null) {
                         mKgManager.removeEntity(oldEventEntity);

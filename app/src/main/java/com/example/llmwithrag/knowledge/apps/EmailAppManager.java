@@ -42,9 +42,9 @@ public class EmailAppManager implements IKnowledgeComponent {
     private final Context mContext;
     private final KnowledgeGraphManager mKgManager;
     private final EmbeddingManager mEmbeddingManager;
+    private final Handler mHandler;
 
     private boolean mRunning = false;
-    private Handler mHandler;
     private IMAPFolder mInbox;
     private IMAPStore mStore;
 
@@ -56,6 +56,8 @@ public class EmailAppManager implements IKnowledgeComponent {
         HandlerThread handlerThread = new HandlerThread(EmailAppManager.class.getSimpleName());
         handlerThread.start();
         mHandler = new Handler(handlerThread.getLooper());
+        mInbox = null;
+        mStore = null;
     }
 
     @Override
@@ -95,19 +97,28 @@ public class EmailAppManager implements IKnowledgeComponent {
         }
     }
 
-    private void checkEmails() throws Exception {
-        Properties properties = new Properties();
-        properties.put("mail.store.protocol", EMAIL_STORE_PROTOCOL);
-        properties.put("mail.imap.host", EMAIL_HOST_ADDRESS);
-        properties.put("mail.imap.port", EMAIL_HOST_PORT);
-        properties.put("mail.imap.ssl.enable", EMAIL_HOST_SSL_ENABLE);
+    private void connectToStore() throws MessagingException {
+        if (mStore == null || !mStore.isConnected()) {
+            Properties properties = new Properties();
+            properties.put("mail.store.protocol", EMAIL_STORE_PROTOCOL);
+            properties.put("mail.imap.host", EMAIL_HOST_ADDRESS);
+            properties.put("mail.imap.port", EMAIL_HOST_PORT);
+            properties.put("mail.imap.ssl.enable", EMAIL_HOST_SSL_ENABLE);
 
-        Session session = Session.getDefaultInstance(properties);
-        mStore = (IMAPStore) session.getStore(EMAIL_STORE_PROTOCOL);
-        mStore.connect(EMAIL_HOST_ADDRESS, EMAIL_ADDRESS, EMAIL_PASSWORD);
+            Session session = Session.getDefaultInstance(properties);
+            mStore = (IMAPStore) session.getStore(EMAIL_STORE_PROTOCOL);
+            mStore.connect(EMAIL_HOST_ADDRESS, EMAIL_ADDRESS, EMAIL_PASSWORD);
+        }
+        openInbox();
+        addMessageCountListener();
+    }
+
+    private void openInbox() throws MessagingException {
         mInbox = (IMAPFolder) mStore.getFolder(EMAIL_HOST_FOLDER);
         mInbox.open(Folder.READ_ONLY);
+    }
 
+    private void addMessageCountListener() {
         mInbox.addMessageCountListener(new MessageCountAdapter() {
             public void messagesAdded(MessageCountEvent ev) {
                 Message[] messages = ev.getMessages();
@@ -164,9 +175,13 @@ public class EmailAppManager implements IKnowledgeComponent {
                 }
             }
         });
+    }
 
+    private void checkEmails() throws Exception {
         while (mRunning) {
             try {
+                connectToStore();
+                if (!mInbox.isOpen()) openInbox();
                 mInbox.idle();
             } catch (MessagingException e1) {
                 if (mRunning) {
