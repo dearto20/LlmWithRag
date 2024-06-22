@@ -55,11 +55,14 @@ public class ConnectivityTracker implements IDataSourceComponent {
     }
 
     private boolean isEnterpriseNetwork(Network network) {
+        /*
         boolean hasEnterpriseCapability = hasEnterpriseCapability(network);
         boolean hasEnterpriseWifiConfig = hasEnterpriseWifiConfig(mContext);
         int result = (hasEnterpriseCapability ? 1 : 0) + (hasEnterpriseWifiConfig ? 2 : 0);
         if (DEBUG) Log.i(TAG, "isEnterpriseNetwork : " + result);
         return (result > 0);
+         */
+        return false;
     }
 
     private boolean hasEnterpriseCapability(Network network) {

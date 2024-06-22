@@ -243,9 +243,7 @@ public class MonitoringService extends Service implements IMonitoringService {
                 mKgManager.parseEntitiesFromResponse(response);
         Log.i(TAG, "entities : " + entities);
 
-        String flattened = new Gson().toJson(entities);
-        Log.i(TAG, "flattened : " + flattened);
-        List<String> result = mEmbeddingManager.findSimilarOnes(flattened, 0);
+        List<String> result = mEmbeddingManager.findSimilarOnes(response, 0);
         Log.i(TAG, "result : " + Arrays.toString(result.toArray()));
         return result;
     }

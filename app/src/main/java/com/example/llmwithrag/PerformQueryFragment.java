@@ -38,8 +38,11 @@ import com.example.llmwithrag.llm.CompletionResponse;
 import com.example.llmwithrag.llm.OpenAiService;
 import com.example.llmwithrag.llm.RetrofitClient;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -254,7 +257,7 @@ public class PerformQueryFragment extends Fragment {
                     Log.i(TAG, "converted user query as to the schema: " + completion);
 
                     List<String> result = mService.findSimilarOnes(modifiedQuery, completion);
-                    String query = generateQuery(originalQuery, mService.getSchema(), result);
+                    String query = generateQuery(originalQuery, null, result);
                     Log.i(TAG, "augmented query: " + query);
 
                     messages.clear();
@@ -329,27 +332,31 @@ public class PerformQueryFragment extends Fragment {
 
     private String generateQuery(String query, String schema, List<String> results) {
         StringBuilder sb = new StringBuilder("My query is \"" + query + "\".");
-        if (schema != null) sb.append("\nAnd here's schema : " + schema);
         if (results == null) {
+            sb.append("\nAnd here's schema : ").append(schema);
             sb.append("\nGo through the user's query and just rebuild it in the form of given schema and don't try to answer or take any other action.");
             sb.append("\nEnsure you provide only json-formatted string, and do not add any other comments");
             sb.append("\nIn the bracket, 'entities' MUST be at the top level of the hierarchy as the schema indicates.");
-            sb.append("\nMake sure 'attributes' MUST be the key-valued map.");
         } else {
             sb.append("\nAnd also here are relevant context.");
             for (String result : results) {
                 sb.append("\n").append(result);
             }
 
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            sb.append("\nToday is ").append(sdf.format(new Date()));
             sb.append("\nIdentify and correlate all the entities based on the given context.");
-            sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event. Do not disqualify the photo based on the date it was taken.");
+            sb.append("\nDO NOT correlate an entity to a location which doesn't have explicit relationship.");
+            sb.append("\nIf photo has \"attachedIn\" attribute, it MUST be correlated with the entity having specified type, date and time.");
+            sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event.");
 
-            //sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
-            //sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
-            //sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
+            sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
+            sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
+            sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
+
             sb.append("\nIf no location meets all conditions, respond with \"Unable to find the location.\"");
             sb.append("\nIf a location is found, it MUST be on a new single line and formatted either exactly as 'latitude, longitude' or name of the location if the former is unavailable.");
-            sb.append("\nDo not put any additional text, symbols, or quotes (` or ``` or ')");
+            sb.append("\nDo not put any further lines after that.");
         }
         return sb.toString();
     }

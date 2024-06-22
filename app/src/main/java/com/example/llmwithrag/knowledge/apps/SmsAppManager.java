@@ -289,6 +289,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
 
         Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, title);
         photoEntity.addAttribute("sender", sender);
+        photoEntity.addAttribute("attachedIn", "Message");
         photoEntity.addAttribute("filePath", path);
         photoEntity.addAttribute("date", date);
         photoEntity.addAttribute("time", time);

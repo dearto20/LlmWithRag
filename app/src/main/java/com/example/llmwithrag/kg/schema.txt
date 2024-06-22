@@ -1,34 +1,54 @@
 {
-    "entities": [
+    "entities":[
         {
-            "type": "Photo",
-            "attributes": [
-                "filePath", "date", "time", "location", "sender",
-            ],
+            "type":"Photo",
+            "attributes":{
+                "sender":"",
+                "attachedIn":"",
+                "filePath":"",
+                "date":"",
+                "time":"",
+                "location":"",
+            },
         },
         {
-            "type": "Event",
-            "attributes": [
-                "eventId", "title", "date", "time", "location", "startDate", "endDate",
-            ],
+            "type":"Event",
+            "attributes":{
+                "eventId":"",
+                "title":"",
+                "date":"",
+                "time":"",
+                "location":"",
+                "startDate":"",
+                "endDate":"",
+            },
         },
         {
-            "type": "Message",
-            "attributes": [
-                "address", "sender", "body", "date", "time",
-            ],
+            "type":"Message",
+            "attributes":{
+                "address",
+                "sender":"",
+                "body":"",
+                "date":"",
+                "time":"",
+            },
         },
         {
-            "type": "Email",
-            "attributes:" [
-                "address", "sender", subject", "body", "date", "time",
-            ],
+            "type":"Email",
+            "attributes:"{
+                "address":"",
+                "sender":"",
+                "subject":"",
+                "body":"",
+                "date":"",
+                "time":"",
+            },
         },
         {
-            "type": "User",
-            "attributes": [
-                "name",
-            ],
+            "type":"User",
+            "attributes":{
+                "name":"",
+            },
         },
     ],
 }

@@ -20,9 +20,9 @@ public class KnowledgeGraphManager {
     private static final String TAG = KnowledgeGraphManager.class.getSimpleName();
     public static final String ENTITY_TYPE_EVENT = "Event";
     public static final String ENTITY_TYPE_PHOTO = "Photo";
-    public static final String ENTITY_TYPE_USER = "User";
     public static final String ENTITY_TYPE_MESSAGE = "Message";
     public static final String ENTITY_TYPE_EMAIL = "Email";
+    public static final String ENTITY_TYPE_USER = "User";
     private final Map<String, Entity> mEntities;
 
     public KnowledgeGraphManager(Context context) {
@@ -30,36 +30,56 @@ public class KnowledgeGraphManager {
     }
 
     public static final String SCHEMA = "{\n" +
-            "    \"entities\": [\n" +
+            "    \"entities\":[\n" +
             "        {\n" +
-            "            \"type\": \"Photo\",\n" +
-            "            \"attributes\": [\n" +
-            "                \"filePath\", \"date\", \"time\", \"location\", \"sender\",\n" +
-            "            ],\n" +
+            "            \"type\":\"Photo\",\n" +
+            "            \"attributes\":{\n" +
+            "                \"sender\":\"\",\n" +
+            "                \"attachedIn\":\"\",\n" +
+            "                \"filePath\":\"\",\n" +
+            "                \"date\":\"\",\n" +
+            "                \"time\":\"\",\n" +
+            "                \"location\":\"\",\n" +
+            "            },\n" +
             "        },\n" +
             "        {\n" +
-            "            \"type\": \"Event\",\n" +
-            "            \"attributes\": [\n" +
-            "                \"eventId\", \"title\", \"date\", \"time\", \"location\", \"startDate\", \"endDate\",\n" +
-            "            ],\n" +
+            "            \"type\":\"Event\",\n" +
+            "            \"attributes\":{\n" +
+            "                \"eventId\":\"\",\n" +
+            "                \"title\":\"\",\n" +
+            "                \"date\":\"\",\n" +
+            "                \"time\":\"\",\n" +
+            "                \"location\":\"\",\n" +
+            "                \"startDate\":\"\",\n" +
+            "                \"endDate\":\"\",\n" +
+            "            },\n" +
             "        },\n" +
             "        {\n" +
-            "            \"type\": \"Message\",\n" +
-            "            \"attributes\": [\n" +
-            "                \"address\", \"sender\", \"body\", \"date\", \"time\",\n" +
-            "            ],\n" +
+            "            \"type\":\"Message\",\n" +
+            "            \"attributes\":{\n" +
+            "                \"address\",\n" +
+            "                \"sender\":\"\",\n" +
+            "                \"body\":\"\",\n" +
+            "                \"date\":\"\",\n" +
+            "                \"time\":\"\",\n" +
+            "            },\n" +
             "        },\n" +
             "        {\n" +
-            "            \"type\": \"Email\",\n" +
-            "            \"attributes:\" [\n" +
-            "                \"address\", \"sender\", subject\", \"body\", \"date\", \"time\",\n" +
-            "            ],\n" +
+            "            \"type\":\"Email\",\n" +
+            "            \"attributes:\"{\n" +
+            "                \"address\":\"\",\n" +
+            "                \"sender\":\"\",\n" +
+            "                \"subject\":\"\",\n" +
+            "                \"body\":\"\",\n" +
+            "                \"date\":\"\",\n" +
+            "                \"time\":\"\",\n" +
+            "            },\n" +
             "        },\n" +
             "        {\n" +
-            "            \"type\": \"User\",\n" +
-            "            \"attributes\": [\n" +
-            "                \"name\",\n" +
-            "            ],\n" +
+            "            \"type\":\"User\",\n" +
+            "            \"attributes\":{\n" +
+            "                \"name\":\"\",\n" +
+            "            },\n" +
             "        },\n" +
             "    ],\n" +
             "}";
