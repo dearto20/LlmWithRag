@@ -151,7 +151,7 @@ public class EmailAppManager implements IKnowledgeComponent {
                         }
                         mKgManager.addEntity(emailEntity);
                         mKgManager.removeEmbedding(mEmbeddingManager, emailEntity);
-                        mKgManager.addEmbedding(mEmbeddingManager, emailEntity);
+                        mKgManager.addEmbedding(mEmbeddingManager, emailEntity, date.getTime());
                         Log.i(TAG, "added " + emailEntity);
 
                         Entity userEntity = new Entity(UUID.randomUUID().toString(),
@@ -166,7 +166,7 @@ public class EmailAppManager implements IKnowledgeComponent {
                         }
                         mKgManager.addEntity(userEntity);
                         mKgManager.removeEmbedding(mEmbeddingManager, userEntity);
-                        mKgManager.addEmbedding(mEmbeddingManager, userEntity);
+                        mKgManager.addEmbedding(mEmbeddingManager, userEntity, date.getTime());
                         Log.i(TAG, "added " + userEntity);
                     } catch (Throwable e) {
                         Log.e(TAG, e.toString());

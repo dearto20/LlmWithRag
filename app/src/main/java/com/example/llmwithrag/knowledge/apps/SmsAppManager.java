@@ -1,6 +1,8 @@
 package com.example.llmwithrag.knowledge.apps;
 
 import static com.example.llmwithrag.Utils.getContactNameByPhoneNumber;
+import static com.example.llmwithrag.Utils.getSharedPreferenceLong;
+import static com.example.llmwithrag.Utils.setSharedPreferenceLong;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_MESSAGE;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_PHOTO;
 import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_USER;
@@ -37,6 +39,8 @@ import java.util.UUID;
 
 public class SmsAppManager extends ContentObserver implements IKnowledgeComponent {
     private static final String TAG = SmsAppManager.class.getSimpleName();
+    private static final String NAME_SHARED_PREFS = "msg_shared_prefs";
+    private static final String KEY_LAST_UPDATED = "key_last_updated";
     private final ContentResolver mContentResolver;
     private final Context mContext;
     private final KnowledgeGraphManager mKgManager;
@@ -50,7 +54,8 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         mContext = context;
         mKgManager = kgManager;
         mEmbeddingManager = embeddingManager;
-        mLastUpdated = 0;
+        mLastUpdated = getSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED,
+                System.currentTimeMillis());
     }
 
     @Override
@@ -62,22 +67,15 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         Log.i(TAG, "started");
         mContentResolver.registerContentObserver(Telephony.Sms.CONTENT_URI, true, this);
         mContentResolver.registerContentObserver(Telephony.Mms.CONTENT_URI, true, this);
+        mLastUpdated = getSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED,
+                System.currentTimeMillis());
 
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            Date date = sdf.parse("2024-05-31");
-            mLastUpdated = date != null ? date.getTime() : System.currentTimeMillis();
-        } catch (Throwable e) {
-            Log.e(TAG, e.toString());
-            e.printStackTrace();
-        }
     }
 
     @Override
     public void stopMonitoring() {
         Log.i(TAG, "stopped");
         mContentResolver.unregisterContentObserver(this);
-        mLastUpdated = 0;
     }
 
     @Override
@@ -100,9 +98,11 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                     String address = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.ADDRESS));
                     String body = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.BODY));
                     long date = cursor.getLong(cursor.getColumnIndexOrThrow(Telephony.Sms.DATE));
-                    Log.i(TAG, address + ", " + body + ", " + date);
+                    if (date < mLastUpdated) continue;
                     handleMessage(address, body, date);
+                    mLastUpdated = date;
                 }
+                setSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED, mLastUpdated);
             }
         } catch (Throwable e) {
             Log.e(TAG, e.toString());
@@ -121,8 +121,11 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                     String address = getMmsAddress(messageId);
                     String body = getMmsText(messageId);
                     long date = cursor.getLong(cursor.getColumnIndexOrThrow(Telephony.Mms.DATE)) * 1000L;
+                    if (date < mLastUpdated) continue;
                     handleMessage(messageId, address, body, date);
+                    mLastUpdated = date;
                 }
+                setSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED, mLastUpdated);
             }
         } catch (Throwable e) {
             Log.e(TAG, e.toString());
@@ -156,7 +159,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         }
         mKgManager.addEntity(messageEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, messageEntity);
-        mKgManager.addEmbedding(mEmbeddingManager, messageEntity);
+        mKgManager.addEmbedding(mEmbeddingManager, messageEntity, date);
         Log.i(TAG, "added " + messageEntity);
 
         Entity userEntity = new Entity(UUID.randomUUID().toString(),
@@ -171,11 +174,11 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         }
         mKgManager.addEntity(userEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, userEntity);
-        mKgManager.addEmbedding(mEmbeddingManager, userEntity);
+        mKgManager.addEmbedding(mEmbeddingManager, userEntity, date);
         Log.i(TAG, "added " + userEntity);
         if (date > mLastUpdated) mLastUpdated = date;
 
-        if (messageId != null) handleImage(messageId, userEntity.getId());
+        if (messageId != null) handleImage(messageId, userEntity.getId(), body, date);
     }
 
     private String getMmsAddress(String id) {
@@ -195,7 +198,8 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         return null;
     }
 
-    private void extractPhotoMetadata(Context context, Uri dataUri, String sender) {
+    private void extractPhotoMetadata(Context context, Uri dataUri, String sender, String body,
+                                      long timestamp) {
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(dataUri);
             if (inputStream != null) {
@@ -210,7 +214,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                 outputStream.close();
                 inputStream.close();
 
-                handlePhoto(tempFile.getAbsolutePath(), sender);
+                handlePhoto(tempFile.getAbsolutePath(), sender, body, timestamp);
 
                 // Delete the temporary file
                 tempFile.delete();
@@ -220,7 +224,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         }
     }
 
-    private void handleImage(String id, String sender) {
+    private void handleImage(String id, String sender, String body, long timestamp) {
         Uri partUri = Telephony.Mms.CONTENT_URI.buildUpon().appendPath(id).appendPath("part").build();
         Cursor cursor = mContentResolver.query(partUri, null, null, null, null);
         if (cursor == null) return;
@@ -235,7 +239,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                     if (index < 0) return;
                     String partId = cursor.getString(index);
                     Uri dataUri = Uri.parse("content://mms/part/" + partId);
-                    extractPhotoMetadata(mContext, dataUri, sender);
+                    extractPhotoMetadata(mContext, dataUri, sender, body, timestamp);
                 }
             }
         } finally {
@@ -285,15 +289,16 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         return new File(filePath).getName();
     }
 
-    private void handlePhoto(String path, String sender) {
+    private void handlePhoto(String path, String sender, String body, long timestamp) {
         String title = getFileName(path);
         Date dateTaken = new Date(getDateTakenFromExif(path));
         String location = getLocationFromExif(path);
-        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(dateTaken);
-        String time = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(dateTaken);
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(timestamp);
+        String time = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(timestamp);
 
         Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, title);
         photoEntity.addAttribute("sender", sender);
+        photoEntity.addAttribute("body", body);
         photoEntity.addAttribute("filePath", path);
         photoEntity.addAttribute("date", date);
         photoEntity.addAttribute("time", time);
@@ -307,7 +312,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         }
         mKgManager.addEntity(photoEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, photoEntity);
-        mKgManager.addEmbedding(mEmbeddingManager, photoEntity);
+        mKgManager.addEmbedding(mEmbeddingManager, photoEntity, timestamp);
         Log.i(TAG, "added " + photoEntity);
     }
 

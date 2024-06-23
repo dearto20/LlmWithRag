@@ -63,7 +63,7 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
         }
         mKgManager.addEntity(photoEntity);
         mKgManager.removeEmbedding(mEmbeddingManager, photoEntity);
-        mKgManager.addEmbedding(mEmbeddingManager, photoEntity);
+        mKgManager.addEmbedding(mEmbeddingManager, photoEntity, dateTaken.getTime());
         Log.i(TAG, "added " + photoEntity);
     }
 

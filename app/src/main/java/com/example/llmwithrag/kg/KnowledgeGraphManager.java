@@ -1,10 +1,14 @@
 package com.example.llmwithrag.kg;
 
+import static com.example.llmwithrag.BuildConfig.IS_SENTENCE_BASED;
+import static com.example.llmwithrag.Utils.generateDescriptiveQuery;
+
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.llmwithrag.MonitoringService;
+import com.example.llmwithrag.Utils;
 import com.example.llmwithrag.llm.Embedding;
 import com.example.llmwithrag.llm.EmbeddingManager;
 import com.google.gson.Gson;
@@ -35,6 +39,7 @@ public class KnowledgeGraphManager {
             "            \"type\":\"Photo\",\n" +
             "            \"attributes\":{\n" +
             "                \"sender\":\"\",\n" +
+            "                \"body:\"\",\n" +
             "                \"filePath\":\"\",\n" +
             "                \"date\":\"\",\n" +
             "                \"time\":\"\",\n" +
@@ -164,18 +169,48 @@ public class KnowledgeGraphManager {
         return entities;
     }
 
-    public void addEmbedding(EmbeddingManager embeddingManager, Entity entity) {
+    public void addEmbedding(EmbeddingManager embeddingManager, Entity entity, long date) {
         if (hasEmbedding(embeddingManager, entity)) return;
-        String flattened = new Gson().toJson(entity);
-        MonitoringService.EmbeddingResultListener listener =
-                new MonitoringService.EmbeddingResultListener() {
-                    @Override
-                    public void onSuccess() {
-                        Log.i(TAG, "embedding is added : " + flattened);
-                    }
-                };
-        embeddingManager.addEmbeddings(flattened,
-                entity.getType() + ", " + entity.getName(), entity.getContentId(), listener);
+
+        if (IS_SENTENCE_BASED) {
+            Log.i(TAG, "in => " + entity.getDescription());
+            String query = generateDescriptiveQuery(entity, date);
+            Utils.performQuery(query, new Utils.QueryResponseListener() {
+                @Override
+                public void onSuccess(String result) {
+                    MonitoringService.EmbeddingResultListener listener =
+                            new MonitoringService.EmbeddingResultListener() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.i(TAG, "embedding is added : " + result);
+                                }
+                            };
+                    embeddingManager.addEmbeddings(result,
+                            entity.getType() + ", " + entity.getName(), entity.getContentId(), listener);
+                }
+
+                @Override
+                public void onError() {
+                    Log.i(TAG, "error occurred");
+                }
+
+                @Override
+                public void onFailure() {
+                    Log.i(TAG, "failure occurred");
+                }
+            });
+        } else {
+            String flattened = new Gson().toJson(entity);
+            MonitoringService.EmbeddingResultListener listener =
+                    new MonitoringService.EmbeddingResultListener() {
+                        @Override
+                        public void onSuccess() {
+                            Log.i(TAG, "embedding is added : " + flattened);
+                        }
+                    };
+            embeddingManager.addEmbeddings(flattened,
+                    entity.getType() + ", " + entity.getName(), entity.getContentId(), listener);
+        }
     }
 
     public void removeEmbedding(EmbeddingManager embeddingManager, Entity entity) {

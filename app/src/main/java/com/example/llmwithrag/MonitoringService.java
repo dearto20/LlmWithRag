@@ -1,5 +1,6 @@
 package com.example.llmwithrag;
 
+import static com.example.llmwithrag.BuildConfig.IS_SENTENCE_BASED;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_DAY_LOCATION;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_ENTERPRISE_WIFI_TIME;
 import static com.example.llmwithrag.llm.EmbeddingManager.CATEGORY_NIGHT_LOCATION;
@@ -239,11 +240,20 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public List<String> findSimilarOnes(String query, String response) {
         Log.i(TAG, "find similar ones : " + query + ", " + response);
-        Map<String, Entity> entities =
-                mKgManager.parseEntitiesFromResponse(response);
-        Log.i(TAG, "entities : " + entities);
 
-        String flattened = new Gson().toJson(entities);
+        String flattened = null;
+        if (IS_SENTENCE_BASED) {
+            flattened = response;
+        } else {
+            flattened = response;
+            /*
+            Map<String, Entity> entities =
+                    mKgManager.parseEntitiesFromResponse(response);
+            Log.i(TAG, "entities : " + entities);
+            flattened = new Gson().toJson(entities);
+             */
+        }
+
         Log.i(TAG, "flattened : " + flattened);
         List<String> result = mEmbeddingManager.findSimilarOnes(flattened, 0);
         Log.i(TAG, "result : " + Arrays.toString(result.toArray()));

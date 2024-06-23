@@ -117,7 +117,7 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                     }
                     mKgManager.addEntity(eventEntity);
                     mKgManager.removeEmbedding(mEmbeddingManager, eventEntity);
-                    mKgManager.addEmbedding(mEmbeddingManager, eventEntity);
+                    mKgManager.addEmbedding(mEmbeddingManager, eventEntity, startDate);
                     Log.i(TAG, "added " + eventEntity);
                 }
             }

@@ -1,6 +1,8 @@
 package com.example.llmwithrag;
 
 import static android.Manifest.permission.RECORD_AUDIO;
+import static com.example.llmwithrag.BuildConfig.IS_SENTENCE_BASED;
+import static com.example.llmwithrag.BuildConfig.SHOW_LLM_PROCESS;
 import static com.example.llmwithrag.Utils.getCoordinatesFromReadableAddress;
 
 import android.annotation.SuppressLint;
@@ -256,9 +258,18 @@ public class PerformQueryFragment extends Fragment {
                     completion = adjustResponse(completion);
                     Log.i(TAG, "converted user query as to the schema: " + completion);
 
-                    List<String> result = mService.findSimilarOnes(modifiedQuery, completion);
-                    String query = generateQuery(originalQuery, null, result);
-                    Log.i(TAG, "augmented query: " + query);
+                    List<String> result = null;
+                    String query = null;
+                    if (IS_SENTENCE_BASED) {
+                        result = mService.findSimilarOnes(originalQuery, originalQuery);
+                        query = generateQuery(originalQuery, null, result);
+                        Log.i(TAG, "augmented query: " + query);
+
+                    } else {
+                        result = mService.findSimilarOnes(modifiedQuery, originalQuery/*completion*/);
+                        query = generateQuery(originalQuery, null, result);
+                        Log.i(TAG, "augmented query: " + query);
+                    }
 
                     messages.clear();
                     messages.add(new CompletionMessage("user", query));
@@ -337,6 +348,7 @@ public class PerformQueryFragment extends Fragment {
             sb.append("\nToday is ").append(sdf.format(new Date()));
             sb.append("\nAnd here's schema : ").append(schema);
             sb.append("\nGo through the user's query and just rebuild it in the form of given schema and don't try to answer or take any other action.");
+            sb.append("\nOn writing the \"time\" attribute in any entities, if the value is implicit like \"오늘\" or \"today\", adjust it with explicit value");
             sb.append("\nEnsure you provide only json-formatted string, and do not add any other comments");
             sb.append("\nIn the bracket, 'entities' MUST be at the top level of the hierarchy as the schema indicates.");
         } else {
@@ -348,14 +360,15 @@ public class PerformQueryFragment extends Fragment {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             sb.append("\nToday is ").append(sdf.format(new Date()));
             sb.append("\nIdentify and correlate all the entities based on the given context.");
-            sb.append("\nDO NOT correlate an entity to a location which doesn't have explicit relationship.");
             sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event.");
 
-            sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
-            sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
-            sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
+            if (SHOW_LLM_PROCESS) {
+                sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
+                sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
+                sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
+            }
 
-            sb.append("\nIf no location meets all conditions, respond with \"Unable to find the location.\"");
+            sb.append("\nIf no explicit location is provided which meets user's query, do not assume anything and just respond with \"Unable to find the location.\"");
             sb.append("\nIf a location is found, it MUST be on a new single line and formatted either exactly as 'latitude, longitude' or name of the location if the former is unavailable.");
             sb.append("\nDo not put any further lines after that.");
         }
