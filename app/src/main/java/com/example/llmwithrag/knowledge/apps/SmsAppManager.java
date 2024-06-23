@@ -120,9 +120,8 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                     String messageId = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Mms._ID));
                     String address = getMmsAddress(messageId);
                     String body = getMmsText(messageId);
-                    handleImage(messageId, getContactNameByPhoneNumber(mContext, address));
                     long date = cursor.getLong(cursor.getColumnIndexOrThrow(Telephony.Mms.DATE)) * 1000L;
-                    handleMessage(address, body, date);
+                    handleMessage(messageId, address, body, date);
                 }
             }
         } catch (Throwable e) {
@@ -131,6 +130,10 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
     }
 
     private void handleMessage(String address, String body, long date) {
+        handleMessage(null, address, body, date);
+    }
+
+    private void handleMessage(String messageId, String address, String body, long date) {
         String sender = getContactNameByPhoneNumber(mContext, address);
         String dateString = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 .format(date);
@@ -171,6 +174,8 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         mKgManager.addEmbedding(mEmbeddingManager, userEntity);
         Log.i(TAG, "added " + userEntity);
         if (date > mLastUpdated) mLastUpdated = date;
+
+        if (messageId != null) handleImage(messageId, userEntity.getId());
     }
 
     private String getMmsAddress(String id) {
@@ -289,7 +294,6 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
 
         Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, title);
         photoEntity.addAttribute("sender", sender);
-        photoEntity.addAttribute("attachedIn", "Message");
         photoEntity.addAttribute("filePath", path);
         photoEntity.addAttribute("date", date);
         photoEntity.addAttribute("time", time);

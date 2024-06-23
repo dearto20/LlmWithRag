@@ -4,7 +4,6 @@
             "type":"Photo",
             "attributes":{
                 "sender":"",
-                "attachedIn":"",
                 "filePath":"",
                 "date":"",
                 "time":"",

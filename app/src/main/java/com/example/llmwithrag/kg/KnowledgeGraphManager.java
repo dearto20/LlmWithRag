@@ -35,7 +35,6 @@ public class KnowledgeGraphManager {
             "            \"type\":\"Photo\",\n" +
             "            \"attributes\":{\n" +
             "                \"sender\":\"\",\n" +
-            "                \"attachedIn\":\"\",\n" +
             "                \"filePath\":\"\",\n" +
             "                \"date\":\"\",\n" +
             "                \"time\":\"\",\n" +
