@@ -337,7 +337,6 @@ public class PerformQueryFragment extends Fragment {
             sb.append("\nToday is ").append(sdf.format(new Date()));
             sb.append("\nAnd here's schema : ").append(schema);
             sb.append("\nGo through the user's query and just rebuild it in the form of given schema and don't try to answer or take any other action.");
-            sb.append("\nOn writing the \"time\" attribute in any entities, if the value is implicit like \"오늘\" or \"today\", adjust it with explicit value");
             sb.append("\nEnsure you provide only json-formatted string, and do not add any other comments");
             sb.append("\nIn the bracket, 'entities' MUST be at the top level of the hierarchy as the schema indicates.");
         } else {
