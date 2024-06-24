@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class KnowledgeGraphManager {
-    private static final String TAG = KnowledgeGraphManager.class.getSimpleName();
+public class KnowledgeManager {
+    private static final String TAG = KnowledgeManager.class.getSimpleName();
     public static final String ENTITY_TYPE_EVENT = "Event";
     public static final String ENTITY_TYPE_PHOTO = "Photo";
     public static final String ENTITY_TYPE_MESSAGE = "Message";
@@ -29,7 +29,7 @@ public class KnowledgeGraphManager {
     public static final String ENTITY_TYPE_USER = "User";
     private final Map<String, Entity> mEntities;
 
-    public KnowledgeGraphManager(Context context) {
+    public KnowledgeManager(Context context) {
         mEntities = new HashMap<>();
     }
 

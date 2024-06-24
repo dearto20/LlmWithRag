@@ -3,8 +3,8 @@ package com.example.llmwithrag.knowledge.apps;
 import static com.example.llmwithrag.BuildConfig.EMAIL_ADDRESS;
 import static com.example.llmwithrag.BuildConfig.EMAIL_PASSWORD;
 import static com.example.llmwithrag.Utils.getContactNameByEmail;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_EMAIL;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_USER;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_EMAIL;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_USER;
 
 import android.content.Context;
 import android.os.Handler;
@@ -12,7 +12,7 @@ import android.os.HandlerThread;
 import android.util.Log;
 
 import com.example.llmwithrag.kg.Entity;
-import com.example.llmwithrag.kg.KnowledgeGraphManager;
+import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 import com.sun.mail.imap.IMAPFolder;
@@ -40,7 +40,7 @@ public class EmailAppManager implements IKnowledgeComponent {
     private static final String EMAIL_HOST_SSL_ENABLE = "true";
     private static final String EMAIL_HOST_FOLDER = "INBOX";
     private final Context mContext;
-    private final KnowledgeGraphManager mKgManager;
+    private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
     private final Handler mHandler;
 
@@ -48,10 +48,10 @@ public class EmailAppManager implements IKnowledgeComponent {
     private IMAPFolder mInbox;
     private IMAPStore mStore;
 
-    public EmailAppManager(Context context, KnowledgeGraphManager kgManager,
+    public EmailAppManager(Context context, KnowledgeManager knowledgeManager,
                            EmbeddingManager embeddingManager) {
         mContext = context;
-        mKgManager = kgManager;
+        mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
         HandlerThread handlerThread = new HandlerThread(EmailAppManager.class.getSimpleName());
         handlerThread.start();
@@ -143,30 +143,30 @@ public class EmailAppManager implements IKnowledgeComponent {
                         emailEntity.addAttribute("date", dateString);
                         emailEntity.addAttribute("time", timeString);
 
-                        Entity oldEmailEntity = mKgManager.getEntity(emailEntity);
-                        if (mKgManager.equals(oldEmailEntity, emailEntity)) continue;
+                        Entity oldEmailEntity = mKnowledgeManager.getEntity(emailEntity);
+                        if (mKnowledgeManager.equals(oldEmailEntity, emailEntity)) continue;
                         if (oldEmailEntity != null) {
-                            mKgManager.removeEntity(oldEmailEntity);
-                            mKgManager.removeEmbedding(mEmbeddingManager, oldEmailEntity);
+                            mKnowledgeManager.removeEntity(oldEmailEntity);
+                            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldEmailEntity);
                         }
-                        mKgManager.addEntity(emailEntity);
-                        mKgManager.removeEmbedding(mEmbeddingManager, emailEntity);
-                        mKgManager.addEmbedding(mEmbeddingManager, emailEntity, date.getTime());
+                        mKnowledgeManager.addEntity(emailEntity);
+                        mKnowledgeManager.removeEmbedding(mEmbeddingManager, emailEntity);
+                        mKnowledgeManager.addEmbedding(mEmbeddingManager, emailEntity, date.getTime());
                         Log.i(TAG, "added " + emailEntity);
 
                         Entity userEntity = new Entity(UUID.randomUUID().toString(),
                                 ENTITY_TYPE_USER, address);
                         userEntity.addAttribute("name", sender);
 
-                        Entity oldUserEntity = mKgManager.getEntity(userEntity);
-                        if (mKgManager.equals(oldUserEntity, userEntity)) continue;
+                        Entity oldUserEntity = mKnowledgeManager.getEntity(userEntity);
+                        if (mKnowledgeManager.equals(oldUserEntity, userEntity)) continue;
                         if (oldUserEntity != null) {
-                            mKgManager.removeEntity(oldUserEntity);
-                            mKgManager.removeEmbedding(mEmbeddingManager, oldUserEntity);
+                            mKnowledgeManager.removeEntity(oldUserEntity);
+                            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldUserEntity);
                         }
-                        mKgManager.addEntity(userEntity);
-                        mKgManager.removeEmbedding(mEmbeddingManager, userEntity);
-                        mKgManager.addEmbedding(mEmbeddingManager, userEntity, date.getTime());
+                        mKnowledgeManager.addEntity(userEntity);
+                        mKnowledgeManager.removeEmbedding(mEmbeddingManager, userEntity);
+                        mKnowledgeManager.addEmbedding(mEmbeddingManager, userEntity, date.getTime());
                         Log.i(TAG, "added " + userEntity);
                     } catch (Throwable e) {
                         Log.e(TAG, e.toString());

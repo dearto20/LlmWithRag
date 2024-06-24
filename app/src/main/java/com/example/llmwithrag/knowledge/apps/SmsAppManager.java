@@ -3,9 +3,9 @@ package com.example.llmwithrag.knowledge.apps;
 import static com.example.llmwithrag.Utils.getContactNameByPhoneNumber;
 import static com.example.llmwithrag.Utils.getSharedPreferenceLong;
 import static com.example.llmwithrag.Utils.setSharedPreferenceLong;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_MESSAGE;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_PHOTO;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_USER;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_MESSAGE;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PHOTO;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_USER;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -22,7 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.example.llmwithrag.kg.Entity;
-import com.example.llmwithrag.kg.KnowledgeGraphManager;
+import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
@@ -43,16 +43,16 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
     private static final String KEY_LAST_UPDATED = "key_last_updated";
     private final ContentResolver mContentResolver;
     private final Context mContext;
-    private final KnowledgeGraphManager mKgManager;
+    private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
     private long mLastUpdated;
 
-    public SmsAppManager(Context context, KnowledgeGraphManager kgManager,
+    public SmsAppManager(Context context, KnowledgeManager knowledgeManager,
                          EmbeddingManager embeddingManager) {
         super(new Handler(Looper.getMainLooper()));
         mContentResolver = context.getApplicationContext().getContentResolver();
         mContext = context;
-        mKgManager = kgManager;
+        mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
         mLastUpdated = getSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED,
                 System.currentTimeMillis());
@@ -151,30 +151,30 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         messageEntity.addAttribute("date", dateString);
         messageEntity.addAttribute("time", timeString);
 
-        Entity oldMessageEntity = mKgManager.getEntity(messageEntity);
-        if (mKgManager.equals(oldMessageEntity, messageEntity)) return;
+        Entity oldMessageEntity = mKnowledgeManager.getEntity(messageEntity);
+        if (mKnowledgeManager.equals(oldMessageEntity, messageEntity)) return;
         if (oldMessageEntity != null) {
-            mKgManager.removeEntity(oldMessageEntity);
-            mKgManager.removeEmbedding(mEmbeddingManager, oldMessageEntity);
+            mKnowledgeManager.removeEntity(oldMessageEntity);
+            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldMessageEntity);
         }
-        mKgManager.addEntity(messageEntity);
-        mKgManager.removeEmbedding(mEmbeddingManager, messageEntity);
-        mKgManager.addEmbedding(mEmbeddingManager, messageEntity, date);
+        mKnowledgeManager.addEntity(messageEntity);
+        mKnowledgeManager.removeEmbedding(mEmbeddingManager, messageEntity);
+        mKnowledgeManager.addEmbedding(mEmbeddingManager, messageEntity, date);
         Log.i(TAG, "added " + messageEntity);
 
         Entity userEntity = new Entity(UUID.randomUUID().toString(),
                 ENTITY_TYPE_USER, sender);
         userEntity.addAttribute("name", TextUtils.isEmpty(sender) ? address : sender);
 
-        Entity oldUserEntity = mKgManager.getEntity(userEntity);
-        if (mKgManager.equals(oldUserEntity, userEntity)) return;
+        Entity oldUserEntity = mKnowledgeManager.getEntity(userEntity);
+        if (mKnowledgeManager.equals(oldUserEntity, userEntity)) return;
         if (oldUserEntity != null) {
-            mKgManager.removeEntity(oldUserEntity);
-            mKgManager.removeEmbedding(mEmbeddingManager, oldUserEntity);
+            mKnowledgeManager.removeEntity(oldUserEntity);
+            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldUserEntity);
         }
-        mKgManager.addEntity(userEntity);
-        mKgManager.removeEmbedding(mEmbeddingManager, userEntity);
-        mKgManager.addEmbedding(mEmbeddingManager, userEntity, date);
+        mKnowledgeManager.addEntity(userEntity);
+        mKnowledgeManager.removeEmbedding(mEmbeddingManager, userEntity);
+        mKnowledgeManager.addEmbedding(mEmbeddingManager, userEntity, date);
         Log.i(TAG, "added " + userEntity);
         if (date > mLastUpdated) mLastUpdated = date;
 
@@ -304,15 +304,15 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
         photoEntity.addAttribute("time", time);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
 
-        Entity oldPhotoEntity = mKgManager.getEntity(photoEntity);
-        if (mKgManager.equals(oldPhotoEntity, photoEntity)) return;
+        Entity oldPhotoEntity = mKnowledgeManager.getEntity(photoEntity);
+        if (mKnowledgeManager.equals(oldPhotoEntity, photoEntity)) return;
         if (oldPhotoEntity != null) {
-            mKgManager.removeEntity(oldPhotoEntity);
-            mKgManager.removeEmbedding(mEmbeddingManager, oldPhotoEntity);
+            mKnowledgeManager.removeEntity(oldPhotoEntity);
+            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldPhotoEntity);
         }
-        mKgManager.addEntity(photoEntity);
-        mKgManager.removeEmbedding(mEmbeddingManager, photoEntity);
-        mKgManager.addEmbedding(mEmbeddingManager, photoEntity, timestamp);
+        mKnowledgeManager.addEntity(photoEntity);
+        mKnowledgeManager.removeEmbedding(mEmbeddingManager, photoEntity);
+        mKnowledgeManager.addEmbedding(mEmbeddingManager, photoEntity, timestamp);
         Log.i(TAG, "added " + photoEntity);
     }
 

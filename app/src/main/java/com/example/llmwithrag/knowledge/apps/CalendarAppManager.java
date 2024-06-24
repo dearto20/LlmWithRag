@@ -1,7 +1,7 @@
 package com.example.llmwithrag.knowledge.apps;
 
 import static com.example.llmwithrag.Utils.getCoordinatesFromReadableAddress;
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_EVENT;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_EVENT;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -16,7 +16,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.example.llmwithrag.kg.Entity;
-import com.example.llmwithrag.kg.KnowledgeGraphManager;
+import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
@@ -28,17 +28,17 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
     private static final String TAG = CalendarAppManager.class.getSimpleName();
     private final ContentResolver mContentResolver;
     private final Context mContext;
-    private final KnowledgeGraphManager mKgManager;
+    private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
     private long mStartDate;
     private long mEndDate;
 
-    public CalendarAppManager(Context context, KnowledgeGraphManager kgManager,
+    public CalendarAppManager(Context context, KnowledgeManager knowledgeManager,
                               EmbeddingManager embeddingManager) {
         super(new Handler(Looper.getMainLooper()));
         mContentResolver = context.getApplicationContext().getContentResolver();
         mContext = context;
-        mKgManager = kgManager;
+        mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
 
         try {
@@ -106,18 +106,18 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                     eventEntity.addAttribute("startDate", String.valueOf(startDate));
                     eventEntity.addAttribute("endDate", String.valueOf(endDate));
 
-                    Entity oldEventEntity = mKgManager.getEntity(eventEntity);
+                    Entity oldEventEntity = mKnowledgeManager.getEntity(eventEntity);
                     Log.i(TAG, "iterating entity : " + eventEntity);
-                    Log.i(TAG, "has entity ?" + mKgManager.equals(oldEventEntity, eventEntity));
+                    Log.i(TAG, "has entity ?" + mKnowledgeManager.equals(oldEventEntity, eventEntity));
 
-                    if (mKgManager.equals(oldEventEntity, eventEntity)) continue;
+                    if (mKnowledgeManager.equals(oldEventEntity, eventEntity)) continue;
                     if (oldEventEntity != null) {
-                        mKgManager.removeEntity(oldEventEntity);
-                        mKgManager.removeEmbedding(mEmbeddingManager, oldEventEntity);
+                        mKnowledgeManager.removeEntity(oldEventEntity);
+                        mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldEventEntity);
                     }
-                    mKgManager.addEntity(eventEntity);
-                    mKgManager.removeEmbedding(mEmbeddingManager, eventEntity);
-                    mKgManager.addEmbedding(mEmbeddingManager, eventEntity, startDate);
+                    mKnowledgeManager.addEntity(eventEntity);
+                    mKnowledgeManager.removeEmbedding(mEmbeddingManager, eventEntity);
+                    mKnowledgeManager.addEmbedding(mEmbeddingManager, eventEntity, startDate);
                     Log.i(TAG, "added " + eventEntity);
                 }
             }

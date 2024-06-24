@@ -136,7 +136,8 @@ public class Utils {
         StringBuilder sb = new StringBuilder();
         sb.append("\nCurrent time is ").append(getDate(currentTimestamp));
         sb.append("\nHere's the target entity : \"").append(entity.getDescription()).append("\"");
-        sb.append("\nFlatten the entity with attributes to the natural one single sentence in Korean.");
+        sb.append("\nFlatten the entity with all including attributes to the natural one single sentence in Korean.");
+        sb.append("\nMake sure NOT to omit any single attribute in generating the sentence.");
         sb.append("\nIf the sentence includes implicit day like \"오늘\", \"내일\", \"today\" or " +
                 "\"tomorrow\" or any other similar ones as well, adjust it with explicit value to look like a natural sentence.");
         sb.append("\nIf the sentence includes implicit durations like \"지난 주말\" or any other similar ones as well," +

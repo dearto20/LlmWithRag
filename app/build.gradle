@@ -31,6 +31,8 @@ android {
             buildConfigField "String", "EMAIL_ADDRESS", "\"${project.emailAddress}\""
             buildConfigField "String", "EMAIL_PASSWORD", "\"${project.emailPassword}\""
             buildConfigField "boolean", "IS_SCHEMA_ENABLED", "true"
+            buildConfigField "boolean", "IS_SENTENCE_BASED", "true"
+            buildConfigField "boolean", "SHOW_LLM_PROCESS", "false"
         }
 
         release {
@@ -39,6 +41,8 @@ android {
             buildConfigField "String", "EMAIL_ADDRESS", "\"${project.emailAddress}\""
             buildConfigField "String", "EMAIL_PASSWORD", "\"${project.emailPassword}\""
             buildConfigField "boolean", "IS_SCHEMA_ENABLED", "true"
+            buildConfigField "boolean", "IS_SENTENCE_BASED", "true"
+            buildConfigField "boolean", "SHOW_LLM_PROCESS", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

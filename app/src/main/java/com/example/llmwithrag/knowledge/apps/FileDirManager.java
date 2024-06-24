@@ -1,6 +1,6 @@
 package com.example.llmwithrag.knowledge.apps;
 
-import static com.example.llmwithrag.kg.KnowledgeGraphManager.ENTITY_TYPE_PHOTO;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PHOTO;
 
 import android.content.Context;
 import android.os.Environment;
@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.example.llmwithrag.kg.Entity;
-import com.example.llmwithrag.kg.KnowledgeGraphManager;
+import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
@@ -24,15 +24,15 @@ import java.util.UUID;
 public class FileDirManager extends FileObserver implements IKnowledgeComponent {
     private static final String TAG = FileDirManager.class.getSimpleName();
     private final Context mContext;
-    private final KnowledgeGraphManager mKgManager;
+    private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
 
-    public FileDirManager(Context context, KnowledgeGraphManager kgManager,
+    public FileDirManager(Context context, KnowledgeManager knowledgeManager,
                           EmbeddingManager embeddingManager) {
         super(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/",
                 FileObserver.ALL_EVENTS);
         mContext = context;
-        mKgManager = kgManager;
+        mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
     }
 
@@ -55,15 +55,15 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
         photoEntity.addAttribute("time", time);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
 
-        Entity oldPhotoEntity = mKgManager.getEntity(photoEntity);
-        if (mKgManager.equals(oldPhotoEntity, photoEntity)) return;
+        Entity oldPhotoEntity = mKnowledgeManager.getEntity(photoEntity);
+        if (mKnowledgeManager.equals(oldPhotoEntity, photoEntity)) return;
         if (oldPhotoEntity != null) {
-            mKgManager.removeEntity(oldPhotoEntity);
-            mKgManager.removeEmbedding(mEmbeddingManager, oldPhotoEntity);
+            mKnowledgeManager.removeEntity(oldPhotoEntity);
+            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldPhotoEntity);
         }
-        mKgManager.addEntity(photoEntity);
-        mKgManager.removeEmbedding(mEmbeddingManager, photoEntity);
-        mKgManager.addEmbedding(mEmbeddingManager, photoEntity, dateTaken.getTime());
+        mKnowledgeManager.addEntity(photoEntity);
+        mKnowledgeManager.removeEmbedding(mEmbeddingManager, photoEntity);
+        mKnowledgeManager.addEmbedding(mEmbeddingManager, photoEntity, dateTaken.getTime());
         Log.i(TAG, "added " + photoEntity);
     }
 

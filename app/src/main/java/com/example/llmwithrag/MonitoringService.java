@@ -36,8 +36,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
 import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
-import com.example.llmwithrag.kg.Entity;
-import com.example.llmwithrag.kg.KnowledgeGraphManager;
+import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.apps.CalendarAppManager;
 import com.example.llmwithrag.knowledge.apps.EmailAppManager;
 import com.example.llmwithrag.knowledge.apps.SmsAppManager;
@@ -48,12 +47,10 @@ import com.example.llmwithrag.knowledge.location.PersistentLocationRepository;
 import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
 import com.example.llmwithrag.knowledge.status.StationaryTimeRepository;
 import com.example.llmwithrag.llm.EmbeddingManager;
-import com.google.gson.Gson;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 public class MonitoringService extends Service implements IMonitoringService {
     private static final String TAG = MonitoringService.class.getSimpleName();
@@ -80,7 +77,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private final MutableLiveData<String> mTheMostFrequentStationaryTime = new MutableLiveData<>();
     private final MutableLiveData<String> mTheMostFrequentEnterpriseWifiConnectionTime = new MutableLiveData<>();
     private final MutableLiveData<String> mTheMostFrequentPersonalWifiConnectionTime = new MutableLiveData<>();
-    private KnowledgeGraphManager mKgManager;
+    private KnowledgeManager mKnowledgeManager;
     private EmbeddingManager mKgEmbeddingManager;
     private CalendarAppManager mCalendarAppManager;
     private EmailAppManager mEmailAppManager;
@@ -125,11 +122,11 @@ public class MonitoringService extends Service implements IMonitoringService {
         };
 
         if (BuildConfig.IS_SCHEMA_ENABLED) {
-            mKgManager = new KnowledgeGraphManager(getApplicationContext());
+            mKnowledgeManager = new KnowledgeManager(getApplicationContext());
             mKgEmbeddingManager = new EmbeddingManager(getApplicationContext());
-            mCalendarAppManager = new CalendarAppManager(context, mKgManager, mKgEmbeddingManager);
-            mEmailAppManager = new EmailAppManager(context, mKgManager, mKgEmbeddingManager);
-            mSmsAppManager = new SmsAppManager(context, mKgManager, mKgEmbeddingManager);
+            mCalendarAppManager = new CalendarAppManager(context, mKnowledgeManager, mKgEmbeddingManager);
+            mEmailAppManager = new EmailAppManager(context, mKnowledgeManager, mKgEmbeddingManager);
+            mSmsAppManager = new SmsAppManager(context, mKnowledgeManager, mKgEmbeddingManager);
         }
         mPersistentLocationManager = new PersistentLocationManager(context,
                 new PersistentLocationRepository(context), new LocationTracker(context, looper));
@@ -219,7 +216,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     @Override
     public void deleteAll() {
         if (BuildConfig.IS_SCHEMA_ENABLED) {
-            mKgManager.deleteAll();
+            mKnowledgeManager.deleteAll();
             mKgEmbeddingManager.deleteAll();
             mCalendarAppManager.deleteAll();
             mEmailAppManager.deleteAll();
@@ -248,7 +245,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             flattened = response;
             /*
             Map<String, Entity> entities =
-                    mKgManager.parseEntitiesFromResponse(response);
+                    mKnowledgeManager.parseEntitiesFromResponse(response);
             Log.i(TAG, "entities : " + entities);
             flattened = new Gson().toJson(entities);
              */
@@ -262,7 +259,7 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public String getSchema() {
-        return KnowledgeGraphManager.SCHEMA;
+        return KnowledgeManager.SCHEMA;
     }
 
     @Override
