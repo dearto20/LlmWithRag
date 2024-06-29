@@ -89,7 +89,9 @@ public class EmailAppManager implements IKnowledgeComponent {
         Log.i(TAG, "stopped");
         mRunning = false;
         mHandler.removeCallbacksAndMessages(null);
+        Thread thread = mHandler.getLooper().getThread();
         try {
+            thread.stop();
             if (mInbox != null && mInbox.isOpen()) {
                 mInbox.close(true);
             }
