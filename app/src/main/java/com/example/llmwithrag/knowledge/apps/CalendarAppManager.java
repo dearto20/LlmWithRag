@@ -2,6 +2,7 @@ package com.example.llmwithrag.knowledge.apps;
 
 import static com.example.llmwithrag.Utils.getCoordinatesFromReadableAddress;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_EVENT;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -69,6 +70,7 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
 
     @Override
     public void update(int type, MonitoringService.EmbeddingResultListener listener) {
+        listener.onSuccess();
     }
 
     @Override
@@ -102,7 +104,7 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                             .format(startDate);
 
                     Entity eventEntity = new Entity(UUID.randomUUID().toString(),
-                            ENTITY_TYPE_EVENT, title);
+                            ENTITY_TYPE_EVENT, ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP);
                     eventEntity.addAttribute("eventId", id);
                     eventEntity.addAttribute("title", title);
                     eventEntity.addAttribute("date", date);

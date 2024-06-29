@@ -6,6 +6,7 @@ import static com.example.llmwithrag.Utils.setSharedPreferenceLong;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_MESSAGE;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PHOTO;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_USER;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -38,8 +39,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
 
-public class SmsAppManager extends ContentObserver implements IKnowledgeComponent {
-    private static final String TAG = SmsAppManager.class.getSimpleName();
+public class MessagesAppManager extends ContentObserver implements IKnowledgeComponent {
+    private static final String TAG = MessagesAppManager.class.getSimpleName();
     private static final String NAME_SHARED_PREFS = "msg_shared_prefs";
     private static final String KEY_LAST_UPDATED = "key_last_updated";
     private final ContentResolver mContentResolver;
@@ -48,8 +49,8 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
     private final EmbeddingManager mEmbeddingManager;
     private long mLastUpdated;
 
-    public SmsAppManager(Context context, KnowledgeManager knowledgeManager,
-                         EmbeddingManager embeddingManager) {
+    public MessagesAppManager(Context context, KnowledgeManager knowledgeManager,
+                              EmbeddingManager embeddingManager) {
         super(new Handler(Looper.getMainLooper()));
         mContentResolver = context.getApplicationContext().getContentResolver();
         mContext = context;
@@ -81,6 +82,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
 
     @Override
     public void update(int type, MonitoringService.EmbeddingResultListener listener) {
+        listener.onSuccess();
     }
 
     @Override
@@ -149,7 +151,7 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
                 .format(date);
 
         Entity messageEntity = new Entity(UUID.randomUUID().toString(),
-                ENTITY_TYPE_MESSAGE, body);
+                ENTITY_TYPE_MESSAGE, ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP);
         messageEntity.addAttribute("address", address);
         messageEntity.addAttribute("sender", sender);
         messageEntity.addAttribute("body", body);

@@ -1,12 +1,15 @@
 package com.example.llmwithrag;
 
 import static com.example.llmwithrag.BuildConfig.IS_SENTENCE_BASED;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_LOCATION_DURING_THE_DAY;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_LOCATION_DURING_THE_NIGHT;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_LOCATION_DURING_THE_WEEKEND;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_PERIOD_ENTERPRISE_WIFI_CONNECTION;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_PERIOD_PERSONAL_WIFI_CONNECTION;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_PERIOD_STATIONARY;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION_DURING_THE_DAY;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION_DURING_THE_NIGHT;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION_DURING_THE_WEEKEND;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_ENTERPRISE_WIFI_CONNECTION;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_PERSONAL_WIFI_CONNECTION;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_STATIONARY;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -38,7 +41,7 @@ import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.apps.CalendarAppManager;
 import com.example.llmwithrag.knowledge.apps.EmailAppManager;
-import com.example.llmwithrag.knowledge.apps.SmsAppManager;
+import com.example.llmwithrag.knowledge.apps.MessagesAppManager;
 import com.example.llmwithrag.knowledge.connectivity.WifiConnectionTimeManager;
 import com.example.llmwithrag.knowledge.connectivity.WifiConnectionTimeRepository;
 import com.example.llmwithrag.knowledge.location.PersistentLocationManager;
@@ -62,6 +65,9 @@ public class MonitoringService extends Service implements IMonitoringService {
     private static final String KEY_STATIONARY_TIME = "stationary_time";
     private static final String KEY_ENTERPRISE_WIFI_TIME = "enterprise_wifi_time";
     private static final String KEY_PERSONAL_WIFI_TIME = "personal_wifi_time";
+    private static final String KEY_CALENDAR_APP_EVENT = "calendar_app_event";
+    private static final String KEY_EMAIL_APP_MESSAGE = "email_app_message";
+    private static final String KEY_MESSAGES_APP_MESSAGE = "messages_app_message";
     private static final long MIN_DELAY_PERIODIC_UPDATE = 5000L;
     private static final long MAX_DELAY_PERIODIC_UPDATE = 600000L;
     private static final boolean DEBUG = false;
@@ -77,11 +83,14 @@ public class MonitoringService extends Service implements IMonitoringService {
     private final MutableLiveData<String> mTheMostFrequentStationaryTime = new MutableLiveData<>();
     private final MutableLiveData<String> mTheMostFrequentEnterpriseWifiConnectionTime = new MutableLiveData<>();
     private final MutableLiveData<String> mTheMostFrequentPersonalWifiConnectionTime = new MutableLiveData<>();
+    private final MutableLiveData<String> mTheMostRecentCalendarAppEvent = new MutableLiveData<>();
+    private final MutableLiveData<String> mTheMostRecentEmailAppMessage = new MutableLiveData<>();
+    private final MutableLiveData<String> mTheMostRecentMessagesAppMessage = new MutableLiveData<>();
     private KnowledgeManager mKnowledgeManager;
     private EmbeddingManager mEmbeddingManager;
     private CalendarAppManager mCalendarAppManager;
     private EmailAppManager mEmailAppManager;
-    private SmsAppManager mSmsAppManager;
+    private MessagesAppManager mMessagesAppManager;
     private PersistentLocationManager mPersistentLocationManager;
     private WifiConnectionTimeManager mWifiConnectionTimeManager;
     private StationaryTimeManager mStationaryTimeManager;
@@ -127,7 +136,7 @@ public class MonitoringService extends Service implements IMonitoringService {
                 mKnowledgeManager, mEmbeddingManager);
         mEmailAppManager = new EmailAppManager(context,
                 mKnowledgeManager, mEmbeddingManager);
-        mSmsAppManager = new SmsAppManager(context,
+        mMessagesAppManager = new MessagesAppManager(context,
                 mKnowledgeManager, mEmbeddingManager);
         mPersistentLocationManager = new PersistentLocationManager(context,
                 mKnowledgeManager, mEmbeddingManager,
@@ -148,6 +157,9 @@ public class MonitoringService extends Service implements IMonitoringService {
         updateStationaryTime(isStationaryTimeEnabled());
         updateEnterpriseWifiTime(isEnterpriseWifiTimeEnabled());
         updatePersonalWifiTime(isPersonalWifiTimeEnabled());
+        updateCalendarAppEvent(isCalendarAppEventEnabled());
+        updateEmailAppMessage(isEmailAppMessageEnabled());
+        updateMessagesAppMessage(isMessagesAppMessageEnabled());
     }
 
     public static class EmbeddingResultListener {
@@ -203,7 +215,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         mEmbeddingManager.deleteAll();
         mCalendarAppManager.deleteAll();
         mEmailAppManager.deleteAll();
-        mSmsAppManager.deleteAll();
+        mMessagesAppManager.deleteAll();
         mPersistentLocationManager.deleteAll();
         mWifiConnectionTimeManager.deleteAll();
         mStationaryTimeManager.deleteAll();
@@ -274,6 +286,21 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
+    public LiveData<String> getTheMostRecentCalendarAppEvent() {
+        return mTheMostRecentCalendarAppEvent;
+    }
+
+    @Override
+    public LiveData<String> getTheMostRecentEmailAppMessage() {
+        return mTheMostRecentEmailAppMessage;
+    }
+
+    @Override
+    public LiveData<String> getTheMostRecentMessagesAppMessage() {
+        return mTheMostRecentMessagesAppMessage;
+    }
+
+    @Override
     public boolean isServiceEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
         return sharedPreferences != null && sharedPreferences.getBoolean(KEY_SERVICE_ENABLED, false);
@@ -313,6 +340,24 @@ public class MonitoringService extends Service implements IMonitoringService {
     public boolean isPersonalWifiTimeEnabled() {
         SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
         return sharedPreferences != null && sharedPreferences.getBoolean(KEY_PERSONAL_WIFI_TIME, true);
+    }
+
+    @Override
+    public boolean isCalendarAppEventEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_CALENDAR_APP_EVENT, true);
+    }
+
+    @Override
+    public boolean isEmailAppMessageEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_EMAIL_APP_MESSAGE, true);
+    }
+
+    @Override
+    public boolean isMessagesAppMessageEnabled() {
+        SharedPreferences sharedPreferences = getSharedPreferences(NAME_SHARED_PREFS);
+        return sharedPreferences != null && sharedPreferences.getBoolean(KEY_MESSAGES_APP_MESSAGE, true);
     }
 
     @Override
@@ -373,12 +418,27 @@ public class MonitoringService extends Service implements IMonitoringService {
         return false;
     }
 
+    @Override
+    public boolean setCalendarAppEventEnabled(boolean enabled) {
+        return false;
+    }
+
+    @Override
+    public boolean setEmailAppMessageEnabled(boolean enabled) {
+        return false;
+    }
+
+    @Override
+    public boolean setMessagesAppMessageEnabled(boolean enabled) {
+        return false;
+    }
+
     private void updateDayLocation(boolean isChecked) {
         if (isChecked) {
             EmbeddingResultListener listener = new EmbeddingResultListener() {
                 @Override
                 public void onSuccess() {
-                    String location = mEmbeddingManager.getEmbeddingByTag(TAG_LOCATION_DURING_THE_DAY);
+                    String location = mEmbeddingManager.getEmbeddingByName(ENTITY_NAME_LOCATION_DURING_THE_DAY);
                     if (TextUtils.isEmpty(location)) {
                         location = getApplicationContext().getString(R.string.day_location_unavailable);
                     }
@@ -399,7 +459,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             EmbeddingResultListener listener = new EmbeddingResultListener() {
                 @Override
                 public void onSuccess() {
-                    String location = mEmbeddingManager.getEmbeddingByTag(TAG_LOCATION_DURING_THE_NIGHT);
+                    String location = mEmbeddingManager.getEmbeddingByName(ENTITY_NAME_LOCATION_DURING_THE_NIGHT);
                     if (TextUtils.isEmpty(location)) {
                         location = getApplicationContext().getString(R.string.night_location_unavailable);
                     }
@@ -420,7 +480,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             EmbeddingResultListener listener = new EmbeddingResultListener() {
                 @Override
                 public void onSuccess() {
-                    String location = mEmbeddingManager.getEmbeddingByTag(TAG_LOCATION_DURING_THE_WEEKEND);
+                    String location = mEmbeddingManager.getEmbeddingByName(ENTITY_NAME_LOCATION_DURING_THE_WEEKEND);
                     if (TextUtils.isEmpty(location)) {
                         location = getApplicationContext().getString(R.string.weekend_location_unavailable);
                     }
@@ -441,7 +501,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             EmbeddingResultListener listener = new EmbeddingResultListener() {
                 @Override
                 public void onSuccess() {
-                    String time = mEmbeddingManager.getEmbeddingByTag(TAG_PERIOD_STATIONARY);
+                    String time = mEmbeddingManager.getEmbeddingByName(ENTITY_NAME_PERIOD_STATIONARY);
                     if (TextUtils.isEmpty(time)) {
                         time = getApplicationContext().getString(R.string.stationary_time_unavailable);
                     }
@@ -462,7 +522,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             EmbeddingResultListener listener = new EmbeddingResultListener() {
                 @Override
                 public void onSuccess() {
-                    String time = mEmbeddingManager.getEmbeddingByTag(TAG_PERIOD_ENTERPRISE_WIFI_CONNECTION);
+                    String time = mEmbeddingManager.getEmbeddingByName(ENTITY_NAME_PERIOD_ENTERPRISE_WIFI_CONNECTION);
                     if (TextUtils.isEmpty(time)) {
                         time = getApplicationContext().getString(R.string.enterprise_wifi_time_unavailable);
                     }
@@ -483,7 +543,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             EmbeddingResultListener listener = new EmbeddingResultListener() {
                 @Override
                 public void onSuccess() {
-                    String time = mEmbeddingManager.getEmbeddingByTag(TAG_PERIOD_PERSONAL_WIFI_CONNECTION);
+                    String time = mEmbeddingManager.getEmbeddingByName(ENTITY_NAME_PERIOD_PERSONAL_WIFI_CONNECTION);
                     if (TextUtils.isEmpty(time)) {
                         time = getApplicationContext().getString(R.string.personal_wifi_time_unavailable);
                     }
@@ -496,6 +556,69 @@ public class MonitoringService extends Service implements IMonitoringService {
             String time = getApplicationContext().getString(R.string.personal_wifi_time_unavailable);
             mTheMostFrequentPersonalWifiConnectionTime.postValue(time);
             if (DEBUG) Log.i(TAG, "personal wifi time is updated to " + time);
+        }
+    }
+
+    private void updateCalendarAppEvent(boolean isChecked) {
+        if (isChecked) {
+            EmbeddingResultListener listener = new EmbeddingResultListener() {
+                @Override
+                public void onSuccess() {
+                    String event = mEmbeddingManager.getEmbeddingByName(ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP);
+                    if (TextUtils.isEmpty(event)) {
+                        event = getApplicationContext().getString(R.string.calendar_app_event_unavailable);
+                    }
+                    mTheMostRecentCalendarAppEvent.postValue(event);
+                    if (DEBUG) Log.i(TAG, "calendar app event is updated to " + event);
+                }
+            };
+            mCalendarAppManager.update(0, listener);
+        } else {
+            String event = getApplicationContext().getString(R.string.calendar_app_event_unavailable);
+            mTheMostRecentCalendarAppEvent.postValue(event);
+            if (DEBUG) Log.i(TAG, "calendar app event is updated to " + event);
+        }
+    }
+
+    private void updateEmailAppMessage(boolean isChecked) {
+        if (isChecked) {
+            EmbeddingResultListener listener = new EmbeddingResultListener() {
+                @Override
+                public void onSuccess() {
+                    String message = mEmbeddingManager.getEmbeddingByName(ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP);
+                    if (TextUtils.isEmpty(message)) {
+                        message = getApplicationContext().getString(R.string.email_app_message_unavailable);
+                    }
+                    mTheMostRecentEmailAppMessage.postValue(message);
+                    if (DEBUG) Log.i(TAG, "email app message is updated to " + message);
+                }
+            };
+            mEmailAppManager.update(1, listener);
+        } else {
+            String message = getApplicationContext().getString(R.string.email_app_message_unavailable);
+            mTheMostRecentEmailAppMessage.postValue(message);
+            if (DEBUG) Log.i(TAG, "email app event is updated to " + message);
+        }
+    }
+
+    private void updateMessagesAppMessage(boolean isChecked) {
+        if (isChecked) {
+            EmbeddingResultListener listener = new EmbeddingResultListener() {
+                @Override
+                public void onSuccess() {
+                    String message = mEmbeddingManager.getEmbeddingByName(ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP);
+                    if (TextUtils.isEmpty(message)) {
+                        message = getApplicationContext().getString(R.string.messages_app_message_unavailable);
+                    }
+                    mTheMostRecentMessagesAppMessage.postValue(message);
+                    if (DEBUG) Log.i(TAG, "messages app message is updated to " + message);
+                }
+            };
+            mMessagesAppManager.update(1, listener);
+        } else {
+            String message = getApplicationContext().getString(R.string.messages_app_message_unavailable);
+            mTheMostRecentMessagesAppMessage.postValue(message);
+            if (DEBUG) Log.i(TAG, "messages app message is updated to " + message);
         }
     }
 
@@ -518,7 +641,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
         mCalendarAppManager.startMonitoring();
         mEmailAppManager.startMonitoring();
-        mSmsAppManager.startMonitoring();
+        mMessagesAppManager.startMonitoring();
         mPersistentLocationManager.startMonitoring();
         mWifiConnectionTimeManager.startMonitoring();
         mStationaryTimeManager.startMonitoring();
@@ -535,7 +658,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         mStationaryTimeManager.stopMonitoring();
         mWifiConnectionTimeManager.stopMonitoring();
         mPersistentLocationManager.stopMonitoring();
-        mSmsAppManager.stopMonitoring();
+        mMessagesAppManager.stopMonitoring();
         mEmailAppManager.stopMonitoring();
         mCalendarAppManager.stopMonitoring();
         mHandler.removeCallbacksAndMessages(null);

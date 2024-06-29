@@ -14,6 +14,12 @@
     <string name="enterprise_wifi_time_unavailable">Time for Using Enterprise Wi-Fi is Not Yet Available</string>
     <string name="personal_wifi_time">Time for Using Personal Wi-Fi</string>
     <string name="personal_wifi_time_unavailable">Time for Using Personal Wi-Fi is Not Yet Available</string>
+    <string name="calendar_app_event">Event in the Calendar App</string>
+    <string name="calendar_app_event_unavailable">Event in the Calendar App is Not Yet Available</string>
+    <string name="email_app_message">Message in the Email App</string>
+    <string name="email_app_message_unavailable">Message in the Email App is Not Yet Available</string>
+    <string name="messages_app_message">Message in the Messages App</string>
+    <string name="messages_app_message_unavailable">Message in the Messages App is Not Yet Available</string>
     <string name="add_to_database">Add</string>
     <string name="remove_from_database">Remove</string>
     <string name="reset_database">Reset Database</string>

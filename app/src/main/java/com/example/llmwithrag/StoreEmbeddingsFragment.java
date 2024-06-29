@@ -73,6 +73,15 @@ public class StoreEmbeddingsFragment extends Fragment {
                 Switch personalWifiTimeSwitch = activity.findViewById(R.id.personalWifiTimeSwitch);
                 personalWifiTimeSwitch.setChecked(isPersonalWifiTimeEnabled());
 
+                Switch calendarAppEventSwitch = activity.findViewById(R.id.calendarAppEventSwitch);
+                calendarAppEventSwitch.setChecked(isCalendarAppEventEnabled());
+
+                Switch emailAppMessageSwitch = activity.findViewById(R.id.emailAppMessageSwitch);
+                emailAppMessageSwitch.setChecked(isEmailAppMessageEnabled());
+
+                Switch messagesAppMessageSwitch = activity.findViewById(R.id.messagesAppMessageSwitch);
+                messagesAppMessageSwitch.setChecked(isMessagesAppMessageEnabled());
+
                 updateEmbeddingsList();
             } else {
                 enableServiceSwitch.setChecked(false);
@@ -140,6 +149,12 @@ public class StoreEmbeddingsFragment extends Fragment {
                         mService.getTheMostFrequentEnterpriseWifiConnectionTime().getValue());
                 mViewModel.setLastTheMostFrequentPersonalWifiConnectionTime(
                         mService.getTheMostFrequentPersonalWifiConnectionTime().getValue());
+                mViewModel.setLastTheMostRecentCalendarAppEvent(
+                        mService.getTheMostRecentCalendarAppEvent().getValue());
+                mViewModel.setLastTheMostRecentEmailAppMessage(
+                        mService.getTheMostRecentEmailAppMessage().getValue());
+                mViewModel.setLastTheMostRecentMessagesAppMessage(
+                        mService.getTheMostRecentMessagesAppMessage().getValue());
 
                 mService.getTheMostFrequentlyVisitedPlaceDuringTheDay().observe(
                         getViewLifecycleOwner(),
@@ -183,6 +198,27 @@ public class StoreEmbeddingsFragment extends Fragment {
                             updateEmbeddingsList();
                         });
 
+                mService.getTheMostRecentCalendarAppEvent().observe(
+                        getViewLifecycleOwner(),
+                        result -> {
+                            mViewModel.setLastTheMostRecentCalendarAppEvent(result);
+                            updateEmbeddingsList();
+                        });
+
+                mService.getTheMostRecentEmailAppMessage().observe(
+                        getViewLifecycleOwner(),
+                        result -> {
+                            mViewModel.setLastTheMostRecentEmailAppMessage(result);
+                            updateEmbeddingsList();
+                        });
+
+                mService.getTheMostRecentMessagesAppMessage().observe(
+                        getViewLifecycleOwner(),
+                        result -> {
+                            mViewModel.setLastTheMostRecentMessagesAppMessage(result);
+                            updateEmbeddingsList();
+                        });
+
                 updateViews();
             } else {
                 Log.i(TAG, "disconnected from the service");
@@ -197,6 +233,9 @@ public class StoreEmbeddingsFragment extends Fragment {
         Switch stationaryTimeSwitch = view.findViewById(R.id.stationaryTimeSwitch);
         Switch enterpriseWifiTimeSwitch = view.findViewById(R.id.enterpriseWifiTimeSwitch);
         Switch personalWifiTimeSwitch = view.findViewById(R.id.personalWifiTimeSwitch);
+        Switch calendarAppEventSwitch = view.findViewById(R.id.calendarAppEventSwitch);
+        Switch emailAppMessageSwitch = view.findViewById(R.id.emailAppMessageSwitch);
+        Switch messagesAppMessageSwitch = view.findViewById(R.id.messagesAppMessageSwitch);
         Button resetButton = view.findViewById(R.id.resetDatabaseButton);
 
         enableServiceSwitch.setOnCheckedChangeListener((button, isChecked) -> {
@@ -255,6 +294,30 @@ public class StoreEmbeddingsFragment extends Fragment {
             }
         });
 
+        calendarAppEventSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+           if (setCalendarAppEventEnabled(isChecked)) {
+               updateViews();
+           } else {
+               Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+           }
+        });
+
+        calendarAppEventSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            if (setEmailAppMessageEnabled(isChecked)) {
+                updateViews();
+            } else {
+                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        calendarAppEventSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+            if (setMessagesAppMessageEnabled(isChecked)) {
+                updateViews();
+            } else {
+                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         resetButton.setOnClickListener(view1 -> {
             if (mService != null) mService.deleteAll();
             updateViews();
@@ -275,6 +338,9 @@ public class StoreEmbeddingsFragment extends Fragment {
             TextView stationaryTimeView = activity.findViewById(R.id.stationaryTimeView);
             TextView enterpriseWifiTimeView = activity.findViewById(R.id.enterpriseWifiTimeView);
             TextView personalWifiTimeView = activity.findViewById(R.id.personalWifiTimeView);
+            TextView calendarAppEventView = activity.findViewById(R.id.calendarAppEventView);
+            TextView emailAppMessageView = activity.findViewById(R.id.emailAppMessageView);
+            TextView messagesAppMessageView = activity.findViewById(R.id.messagesAppMessageView);
 
             dayLocationView.setText(
                     mViewModel.getLastTheMostFrequentlyVisitedPlaceDuringTheDay());
@@ -288,6 +354,12 @@ public class StoreEmbeddingsFragment extends Fragment {
                     mViewModel.getLastTheMostFrequentEnterpriseWifiConnectionTime());
             personalWifiTimeView.setText(
                     mViewModel.getLastTheMostFrequentPersonalWifiConnectionTime());
+            calendarAppEventView.setText(
+                    mViewModel.getLastTheMostRecentCalendarAppEvent());
+            emailAppMessageView.setText(
+                    mViewModel.getLastTheMostRecentEmailAppMessage());
+            messagesAppMessageView.setText(
+                    mViewModel.getLastTheMostRecentMessagesAppMessage());
         } catch (Throwable e) {
             Log.e(TAG, e.toString());
             e.printStackTrace();
@@ -322,6 +394,18 @@ public class StoreEmbeddingsFragment extends Fragment {
         return mService != null && mService.isPersonalWifiTimeEnabled();
     }
 
+    private boolean isCalendarAppEventEnabled() {
+        return mService != null && mService.isCalendarAppEventEnabled();
+    }
+
+    private boolean isEmailAppMessageEnabled() {
+        return mService != null && mService.isEmailAppMessageEnabled();
+    }
+
+    private boolean isMessagesAppMessageEnabled() {
+        return mService != null && mService.isMessagesAppMessageEnabled();
+    }
+
     private boolean setServiceEnabled(boolean enabled) {
         return mService != null && mService.setServiceEnabled(enabled);
     }
@@ -348,5 +432,17 @@ public class StoreEmbeddingsFragment extends Fragment {
 
     private boolean setPersonalWifiTimeEnabled(boolean enabled) {
         return mService != null && mService.setPersonalWifiTimeEnabled(enabled);
+    }
+
+    private boolean setCalendarAppEventEnabled(boolean enabled) {
+        return mService != null && mService.setCalendarAppEventEnabled(enabled);
+    }
+
+    private boolean setEmailAppMessageEnabled(boolean enabled) {
+        return mService != null && mService.setEmailAppMessageEnabled(enabled);
+    }
+
+    private boolean setMessagesAppMessageEnabled(boolean enabled) {
+        return mService != null && mService.setMessagesAppMessageEnabled(enabled);
     }
 }

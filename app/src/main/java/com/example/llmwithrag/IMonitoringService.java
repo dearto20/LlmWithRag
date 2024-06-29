@@ -25,6 +25,12 @@ public interface IMonitoringService {
 
     LiveData<String> getTheMostFrequentPersonalWifiConnectionTime();
 
+    LiveData<String> getTheMostRecentCalendarAppEvent();
+
+    LiveData<String> getTheMostRecentEmailAppMessage();
+
+    LiveData<String> getTheMostRecentMessagesAppMessage();
+
     boolean isServiceEnabled();
 
     boolean isDayLocationEnabled();
@@ -39,6 +45,12 @@ public interface IMonitoringService {
 
     boolean isPersonalWifiTimeEnabled();
 
+    boolean isCalendarAppEventEnabled();
+
+    boolean isEmailAppMessageEnabled();
+
+    boolean isMessagesAppMessageEnabled();
+
     boolean setServiceEnabled(boolean enabled);
 
     boolean setDayLocationEnabled(boolean enabled);
@@ -52,4 +64,10 @@ public interface IMonitoringService {
     boolean setEnterpriseWifiTimeEnabled(boolean enabled);
 
     boolean setPersonalWifiTimeEnabled(boolean enabled);
+
+    boolean setCalendarAppEventEnabled(boolean enabled);
+
+    boolean setEmailAppMessageEnabled(boolean enabled);
+
+    boolean setMessagesAppMessageEnabled(boolean enabled);
 }

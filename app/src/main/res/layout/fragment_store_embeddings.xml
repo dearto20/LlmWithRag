@@ -82,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginVertical="4dp"
-                android:drawableStart="@drawable/switch_circle_yellow"
+                android:drawableStart="@drawable/switch_circle_orange"
                 android:drawablePadding="8dp"
                 android:gravity="center_vertical"
                 android:switchMinWidth="36dp"
@@ -99,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginVertical="4dp"
-                android:drawableStart="@drawable/switch_circle_green"
+                android:drawableStart="@drawable/switch_circle_yellow"
                 android:drawablePadding="8dp"
                 android:gravity="center_vertical"
                 android:switchMinWidth="36dp"
@@ -116,7 +116,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginVertical="4dp"
-                android:drawableStart="@drawable/switch_circle_blue"
+                android:drawableStart="@drawable/switch_circle_green"
                 android:drawablePadding="8dp"
                 android:gravity="center_vertical"
                 android:switchMinWidth="36dp"
@@ -133,7 +133,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginVertical="4dp"
-                android:drawableStart="@drawable/switch_circle_dark_blue"
+                android:drawableStart="@drawable/switch_circle_cyan"
                 android:drawablePadding="8dp"
                 android:gravity="center_vertical"
                 android:switchMinWidth="36dp"
@@ -150,11 +150,62 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginVertical="4dp"
-                android:drawableStart="@drawable/switch_circle_purple"
+                android:drawableStart="@drawable/switch_circle_blue"
                 android:drawablePadding="8dp"
                 android:gravity="center_vertical"
                 android:switchMinWidth="36dp"
                 android:text="@string/personal_wifi_time"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track"
+                tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
+
+            <Switch
+                android:id="@+id/calendarAppEventSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="4dp"
+                android:drawableStart="@drawable/switch_circle_dark_blue"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:switchMinWidth="36dp"
+                android:text="@string/calendar_app_event"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track"
+                tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
+
+            <Switch
+                android:id="@+id/emailAppMessageSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="4dp"
+                android:drawableStart="@drawable/switch_circle_purple"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:switchMinWidth="36dp"
+                android:text="@string/email_app_message"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track"
+                tools:ignore="RtlSymmetry,UseSwitchCompatOrMaterialXml" />
+
+            <Switch
+                android:id="@+id/messagesAppMessageSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="4dp"
+                android:drawableStart="@drawable/switch_circle_magenta"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:switchMinWidth="36dp"
+                android:text="@string/messages_app_message"
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 android:thumb="@drawable/switch_thumb"
@@ -205,7 +256,7 @@
                 android:text="@string/night_location_unavailable"
                 android:textColor="@color/black"
                 android:textSize="14sp"
-                app:drawableStartCompat="@drawable/switch_circle_yellow"
+                app:drawableStartCompat="@drawable/switch_circle_orange"
                 tools:ignore="RtlSymmetry" />
 
             <TextView
@@ -219,7 +270,7 @@
                 android:text="@string/weekend_location_unavailable"
                 android:textColor="@color/black"
                 android:textSize="14sp"
-                app:drawableStartCompat="@drawable/switch_circle_green"
+                app:drawableStartCompat="@drawable/switch_circle_yellow"
                 tools:ignore="RtlSymmetry" />
 
             <TextView
@@ -233,7 +284,7 @@
                 android:text="@string/stationary_time_unavailable"
                 android:textColor="@color/black"
                 android:textSize="14sp"
-                app:drawableStartCompat="@drawable/switch_circle_blue"
+                app:drawableStartCompat="@drawable/switch_circle_green"
                 tools:ignore="RtlSymmetry" />
 
             <TextView
@@ -247,7 +298,7 @@
                 android:text="@string/enterprise_wifi_time_unavailable"
                 android:textColor="@color/black"
                 android:textSize="14sp"
-                app:drawableStartCompat="@drawable/switch_circle_dark_blue"
+                app:drawableStartCompat="@drawable/switch_circle_cyan"
                 tools:ignore="RtlSymmetry" />
 
             <TextView
@@ -261,7 +312,49 @@
                 android:text="@string/personal_wifi_time_unavailable"
                 android:textColor="@color/black"
                 android:textSize="14sp"
+                app:drawableStartCompat="@drawable/switch_circle_blue"
+                tools:ignore="RtlSymmetry" />
+
+            <TextView
+                android:id="@+id/calendarAppEventView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="8dp"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/calendar_app_event_unavailable"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                app:drawableStartCompat="@drawable/switch_circle_dark_blue"
+                tools:ignore="RtlSymmetry" />
+
+            <TextView
+                android:id="@+id/emailAppMessageView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="8dp"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/email_app_message_unavailable"
+                android:textColor="@color/black"
+                android:textSize="14sp"
                 app:drawableStartCompat="@drawable/switch_circle_purple"
+                tools:ignore="RtlSymmetry" />
+
+            <TextView
+                android:id="@+id/messagesAppMessageView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginVertical="8dp"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:text="@string/messages_app_message_unavailable"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                app:drawableStartCompat="@drawable/switch_circle_magenta"
                 tools:ignore="RtlSymmetry" />
         </LinearLayout>
 

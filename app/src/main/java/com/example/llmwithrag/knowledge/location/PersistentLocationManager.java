@@ -1,10 +1,10 @@
 package com.example.llmwithrag.knowledge.location;
 
 import static com.example.llmwithrag.Utils.getReadableAddressFromCoordinates;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION_DURING_THE_DAY;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION_DURING_THE_NIGHT;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION_DURING_THE_WEEKEND;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_LOCATION_DURING_THE_DAY;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_LOCATION_DURING_THE_NIGHT;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_LOCATION_DURING_THE_WEEKEND;
 
 import android.content.Context;
 import android.util.Log;
@@ -192,11 +192,11 @@ public class PersistentLocationManager implements IKnowledgeComponent {
     private String getName(int type) {
         switch (type) {
             case 0:
-                return TAG_LOCATION_DURING_THE_DAY;
+                return ENTITY_NAME_LOCATION_DURING_THE_DAY;
             case 1:
-                return TAG_LOCATION_DURING_THE_NIGHT;
+                return ENTITY_NAME_LOCATION_DURING_THE_NIGHT;
             case 2:
-                return TAG_LOCATION_DURING_THE_WEEKEND;
+                return ENTITY_NAME_LOCATION_DURING_THE_WEEKEND;
             default:
                 return "";
         }

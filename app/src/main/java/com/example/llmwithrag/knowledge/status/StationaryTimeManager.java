@@ -1,7 +1,7 @@
 package com.example.llmwithrag.knowledge.status;
 
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PERIOD;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_PERIOD_STATIONARY;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_STATIONARY;
 
 import android.content.Context;
 import android.util.Log;
@@ -169,7 +169,7 @@ public class StationaryTimeManager implements IKnowledgeComponent {
     private String getName(int type) {
         switch (type) {
             case 0:
-                return TAG_PERIOD_STATIONARY;
+                return ENTITY_NAME_PERIOD_STATIONARY;
             default:
                 return "";
         }

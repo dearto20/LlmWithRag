@@ -13,6 +13,9 @@ public class ServiceViewModel extends ViewModel {
     private String mLastTheMostFrequentStationaryTime;
     private String mLastTheMostFrequentEnterpriseWifiConnectionTime;
     private String mLastTheMostFrequentPersonalWifiConnectionTime;
+    private String mLastTheMostRecentCalendarAppEvent;
+    private String mLastTheMostRecentEmailAppMessage;
+    private String mLastTheMostRecentMessagesAppMessage;
 
     public ServiceViewModel() {
         mLastTheMostFrequentlyVisitedPlaceDuringTheDay = null;
@@ -21,6 +24,9 @@ public class ServiceViewModel extends ViewModel {
         mLastTheMostFrequentStationaryTime = null;
         mLastTheMostFrequentEnterpriseWifiConnectionTime = null;
         mLastTheMostFrequentPersonalWifiConnectionTime = null;
+        mLastTheMostRecentCalendarAppEvent = null;
+        mLastTheMostRecentEmailAppMessage = null;
+        mLastTheMostRecentMessagesAppMessage = null;
     }
 
     public LiveData<IMonitoringService> getService() {
@@ -77,5 +83,30 @@ public class ServiceViewModel extends ViewModel {
 
     public void setLastTheMostFrequentPersonalWifiConnectionTime(String text) {
         mLastTheMostFrequentPersonalWifiConnectionTime = text;
+    }
+
+
+    public String getLastTheMostRecentCalendarAppEvent() {
+        return mLastTheMostRecentCalendarAppEvent;
+    }
+
+    public void setLastTheMostRecentCalendarAppEvent(String text) {
+        mLastTheMostRecentCalendarAppEvent = text;
+    }
+
+    public String getLastTheMostRecentEmailAppMessage() {
+        return mLastTheMostRecentEmailAppMessage;
+    }
+
+    public void setLastTheMostRecentEmailAppMessage(String text) {
+        mLastTheMostRecentEmailAppMessage = text;
+    }
+
+    public String getLastTheMostRecentMessagesAppMessage() {
+        return mLastTheMostRecentMessagesAppMessage;
+    }
+
+    public void setLastTheMostRecentMessagesAppMessage(String text) {
+        mLastTheMostRecentMessagesAppMessage = text;
     }
 }

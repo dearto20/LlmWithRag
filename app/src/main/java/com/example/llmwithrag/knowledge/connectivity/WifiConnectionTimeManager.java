@@ -1,8 +1,8 @@
 package com.example.llmwithrag.knowledge.connectivity;
 
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PERIOD;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_PERIOD_ENTERPRISE_WIFI_CONNECTION;
-import static com.example.llmwithrag.kg.KnowledgeManager.TAG_PERIOD_PERSONAL_WIFI_CONNECTION;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_ENTERPRISE_WIFI_CONNECTION;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_PERSONAL_WIFI_CONNECTION;
 
 import android.content.Context;
 import android.util.Log;
@@ -191,9 +191,9 @@ public class WifiConnectionTimeManager implements IKnowledgeComponent {
     private String getName(int type) {
         switch (type) {
             case 0:
-                return TAG_PERIOD_ENTERPRISE_WIFI_CONNECTION;
+                return ENTITY_NAME_PERIOD_ENTERPRISE_WIFI_CONNECTION;
             case 1:
-                return TAG_PERIOD_PERSONAL_WIFI_CONNECTION;
+                return ENTITY_NAME_PERIOD_PERSONAL_WIFI_CONNECTION;
             default:
                 return "";
         }

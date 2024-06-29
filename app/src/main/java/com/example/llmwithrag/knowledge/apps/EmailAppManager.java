@@ -5,6 +5,7 @@ import static com.example.llmwithrag.BuildConfig.EMAIL_PASSWORD;
 import static com.example.llmwithrag.Utils.getContactNameByEmail;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_EMAIL;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_USER;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP;
 
 import android.content.Context;
 import android.os.Handler;
@@ -107,6 +108,7 @@ public class EmailAppManager implements IKnowledgeComponent {
 
     @Override
     public void update(int type, MonitoringService.EmbeddingResultListener listener) {
+        listener.onSuccess();
     }
 
     private void connectToStore() throws MessagingException {
@@ -155,7 +157,7 @@ public class EmailAppManager implements IKnowledgeComponent {
 
 
                         Entity emailEntity = new Entity(UUID.randomUUID().toString(),
-                                ENTITY_TYPE_EMAIL, subject);
+                                ENTITY_TYPE_EMAIL, ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP);
                         emailEntity.addAttribute("address", address);
                         emailEntity.addAttribute("sender", sender);
                         emailEntity.addAttribute("subject", subject);

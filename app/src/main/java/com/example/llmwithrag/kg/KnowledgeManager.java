@@ -29,12 +29,15 @@ public class KnowledgeManager {
     public static final String ENTITY_TYPE_USER = "User";
     public static final String ENTITY_TYPE_LOCATION = "Location";
     public static final String ENTITY_TYPE_PERIOD = "Period";
-    public static final String TAG_LOCATION_DURING_THE_DAY = "낮에 가장 많이 머무는 장소";
-    public static final String TAG_LOCATION_DURING_THE_NIGHT = "밤에 가장 많이 머무는 장소";
-    public static final String TAG_LOCATION_DURING_THE_WEEKEND = "주말에 가장 많이 머무는 장소";
-    public static final String TAG_PERIOD_ENTERPRISE_WIFI_CONNECTION = "기업 와이파이를 가장 오래 사용하는 시간대";
-    public static final String TAG_PERIOD_PERSONAL_WIFI_CONNECTION = "개인 와이파이를 가장 오래 사용하는 시간대";
-    public static final String TAG_PERIOD_STATIONARY = "휴대폰 사용이 가장 적은 시간대";
+    public static final String ENTITY_NAME_LOCATION_DURING_THE_DAY = "낮에 가장 많이 머무는 장소";
+    public static final String ENTITY_NAME_LOCATION_DURING_THE_NIGHT = "밤에 가장 많이 머무는 장소";
+    public static final String ENTITY_NAME_LOCATION_DURING_THE_WEEKEND = "주말에 가장 많이 머무는 장소";
+    public static final String ENTITY_NAME_PERIOD_ENTERPRISE_WIFI_CONNECTION = "기업 와이파이를 가장 오래 사용하는 시간대";
+    public static final String ENTITY_NAME_PERIOD_PERSONAL_WIFI_CONNECTION = "개인 와이파이를 가장 오래 사용하는 시간대";
+    public static final String ENTITY_NAME_PERIOD_STATIONARY = "휴대폰 사용이 가장 적은 시간대";
+    public static final String ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP = "캘린더 앱에 등록된 이벤트";
+    public static final String ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP = "이메일 앱에서 받은 메시지";
+    public static final String ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP = "메시지 앱에서 받은 메시지";
     private final Map<String, Entity> mEntities;
 
     public KnowledgeManager(Context context) {

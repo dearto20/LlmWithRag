@@ -44,12 +44,13 @@ public class EmbeddingManager {
         return mRepository.getAll();
     }
 
-    public String getEmbeddingByTag(String tag) {
+    public String getEmbeddingByName(String name) {
         String result = "";
         List<Embedding> embeddings = getAll();
         if (embeddings != null && !embeddings.isEmpty()) {
-            for (Embedding embedding : embeddings) {
-                if (embedding.description.contains(tag)) {
+            for (int i = embeddings.size() - 1; i >= 0; i--) {
+                Embedding embedding = embeddings.get(i);
+                if (embedding.description.contains(name)) {
                     result = embedding.text;
                     break;
                 }
