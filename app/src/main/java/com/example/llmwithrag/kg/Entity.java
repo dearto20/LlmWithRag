@@ -1,5 +1,7 @@
 package com.example.llmwithrag.kg;
 
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
+
 import androidx.annotation.NonNull;
 
 import java.nio.ByteBuffer;
@@ -47,6 +49,7 @@ public class Entity {
 
     public Map<String, String> getDescription() {
         Map<String, String> description = new HashMap<>(attributes);
+        if (ENTITY_TYPE_LOCATION.equals(type)) description.remove("coordinate");
         description.put("type", type);
         description.put("name", name);
         return description;

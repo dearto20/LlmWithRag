@@ -10,6 +10,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
@@ -81,6 +82,10 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
     public void stopMonitoring() {
         Log.i(TAG, "stopped");
         stopWatching();
+    }
+
+    @Override
+    public void update(int type, MonitoringService.EmbeddingResultListener listener) {
     }
 
     private String getLocationFromExif(String filePath) {

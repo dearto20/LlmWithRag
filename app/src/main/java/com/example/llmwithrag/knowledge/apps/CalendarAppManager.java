@@ -15,6 +15,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
@@ -33,12 +34,12 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
     private long mStartDate;
     private long mEndDate;
 
-    public CalendarAppManager(Context context, KnowledgeManager knowledgeManager,
+    public CalendarAppManager(Context context, KnowledgeManager kgManager,
                               EmbeddingManager embeddingManager) {
         super(new Handler(Looper.getMainLooper()));
         mContentResolver = context.getApplicationContext().getContentResolver();
         mContext = context;
-        mKnowledgeManager = knowledgeManager;
+        mKnowledgeManager = kgManager;
         mEmbeddingManager = embeddingManager;
 
         try {
@@ -64,6 +65,10 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
     public void stopMonitoring() {
         Log.i(TAG, "stopped");
         mContentResolver.unregisterContentObserver(this);
+    }
+
+    @Override
+    public void update(int type, MonitoringService.EmbeddingResultListener listener) {
     }
 
     @Override

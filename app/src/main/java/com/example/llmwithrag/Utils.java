@@ -43,6 +43,36 @@ public class Utils {
         return "";
     }
 
+    public static String getReadableAddressFromCoordinates(Context context, String location) {
+        if (TextUtils.isEmpty(location)) return "";
+
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+        String result = "";
+
+        try {
+            String[] values = location.split(",");
+            double latitude = Double.parseDouble(values[0].trim());
+            double longitude = Double.parseDouble(values[1].trim());
+
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                String countryName = address.getCountryName();
+                result = address.getAddressLine(0);
+                if (!TextUtils.isEmpty(countryName)) {
+                    result = result.replace(countryName, "")
+                            .replaceAll(",\\s*,", ",")
+                            .replaceAll("^,\\s*", "")
+                            .replaceAll(",\\s*$", "");
+                }
+                return result;
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return location;
+    }
+
     public static String getContactNameByEmail(Context context, String address) {
         Uri uri = Uri.withAppendedPath(ContactsContract.CommonDataKinds.Email.CONTENT_FILTER_URI,
                 Uri.encode(address));
@@ -143,7 +173,7 @@ public class Utils {
         sb.append("\nIf the sentence includes implicit durations like \"지난 주말\" or any other similar ones as well," +
                 "adjust it with the duration from explicit start date to explicit end date, using the expression \"사이\" or \"between\"" +
                 "or something like that to look like a natural sentence.");
-        sb.append("\nReturn only the sentence either adjusted or not.");
+        sb.append("\nReturn only the sentence in a informative and declarative form, not in a interrogative or exclamatory either adjusted or not.");
         return sb.toString();
     }
 }

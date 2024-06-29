@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 
+import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
@@ -102,6 +103,10 @@ public class EmailAppManager implements IKnowledgeComponent {
             Log.e(TAG, e.toString());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void update(int type, MonitoringService.EmbeddingResultListener listener) {
     }
 
     private void connectToStore() throws MessagingException {

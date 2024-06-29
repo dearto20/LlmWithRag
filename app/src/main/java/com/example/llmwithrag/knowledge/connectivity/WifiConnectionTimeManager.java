@@ -1,11 +1,19 @@
 package com.example.llmwithrag.knowledge.connectivity;
 
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PERIOD;
+import static com.example.llmwithrag.kg.KnowledgeManager.TAG_PERIOD_ENTERPRISE_WIFI_CONNECTION;
+import static com.example.llmwithrag.kg.KnowledgeManager.TAG_PERIOD_PERSONAL_WIFI_CONNECTION;
+
 import android.content.Context;
 import android.util.Log;
 
+import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.datasource.connectivity.ConnectivityData;
 import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
+import com.example.llmwithrag.kg.Entity;
+import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -23,6 +32,9 @@ public class WifiConnectionTimeManager implements IKnowledgeComponent {
     private static final String[] KEY_CONNECTION_TIME = {"connection_0_time", "connection_1_time"};
     private static final String[] KEY_CONNECTION_DURATION = {"connection_0_duration", "connection_1_duration"};
     private static final long MIN_DURATION = 600000L;
+    private final Context mContext;
+    private final KnowledgeManager mKnowledgeManager;
+    private final EmbeddingManager mEmbeddingManager;
     private final WifiConnectionTimeRepository mRepository;
 
     private final ConnectivityTracker mConnectivityTracker;
@@ -31,8 +43,13 @@ public class WifiConnectionTimeManager implements IKnowledgeComponent {
     private long[] mCheckTime;
 
     public WifiConnectionTimeManager(Context context,
+                                     KnowledgeManager knowledgeManager,
+                                     EmbeddingManager embeddingManager,
                                      WifiConnectionTimeRepository wifiConnectionTimeRepository,
                                      ConnectivityTracker connectivityTracker) {
+        mContext = context;
+        mKnowledgeManager = knowledgeManager;
+        mEmbeddingManager = embeddingManager;
         mRepository = wifiConnectionTimeRepository;
         mConnectivityTracker = connectivityTracker;
     }
@@ -127,5 +144,58 @@ public class WifiConnectionTimeManager implements IKnowledgeComponent {
     @Override
     public void stopMonitoring() {
         mConnectivityTracker.stopMonitoring();
+    }
+
+    @Override
+    public void update(int type, MonitoringService.EmbeddingResultListener listener) {
+        String latest = getLatestPeriod(type);
+
+        Entity periodEntity = new Entity(UUID.randomUUID().toString(),
+                ENTITY_TYPE_PERIOD, getName(type));
+        periodEntity.addAttribute("period", latest);
+
+        Entity oldPeriodEntity = mKnowledgeManager.getEntity(periodEntity);
+        Log.i(TAG, "iterating entity : " + periodEntity);
+        Log.i(TAG, "has entity ?" + mKnowledgeManager.equals(oldPeriodEntity, periodEntity));
+
+        //if (mKnowledgeManager.equals(oldPeriodEntity, periodEntity)) return;
+        if (oldPeriodEntity != null) {
+            mKnowledgeManager.removeEntity(oldPeriodEntity);
+            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldPeriodEntity);
+        }
+        mKnowledgeManager.addEntity(periodEntity);
+        mKnowledgeManager.removeEmbedding(mEmbeddingManager, periodEntity);
+        mKnowledgeManager.addEmbedding(mEmbeddingManager, periodEntity, System.currentTimeMillis(),
+                listener);
+        Log.i(TAG, "added " + periodEntity);
+    }
+
+    private String getLatestPeriod(int type) {
+        List<String> results = null;
+        switch (type) {
+            case 0: {
+                results = getMostFrequentEnterpriseWifiConnectionTimes(1);
+                break;
+            }
+            case 1: {
+                results = getMostFrequentPersonalWifiConnectionTimes(1);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        return (results != null && !results.isEmpty()) ? results.get(0) : "not yet found";
+    }
+
+    private String getName(int type) {
+        switch (type) {
+            case 0:
+                return TAG_PERIOD_ENTERPRISE_WIFI_CONNECTION;
+            case 1:
+                return TAG_PERIOD_PERSONAL_WIFI_CONNECTION;
+            default:
+                return "";
+        }
     }
 }

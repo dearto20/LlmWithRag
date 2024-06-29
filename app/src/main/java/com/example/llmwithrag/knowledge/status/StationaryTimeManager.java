@@ -1,11 +1,18 @@
 package com.example.llmwithrag.knowledge.status;
 
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PERIOD;
+import static com.example.llmwithrag.kg.KnowledgeManager.TAG_PERIOD_STATIONARY;
+
 import android.content.Context;
 import android.util.Log;
 
+import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.datasource.movement.MovementData;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
+import com.example.llmwithrag.kg.Entity;
+import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class StationaryTimeManager implements IKnowledgeComponent {
@@ -23,6 +31,9 @@ public class StationaryTimeManager implements IKnowledgeComponent {
     private static final float GRAVITY = 9.8f;
     private static final float THRESHOLD = 0.2f;
     private static final long MIN_DURATION = 600000L;
+    private final Context mContext;
+    private final KnowledgeManager mKnowledgeManager;
+    private final EmbeddingManager mEmbeddingManager;
     private final StationaryTimeRepository mRepository;
     private final MovementTracker mMovementTracker;
     private boolean mIsStationary;
@@ -30,8 +41,13 @@ public class StationaryTimeManager implements IKnowledgeComponent {
     private long mCheckTime;
 
     public StationaryTimeManager(Context context,
+                                 KnowledgeManager knowledgeManager,
+                                 EmbeddingManager embeddingManager,
                                  StationaryTimeRepository stationaryTimeRepository,
                                  MovementTracker movementTracker) {
+        mContext = context;
+        mKnowledgeManager = knowledgeManager;
+        mEmbeddingManager = embeddingManager;
         mRepository = stationaryTimeRepository;
         mMovementTracker = movementTracker;
     }
@@ -110,5 +126,52 @@ public class StationaryTimeManager implements IKnowledgeComponent {
     @Override
     public void stopMonitoring() {
         mMovementTracker.stopMonitoring();
+    }
+
+    @Override
+    public void update(int type, MonitoringService.EmbeddingResultListener listener) {
+        String latest = getLatestPeriod(type);
+
+        Entity periodEntity = new Entity(UUID.randomUUID().toString(),
+                ENTITY_TYPE_PERIOD, getName(type));
+        periodEntity.addAttribute("period", latest);
+
+        Entity oldPeriodEntity = mKnowledgeManager.getEntity(periodEntity);
+        Log.i(TAG, "iterating entity : " + periodEntity);
+        Log.i(TAG, "has entity ?" + mKnowledgeManager.equals(oldPeriodEntity, periodEntity));
+
+        //if (mKnowledgeManager.equals(oldPeriodEntity, periodEntity)) return;
+        if (oldPeriodEntity != null) {
+            mKnowledgeManager.removeEntity(oldPeriodEntity);
+            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldPeriodEntity);
+        }
+        mKnowledgeManager.addEntity(periodEntity);
+        mKnowledgeManager.removeEmbedding(mEmbeddingManager, periodEntity);
+        mKnowledgeManager.addEmbedding(mEmbeddingManager, periodEntity, System.currentTimeMillis(),
+                listener);
+        Log.i(TAG, "added " + periodEntity);
+    }
+
+    private String getLatestPeriod(int type) {
+        List<String> results = null;
+        switch (type) {
+            case 0: {
+                results = getMostFrequentStationaryTimes(1);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        return (results != null && !results.isEmpty()) ? results.get(0) : "not yet found";
+    }
+
+    private String getName(int type) {
+        switch (type) {
+            case 0:
+                return TAG_PERIOD_STATIONARY;
+            default:
+                return "";
+        }
     }
 }

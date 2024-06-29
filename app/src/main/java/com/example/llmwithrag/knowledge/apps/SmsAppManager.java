@@ -21,6 +21,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
@@ -76,6 +77,10 @@ public class SmsAppManager extends ContentObserver implements IKnowledgeComponen
     public void stopMonitoring() {
         Log.i(TAG, "stopped");
         mContentResolver.unregisterContentObserver(this);
+    }
+
+    @Override
+    public void update(int type, MonitoringService.EmbeddingResultListener listener) {
     }
 
     @Override

@@ -20,13 +20,6 @@ import retrofit2.Response;
 
 public class EmbeddingManager {
     private static final String TAG = EmbeddingManager.class.getSimpleName();
-    public static final String CATEGORY_DAY_LOCATION = "key_day_location";
-    public static final String CATEGORY_NIGHT_LOCATION = "key_night_location";
-    public static final String CATEGORY_WEEKEND_LOCATION = "key_weekend_location";
-    public static final String CATEGORY_STATIONARY_TIME = "stationary_time";
-    public static final String CATEGORY_ENTERPRISE_WIFI_TIME = "enterprise_wifi_time";
-    public static final String CATEGORY_PERSONAL_WIFI_TIME = "personal_wifi_time";
-
     private final Context mContext;
     private final EmbeddingRepository mRepository;
 
@@ -51,42 +44,18 @@ public class EmbeddingManager {
         return mRepository.getAll();
     }
 
-    private String getEmbedding(String category) {
+    public String getEmbeddingByTag(String tag) {
         String result = "";
         List<Embedding> embeddings = getAll();
         if (embeddings != null && !embeddings.isEmpty()) {
             for (Embedding embedding : embeddings) {
-                if (embedding.category.equals(category)) {
+                if (embedding.description.contains(tag)) {
                     result = embedding.text;
                     break;
                 }
             }
         }
         return result;
-    }
-
-    public String getTheMostFrequentlyVisitedPlaceDuringTheDay() {
-        return getEmbedding(CATEGORY_DAY_LOCATION);
-    }
-
-    public String getTheMostFrequentlyVisitedPlaceDuringTheNight() {
-        return getEmbedding(CATEGORY_NIGHT_LOCATION);
-    }
-
-    public String getTheMostFrequentlyVisitedPlaceDuringTheWeekend() {
-        return getEmbedding(CATEGORY_WEEKEND_LOCATION);
-    }
-
-    public String getTheMostFrequentStationaryTime() {
-        return getEmbedding(CATEGORY_STATIONARY_TIME);
-    }
-
-    public String getTheMostFrequentEnterpriseWifiConnectionTime() {
-        return getEmbedding(CATEGORY_ENTERPRISE_WIFI_TIME);
-    }
-
-    public String getTheMostFrequentPersonalWifiConnectionTime() {
-        return getEmbedding(CATEGORY_PERSONAL_WIFI_TIME);
     }
 
     private static class Element {
