@@ -137,24 +137,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (service != null) {
                 Log.i(TAG, "connected to the service");
                 mService = service;
-                mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheDay(
-                        mService.getTheMostFrequentlyVisitedPlaceDuringTheDay().getValue());
-                mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheWeekend(
-                        mService.getTheMostFrequentlyVisitedPlaceDuringTheNight().getValue());
-                mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheWeekend(
-                        mService.getTheMostFrequentlyVisitedPlaceDuringTheWeekend().getValue());
-                mViewModel.setLastTheMostFrequentStationaryTime(
-                        mService.getTheMostFrequentStationaryTime().getValue());
-                mViewModel.setLastTheMostFrequentEnterpriseWifiConnectionTime(
-                        mService.getTheMostFrequentEnterpriseWifiConnectionTime().getValue());
-                mViewModel.setLastTheMostFrequentPersonalWifiConnectionTime(
-                        mService.getTheMostFrequentPersonalWifiConnectionTime().getValue());
-                mViewModel.setLastTheMostRecentCalendarAppEvent(
-                        mService.getTheMostRecentCalendarAppEvent().getValue());
-                mViewModel.setLastTheMostRecentEmailAppMessage(
-                        mService.getTheMostRecentEmailAppMessage().getValue());
-                mViewModel.setLastTheMostRecentMessagesAppMessage(
-                        mService.getTheMostRecentMessagesAppMessage().getValue());
+                updateViewModel();
 
                 mService.getTheMostFrequentlyVisitedPlaceDuringTheDay().observe(
                         getViewLifecycleOwner(),
@@ -295,14 +278,14 @@ public class StoreEmbeddingsFragment extends Fragment {
         });
 
         calendarAppEventSwitch.setOnCheckedChangeListener((button, isChecked) -> {
-           if (setCalendarAppEventEnabled(isChecked)) {
-               updateViews();
-           } else {
-               Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
-           }
+            if (setCalendarAppEventEnabled(isChecked)) {
+                updateViews();
+            } else {
+                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+            }
         });
 
-        calendarAppEventSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+        emailAppMessageSwitch.setOnCheckedChangeListener((button, isChecked) -> {
             if (setEmailAppMessageEnabled(isChecked)) {
                 updateViews();
             } else {
@@ -310,7 +293,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             }
         });
 
-        calendarAppEventSwitch.setOnCheckedChangeListener((button, isChecked) -> {
+        messagesAppMessageSwitch.setOnCheckedChangeListener((button, isChecked) -> {
             if (setMessagesAppMessageEnabled(isChecked)) {
                 updateViews();
             } else {
@@ -327,6 +310,28 @@ public class StoreEmbeddingsFragment extends Fragment {
         return view;
     }
 
+    private void updateViewModel() {
+        if (mService == null) return;
+        mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheDay(
+                mService.getTheMostFrequentlyVisitedPlaceDuringTheDay().getValue());
+        mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheWeekend(
+                mService.getTheMostFrequentlyVisitedPlaceDuringTheNight().getValue());
+        mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheWeekend(
+                mService.getTheMostFrequentlyVisitedPlaceDuringTheWeekend().getValue());
+        mViewModel.setLastTheMostFrequentStationaryTime(
+                mService.getTheMostFrequentStationaryTime().getValue());
+        mViewModel.setLastTheMostFrequentEnterpriseWifiConnectionTime(
+                mService.getTheMostFrequentEnterpriseWifiConnectionTime().getValue());
+        mViewModel.setLastTheMostFrequentPersonalWifiConnectionTime(
+                mService.getTheMostFrequentPersonalWifiConnectionTime().getValue());
+        mViewModel.setLastTheMostRecentCalendarAppEvent(
+                mService.getTheMostRecentCalendarAppEvent().getValue());
+        mViewModel.setLastTheMostRecentEmailAppMessage(
+                mService.getTheMostRecentEmailAppMessage().getValue());
+        mViewModel.setLastTheMostRecentMessagesAppMessage(
+                mService.getTheMostRecentMessagesAppMessage().getValue());
+    }
+
     private void updateEmbeddingsList() {
         try {
             FragmentActivity activity = getActivity();
@@ -341,6 +346,8 @@ public class StoreEmbeddingsFragment extends Fragment {
             TextView calendarAppEventView = activity.findViewById(R.id.calendarAppEventView);
             TextView emailAppMessageView = activity.findViewById(R.id.emailAppMessageView);
             TextView messagesAppMessageView = activity.findViewById(R.id.messagesAppMessageView);
+
+            updateViewModel();
 
             dayLocationView.setText(
                     mViewModel.getLastTheMostFrequentlyVisitedPlaceDuringTheDay());

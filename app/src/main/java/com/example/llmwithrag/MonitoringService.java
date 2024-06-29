@@ -220,6 +220,7 @@ public class MonitoringService extends Service implements IMonitoringService {
         mWifiConnectionTimeManager.deleteAll();
         mStationaryTimeManager.deleteAll();
         mEmbeddingManager.deleteAll();
+        updateKnowledge();
     }
 
     @Override
