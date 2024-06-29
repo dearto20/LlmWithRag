@@ -35,7 +35,7 @@
         },
         {
             "type":"Email",
-            "attributes:"{
+            "attributes":{
                 "address":"",
                 "sender":"",
                 "subject":"",
@@ -49,6 +49,19 @@
             "attributes":{
                 "name":"",
             },
+        },
+        {
+            "type":"Location",
+            "attributes":{
+                "coordinate":"",
+                "location":"",
+            }
+        },
+        {
+            "type":"Period",
+            "attributes":{
+                "period",
+            }
         },
     ],
 }

@@ -1,16 +1,27 @@
 package com.example.llmwithrag.knowledge.location;
 
+import static com.example.llmwithrag.Utils.getReadableAddressFromCoordinates;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
+import static com.example.llmwithrag.kg.KnowledgeManager.TAG_LOCATION_DURING_THE_DAY;
+import static com.example.llmwithrag.kg.KnowledgeManager.TAG_LOCATION_DURING_THE_NIGHT;
+import static com.example.llmwithrag.kg.KnowledgeManager.TAG_LOCATION_DURING_THE_WEEKEND;
+
 import android.content.Context;
 import android.util.Log;
 
+import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.datasource.location.LocationData;
 import com.example.llmwithrag.datasource.location.LocationTracker;
+import com.example.llmwithrag.kg.Entity;
+import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -22,12 +33,20 @@ public class PersistentLocationManager implements IKnowledgeComponent {
             {"location_0_coordinates", "location_1_coordinates", "location_2_coordinates"};
     private static final String[] KEY_LOCATION_COUNT =
             {"location_0_count", "location_1_count", "location_2_count"};
+    private final Context mContext;
+    private final KnowledgeManager mKnowledgeManager;
+    private final EmbeddingManager mEmbeddingManager;
     private final PersistentLocationRepository mRepository;
     private final LocationTracker mLocationTracker;
 
     public PersistentLocationManager(Context context,
+                                     KnowledgeManager knowledgeManager,
+                                     EmbeddingManager embeddingManager,
                                      PersistentLocationRepository persistentLocationRepository,
                                      LocationTracker locationTracker) {
+        mContext = context;
+        mKnowledgeManager = knowledgeManager;
+        mEmbeddingManager = embeddingManager;
         mRepository = persistentLocationRepository;
         mLocationTracker = locationTracker;
     }
@@ -121,5 +140,65 @@ public class PersistentLocationManager implements IKnowledgeComponent {
     @Override
     public void stopMonitoring() {
         mLocationTracker.stopMonitoring();
+    }
+
+    @Override
+    public void update(int type, MonitoringService.EmbeddingResultListener listener) {
+        String latest = getLatestLocation(type);
+
+        Entity locationEntity = new Entity(UUID.randomUUID().toString(),
+                ENTITY_TYPE_LOCATION, getName(type));
+        locationEntity.addAttribute("coordinate", latest);
+        locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, latest));
+
+        Entity oldLocationEntity = mKnowledgeManager.getEntity(locationEntity);
+        Log.i(TAG, "iterating entity : " + locationEntity);
+        Log.i(TAG, "has entity ?" + mKnowledgeManager.equals(oldLocationEntity, locationEntity));
+
+        //if (mKnowledgeManager.equals(oldLocationEntity, locationEntity)) return;
+        if (oldLocationEntity != null) {
+            mKnowledgeManager.removeEntity(oldLocationEntity);
+            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldLocationEntity);
+        }
+        mKnowledgeManager.addEntity(locationEntity);
+        mKnowledgeManager.removeEmbedding(mEmbeddingManager, locationEntity);
+        mKnowledgeManager.addEmbedding(mEmbeddingManager, locationEntity, System.currentTimeMillis(),
+                listener);
+        Log.i(TAG, "added " + locationEntity);
+    }
+
+    private String getLatestLocation(int type) {
+        List<String> results = null;
+        switch (type) {
+            case 0: {
+                results = getMostFrequentlyVisitedPlacesDuringTheDay(1);
+                break;
+            }
+            case 1: {
+                results = getMostFrequentlyVisitedPlacesDuringTheNight(1);
+                break;
+            }
+            case 2: {
+                results = getMostFrequentlyVisitedPlacesDuringTheWeekend(1);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        return (results != null && !results.isEmpty()) ? results.get(0) : "not yet found";
+    }
+
+    private String getName(int type) {
+        switch (type) {
+            case 0:
+                return TAG_LOCATION_DURING_THE_DAY;
+            case 1:
+                return TAG_LOCATION_DURING_THE_NIGHT;
+            case 2:
+                return TAG_LOCATION_DURING_THE_WEEKEND;
+            default:
+                return "";
+        }
     }
 }

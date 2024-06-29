@@ -52,7 +52,6 @@ import retrofit2.Response;
 
 public class PerformQueryFragment extends Fragment {
     private static final String TAG = PerformQueryFragment.class.getSimpleName();
-    private ServiceViewModel mViewModel;
     private IMonitoringService mService;
     private TextView mResultDisplay;
     private ActivityResultLauncher<String> requestPermissionLauncher;
@@ -62,7 +61,7 @@ public class PerformQueryFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_perform_query, container, false);
-        mViewModel = new ViewModelProvider(requireActivity()).get(ServiceViewModel.class);
+        ServiceViewModel mViewModel = new ViewModelProvider(requireActivity()).get(ServiceViewModel.class);
         mViewModel.getService().observe(getViewLifecycleOwner(), service -> mService = service);
 
         initResultLaunchers();
@@ -214,19 +213,6 @@ public class PerformQueryFragment extends Fragment {
         }
     }
 
-    private void performQuery(String query) {
-        if (mService == null) {
-            Toast.makeText(getContext(), "Service Is Not Ready", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (BuildConfig.IS_SCHEMA_ENABLED) {
-            performQueryWithSchema(query);
-        } else {
-            performQueryWithoutSchema(query);
-        }
-    }
-
     private String adjustResponse(String response) {
         if (response.startsWith("```json")) {
             response = response.substring(7).trim();
@@ -239,7 +225,12 @@ public class PerformQueryFragment extends Fragment {
         return response;
     }
 
-    private void performQueryWithSchema(String query) {
+    private void performQuery(String query) {
+        if (mService == null) {
+            Toast.makeText(getContext(), "Service Is Not Ready", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         final String originalQuery = query;
         final List<CompletionMessage> messages = new ArrayList<>();
         query = generateQuery(query, mService.getSchema(), null);
@@ -266,7 +257,7 @@ public class PerformQueryFragment extends Fragment {
                         Log.i(TAG, "augmented query: " + query);
 
                     } else {
-                        result = mService.findSimilarOnes(modifiedQuery, originalQuery/*completion*/);
+                        result = mService.findSimilarOnes(modifiedQuery, /*originalQuery*/completion);
                         query = generateQuery(originalQuery, null, result);
                         Log.i(TAG, "augmented query: " + query);
                     }
@@ -310,37 +301,6 @@ public class PerformQueryFragment extends Fragment {
         });
     }
 
-    private void performQueryWithoutSchema(String query) {
-        List<CompletionMessage> messages = new ArrayList<>();
-        List<String> result = mService.findSimilarOnes(query);
-        if (!result.isEmpty()) {
-            query = generateQuery(query, result);
-        }
-
-        Log.i(TAG, "query: " + query);
-
-        messages.add(new CompletionMessage("user", query));
-        CompletionRequest request = new CompletionRequest("gpt-4-turbo", messages);
-        OpenAiService service = RetrofitClient.getInstance().create(OpenAiService.class);
-        Call<CompletionResponse> call = service.getCompletions(request);
-        call.enqueue(new Callback<CompletionResponse>() {
-            @Override
-            public void onResponse(Call<CompletionResponse> call, Response<CompletionResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String completion = response.body().choices.get(0).message.content;
-                    Log.i(TAG, "response: " + completion);
-                    mResultDisplay.setText(completion);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<CompletionResponse> call, Throwable t) {
-                Log.e(TAG, "failed in performing query: " + t.getMessage());
-                mResultDisplay.setText(t.getMessage());
-            }
-        });
-    }
-
     private String generateQuery(String query, String schema, List<String> results) {
         StringBuilder sb = new StringBuilder("My query is \"" + query + "\".");
         if (results == null) {
@@ -368,26 +328,12 @@ public class PerformQueryFragment extends Fragment {
                 sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
             }
 
-            sb.append("\nIf no explicit location is provided which meets user's query, do not assume anything and just respond with \"Unable to find the location.\"");
-            sb.append("\nIf a location is found, it MUST be on a new single line and formatted either exactly as 'latitude, longitude' or name of the location if the former is unavailable.");
-            sb.append("\nDo not put any further lines after that.");
+            sb.append("\nAssume that 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I stay while not working.");
+            sb.append("\nIn determining the answer, if there are multiple candidates, prioritize the later one based on the timeline.");
+            sb.append("\nIf a location is found, it MUST be on a new single line and formatted either exactly as 'latitude, longitude' or name of the location if coordinate is unavailable.");
+            sb.append("\nDo not include any further lines.");
+            sb.append("\nIf no suitable location is found, respond with \"Unable to find the location.\"");
         }
-        return sb.toString();
-    }
-
-    @NonNull
-    private String generateQuery(String query, List<String> results) {
-        StringBuilder sb = new StringBuilder("my query is \"" + query + "\".");
-        sb.append("\nFirst, figure out if I'm asking you to find the route to or would like to go to the location either implicitly or explicitly.");
-        sb.append("\nIf it is not, just tell me \"unable to find the location\".");
-        sb.append("\nOtherwise, please go through my activities throughout the day thoroughly.");
-        for (String result : results) {
-            sb.append("\n").append(result);
-        }
-        sb.append("\n").append("All the addresses found above are in the form of 'latitude,longitude'.");
-        sb.append("\n").append("Out of all the addresses, find the one that is most likely the location which I've mentioned in the query.");
-        sb.append("\n").append("Please note that 'home' or '집' refers to the location where I sleep and 'office' or '회사' refers to the location where I work.");
-        sb.append("\n").append("Ensure you provide the answer in the form of 'latitude, longitude' only, and do not add any other comments.");
         return sb.toString();
     }
 }

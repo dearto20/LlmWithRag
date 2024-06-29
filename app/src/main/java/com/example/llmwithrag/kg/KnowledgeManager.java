@@ -27,6 +27,14 @@ public class KnowledgeManager {
     public static final String ENTITY_TYPE_MESSAGE = "Message";
     public static final String ENTITY_TYPE_EMAIL = "Email";
     public static final String ENTITY_TYPE_USER = "User";
+    public static final String ENTITY_TYPE_LOCATION = "Location";
+    public static final String ENTITY_TYPE_PERIOD = "Period";
+    public static final String TAG_LOCATION_DURING_THE_DAY = "낮에 가장 많이 머무는 장소";
+    public static final String TAG_LOCATION_DURING_THE_NIGHT = "밤에 가장 많이 머무는 장소";
+    public static final String TAG_LOCATION_DURING_THE_WEEKEND = "주말에 가장 많이 머무는 장소";
+    public static final String TAG_PERIOD_ENTERPRISE_WIFI_CONNECTION = "기업 와이파이를 가장 오래 사용하는 시간대";
+    public static final String TAG_PERIOD_PERSONAL_WIFI_CONNECTION = "개인 와이파이를 가장 오래 사용하는 시간대";
+    public static final String TAG_PERIOD_STATIONARY = "휴대폰 사용이 가장 적은 시간대";
     private final Map<String, Entity> mEntities;
 
     public KnowledgeManager(Context context) {
@@ -70,7 +78,7 @@ public class KnowledgeManager {
             "        },\n" +
             "        {\n" +
             "            \"type\":\"Email\",\n" +
-            "            \"attributes:\"{\n" +
+            "            \"attributes\":{\n" +
             "                \"address\":\"\",\n" +
             "                \"sender\":\"\",\n" +
             "                \"subject\":\"\",\n" +
@@ -85,11 +93,34 @@ public class KnowledgeManager {
             "                \"name\":\"\",\n" +
             "            },\n" +
             "        },\n" +
+            "        {\n" +
+            "            \"type\":\"Location\",\n" +
+            "            \"attributes\":{\n" +
+            "                \"tag\":\"\",\n" +
+            "                \"coordinate\":\"\",\n" +
+            "                \"location\":\"\",\n" +
+            "            }\n" +
+            "        },\n" +
+            "        {\n" +
+            "            \"type\":\"Period\",\n" +
+            "            \"attributes\":{\n" +
+            "                \"tag\":\"\",\n" +
+            "                \"period\",\n" +
+            "            }\n" +
+            "        },\n" +
             "    ],\n" +
             "}";
 
     public Entity getEntity(Entity entity) {
-        if (ENTITY_TYPE_EVENT.equals(entity.getType())) {
+        if (ENTITY_TYPE_LOCATION.equals(entity.getType()) ||
+                ENTITY_TYPE_PERIOD.equals(entity.getType())) {
+            for (Entity _entity : mEntities.values()) {
+                if (TextUtils.equals(_entity.getType(), entity.getType()) &&
+                        TextUtils.equals(_entity.getName(), entity.getName())) {
+                    return _entity;
+                }
+            }
+        } else if (ENTITY_TYPE_EVENT.equals(entity.getType())) {
             for (Entity _entity : mEntities.values()) {
                 if (TextUtils.equals(_entity.getType(), entity.getType()) &&
                         TextUtils.equals(_entity.getAttributes().get("eventId"),
@@ -170,6 +201,18 @@ public class KnowledgeManager {
     }
 
     public void addEmbedding(EmbeddingManager embeddingManager, Entity entity, long date) {
+        MonitoringService.EmbeddingResultListener listener =
+                new MonitoringService.EmbeddingResultListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.i(TAG, "embedding is added");
+                    }
+                };
+        addEmbedding(embeddingManager, entity, date, listener);
+    }
+
+    public void addEmbedding(EmbeddingManager embeddingManager, Entity entity, long date,
+                             MonitoringService.EmbeddingResultListener listener) {
         if (hasEmbedding(embeddingManager, entity)) return;
 
         if (IS_SENTENCE_BASED) {
@@ -178,13 +221,6 @@ public class KnowledgeManager {
             Utils.performQuery(query, new Utils.QueryResponseListener() {
                 @Override
                 public void onSuccess(String result) {
-                    MonitoringService.EmbeddingResultListener listener =
-                            new MonitoringService.EmbeddingResultListener() {
-                                @Override
-                                public void onSuccess() {
-                                    Log.i(TAG, "embedding is added : " + result);
-                                }
-                            };
                     embeddingManager.addEmbeddings(result,
                             entity.getType() + ", " + entity.getName(), entity.getContentId(), listener);
                 }
@@ -201,13 +237,6 @@ public class KnowledgeManager {
             });
         } else {
             String flattened = new Gson().toJson(entity);
-            MonitoringService.EmbeddingResultListener listener =
-                    new MonitoringService.EmbeddingResultListener() {
-                        @Override
-                        public void onSuccess() {
-                            Log.i(TAG, "embedding is added : " + flattened);
-                        }
-                    };
             embeddingManager.addEmbeddings(flattened,
                     entity.getType() + ", " + entity.getName(), entity.getContentId(), listener);
         }
