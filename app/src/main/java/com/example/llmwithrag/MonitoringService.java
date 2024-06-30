@@ -421,16 +421,25 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setCalendarAppEventEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_CALENDAR_APP_EVENT, enabled)) {
+            return true;
+        }
         return false;
     }
 
     @Override
     public boolean setEmailAppMessageEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_EMAIL_APP_MESSAGE, enabled)) {
+            return true;
+        }
         return false;
     }
 
     @Override
     public boolean setMessagesAppMessageEnabled(boolean enabled) {
+        if (setSharedPreferences(KEY_MESSAGES_APP_MESSAGE, enabled)) {
+            return true;
+        }
         return false;
     }
 
