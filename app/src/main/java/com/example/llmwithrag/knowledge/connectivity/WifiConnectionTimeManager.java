@@ -150,7 +150,10 @@ public class WifiConnectionTimeManager implements IKnowledgeComponent {
     @Override
     public void update(int type, MonitoringService.EmbeddingResultListener listener) {
         String latest = getLatestPeriod(type);
-        if (TextUtils.isEmpty(latest)) listener.onSuccess();
+        if (TextUtils.isEmpty(latest)) {
+            listener.onSuccess();
+            return;
+        }
 
         Entity periodEntity = new Entity(UUID.randomUUID().toString(),
                 ENTITY_TYPE_PERIOD, getName(type));

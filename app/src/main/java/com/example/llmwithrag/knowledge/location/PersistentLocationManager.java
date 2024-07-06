@@ -146,7 +146,10 @@ public class PersistentLocationManager implements IKnowledgeComponent {
     @Override
     public void update(int type, MonitoringService.EmbeddingResultListener listener) {
         String latest = getLatestLocation(type);
-        if (TextUtils.isEmpty(latest)) listener.onSuccess();
+        if (TextUtils.isEmpty(latest)) {
+            listener.onSuccess();
+            return;
+        }
 
         Entity locationEntity = new Entity(UUID.randomUUID().toString(),
                 ENTITY_TYPE_LOCATION, getName(type));

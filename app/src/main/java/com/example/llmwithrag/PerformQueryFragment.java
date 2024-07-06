@@ -4,6 +4,7 @@ import static android.Manifest.permission.RECORD_AUDIO;
 import static com.example.llmwithrag.BuildConfig.IS_SENTENCE_BASED;
 import static com.example.llmwithrag.BuildConfig.SHOW_LLM_PROCESS;
 import static com.example.llmwithrag.Utils.getCoordinatesFromReadableAddress;
+import static com.example.llmwithrag.Utils.getDate;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -40,11 +41,8 @@ import com.example.llmwithrag.llm.CompletionResponse;
 import com.example.llmwithrag.llm.OpenAiService;
 import com.example.llmwithrag.llm.RetrofitClient;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -257,7 +255,7 @@ public class PerformQueryFragment extends Fragment {
                         Log.i(TAG, "augmented query: " + query);
 
                     } else {
-                        result = mService.findSimilarOnes(modifiedQuery, /*originalQuery*/completion);
+                        result = mService.findSimilarOnes(modifiedQuery, completion);
                         query = generateQuery(originalQuery, null, result);
                         Log.i(TAG, "augmented query: " + query);
                     }
@@ -304,9 +302,8 @@ public class PerformQueryFragment extends Fragment {
 
     private String generateQuery(String query, String schema, List<String> results) {
         StringBuilder sb = new StringBuilder("My query is \"" + query + "\".");
+        sb.append("\nToday is ").append(getDate(System.currentTimeMillis()));
         if (results == null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            sb.append("\nToday is ").append(sdf.format(new Date()));
             sb.append("\nAnd here's schema : ").append(schema);
             sb.append("\nGo through the user's query and just rebuild it in the form of given schema and don't try to answer or take any other action.");
             sb.append("\nOn writing the \"time\" attribute in any entities, if the value is implicit like \"오늘\" or \"today\", adjust it with explicit value");
@@ -318,11 +315,8 @@ public class PerformQueryFragment extends Fragment {
             for (String result : results) {
                 sb.append("\n").append(result);
             }
-
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            sb.append("\nToday is ").append(sdf.format(new Date()));
             sb.append("\nIdentify and correlate all the entities based on the given context.");
-            sb.append("\nAssume that 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I stay while not working.");
+            sb.append("\nAssume that 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I spend time while not working.");
             sb.append("\nThe location associated with date A MUST not be correlated to an event on date B during inference.");
             sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event.");
 

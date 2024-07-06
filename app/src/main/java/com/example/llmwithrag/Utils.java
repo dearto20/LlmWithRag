@@ -165,7 +165,7 @@ public class Utils {
         sb.append("\nMake sure NOT to omit any single attribute in generating the sentence.");
         sb.append("\nIf the sentence includes implicit day like \"오늘\", \"내일\", \"today\" or " +
                 "\"tomorrow\" or any other similar ones as well, adjust it with explicit value to look like a natural sentence.");
-        sb.append("\nIf the sentence includes implicit durations like \"지난 주말\" or any other similar ones as well," +
+        sb.append("\nIf the sentence includes implicit durations like \"지난 주말\" but the date is clearly identifiable," +
                 "adjust it with the duration from explicit start date to explicit end date, using the expression \"사이\" or \"between\"" +
                 "or something like that to look like a natural sentence.");
         sb.append("\nReturn only the sentence in a informative and declarative form, not in a interrogative or exclamatory either adjusted or not.");
