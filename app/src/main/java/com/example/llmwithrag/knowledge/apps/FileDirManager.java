@@ -4,6 +4,9 @@ import static com.example.llmwithrag.Utils.getDate;
 import static com.example.llmwithrag.Utils.getFileName;
 import static com.example.llmwithrag.Utils.getReadableAddressFromCoordinates;
 import static com.example.llmwithrag.Utils.getTime;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_DATE;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PHOTO;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_DATE;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PHOTO;
@@ -59,7 +62,8 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
         String date = getDate(dateTaken.getTime());
         String time = getTime(dateTaken.getTime());
 
-        Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, name);
+        Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO,
+                ENTITY_NAME_PHOTO);
         photoEntity.addAttribute("filePath", path);
         photoEntity.addAttribute("date", date);
         photoEntity.addAttribute("time", time);
@@ -68,14 +72,16 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
 
         Entity dateEntity = null;
         if (photoEntity.hasAttribute("date")) {
-            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, date);
+            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                    ENTITY_NAME_DATE);
             dateEntity.addAttribute("date", date);
             mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
         }
 
         Entity locationEntity = null;
         if (photoEntity.hasAttribute("location")) {
-            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION, location);
+            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION,
+                    ENTITY_NAME_LOCATION);
             locationEntity.addAttribute("coordinate", location);
             locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
         }

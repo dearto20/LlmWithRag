@@ -40,6 +40,10 @@ public class KnowledgeManager {
     public static final String ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP = "캘린더 앱에 등록된 이벤트";
     public static final String ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP = "이메일 앱에서 받은 메시지";
     public static final String ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP = "메시지 앱에서 받은 메시지";
+    public static final String ENTITY_NAME_DATE = "날짜";
+    public static final String ENTITY_NAME_LOCATION = "장소";
+    public static final String ENTITY_NAME_USER = "사람";
+    public static final String ENTITY_NAME_PHOTO = "사진";
     public static final String RELATIONSHIP_SENT_BY_USER = "was sent by user";
     public static final String RELATIONSHIP_SENT_ON_DATE = "was sent on date";
     public static final String RELATIONSHIP_TAKEN_ON_DATE = "was taken on date";
@@ -348,7 +352,7 @@ public class KnowledgeManager {
         } else {
             String flattened = new Gson().toJson(element);
             embeddingManager.addEmbeddings(flattened,
-                    element.getId(), element.getContentId(), finalListener);
+                    element.getName() + "[" + element.getId() + "]", element.getContentId(), finalListener);
         }
     }
 

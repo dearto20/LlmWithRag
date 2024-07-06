@@ -3,6 +3,9 @@ package com.example.llmwithrag.knowledge.apps;
 import static com.example.llmwithrag.Utils.getCoordinatesFromReadableAddress;
 import static com.example.llmwithrag.Utils.getDate;
 import static com.example.llmwithrag.Utils.getReadableAddressFromCoordinates;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_DATE;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_DATE;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_EVENT;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
@@ -104,7 +107,8 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                     String startDateString = getDate(startDate);
                     String endDateString = getDate(endDate);
 
-                    Entity eventEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_EVENT, title);
+                    Entity eventEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_EVENT,
+                            ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP);
                     eventEntity.addAttribute("eventId", id);
                     eventEntity.addAttribute("title", title);
                     eventEntity.addAttribute("date", startDateString);
@@ -116,14 +120,16 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
 
                     Entity dateEntity = null;
                     if (eventEntity.hasAttribute("date")) {
-                        dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, startDateString);
+                        dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                                ENTITY_NAME_DATE);
                         dateEntity.addAttribute("date", startDateString);
                         mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
                     }
 
                     Entity locationEntity = null;
                     if (eventEntity.hasAttribute("location")) {
-                        locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION, location);
+                        locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION,
+                                ENTITY_NAME_LOCATION);
                         locationEntity.addAttribute("coordinate", location);
                         locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
                     }

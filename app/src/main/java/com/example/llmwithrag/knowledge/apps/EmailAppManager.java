@@ -5,6 +5,9 @@ import static com.example.llmwithrag.BuildConfig.EMAIL_PASSWORD;
 import static com.example.llmwithrag.Utils.getContactNameByEmail;
 import static com.example.llmwithrag.Utils.getDate;
 import static com.example.llmwithrag.Utils.getTime;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_DATE;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_USER;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_DATE;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_EMAIL;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_USER;
@@ -149,7 +152,8 @@ public class EmailAppManager implements IKnowledgeComponent {
                         String subject = message.getSubject();
                         String body = getBody(message);
 
-                        Entity emailEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_EMAIL, subject);
+                        Entity emailEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_EMAIL,
+                                ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP);
                         emailEntity.addAttribute("address", address);
                         emailEntity.addAttribute("sender", sender);
                         emailEntity.addAttribute("subject", subject);
@@ -158,11 +162,13 @@ public class EmailAppManager implements IKnowledgeComponent {
                         emailEntity.addAttribute("time", getTime(date.getTime()));
                         if (!mKnowledgeManager.addEntity(mEmbeddingManager, emailEntity)) continue;
 
-                        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER, name);
+                        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER,
+                                ENTITY_NAME_USER);
                         userEntity.addAttribute("name", name);
                         mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
 
-                        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, dateString);
+                        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                                ENTITY_NAME_DATE);
                         dateEntity.addAttribute("date", dateString);
                         mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
 

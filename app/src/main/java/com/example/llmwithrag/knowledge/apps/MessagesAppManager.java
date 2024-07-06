@@ -7,6 +7,11 @@ import static com.example.llmwithrag.Utils.getReadableAddressFromCoordinates;
 import static com.example.llmwithrag.Utils.getSharedPreferenceLong;
 import static com.example.llmwithrag.Utils.getTime;
 import static com.example.llmwithrag.Utils.setSharedPreferenceLong;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_DATE;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PHOTO;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_USER;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_DATE;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_MESSAGE;
@@ -159,7 +164,8 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         String dateString = getDate(date);
         String timeString = getTime(date);
 
-        Entity messageEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_MESSAGE, body);
+        Entity messageEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_MESSAGE,
+                ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP);
         messageEntity.addAttribute("address", address);
         messageEntity.addAttribute("sender", sender);
         messageEntity.addAttribute("body", body);
@@ -167,11 +173,13 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         messageEntity.addAttribute("time", timeString);
         if (!mKnowledgeManager.addEntity(mEmbeddingManager, messageEntity)) return;
 
-        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER, name);
+        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER,
+                ENTITY_NAME_USER);
         userEntity.addAttribute("name", name);
         mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
 
-        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, dateString);
+        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                ENTITY_NAME_DATE);
         dateEntity.addAttribute("date", dateString);
         mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
 
@@ -296,7 +304,8 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         String dateString = getDate(dateTaken.getTime());
         String timeString = getTime(dateTaken.getTime());
 
-        Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, name);
+        Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO,
+                ENTITY_NAME_PHOTO);
         photoEntity.addAttribute("sender", sender);
         photoEntity.addAttribute("body", body);
         photoEntity.addAttribute("filePath", path);
@@ -307,14 +316,16 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
 
         Entity dateEntity = null;
         if (photoEntity.hasAttribute("date")) {
-            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, dateString);
+            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                    ENTITY_NAME_DATE);
             dateEntity.addAttribute("date", dateString);
             mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
         }
 
         Entity locationEntity = null;
         if (photoEntity.hasAttribute("location")) {
-            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION, location);
+            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION,
+                    ENTITY_NAME_LOCATION);
             locationEntity.addAttribute("coordinate", location);
             locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
         }
