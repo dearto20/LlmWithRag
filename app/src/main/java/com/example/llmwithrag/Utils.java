@@ -159,7 +159,6 @@ public class Utils {
 
     public static String generateDescriptiveQuery(IElement element) {
         StringBuilder sb = new StringBuilder();
-        sb.append("\nCurrent time is ").append(getDate(System.currentTimeMillis()));
         sb.append("\nHere's the target entity : \"").append(element.getDescription()).append("\"");
         sb.append("\nFlatten the entity with all including attributes to the natural one single sentence in Korean.");
         sb.append("\nMake sure NOT to omit any single attribute in generating the sentence.");
