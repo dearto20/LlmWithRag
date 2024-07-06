@@ -316,8 +316,8 @@ public class PerformQueryFragment extends Fragment {
                 sb.append("\n").append(result);
             }
             sb.append("\nIdentify and correlate all the entities based on the given context.");
-            sb.append("\nAssume that 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I spend time while not working.");
             sb.append("\nThe location associated with date A MUST not be correlated to an event on date B during inference.");
+            sb.append("\nAssume that 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I spend time while not working.");
             sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event.");
 
             if (SHOW_LLM_PROCESS) {
@@ -326,10 +326,10 @@ public class PerformQueryFragment extends Fragment {
                 sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
             }
 
-            sb.append("\nIn determining the answer, if there are multiple candidates, prioritize the later one based on the timeline.");
-            sb.append("\nIf a location is found, it MUST be on a new single line and formatted either exactly as 'latitude, longitude' or name of the location if coordinate is unavailable.");
-            sb.append("\nDo not include any further lines.");
-            sb.append("\nIf no suitable location is found, respond with \"Unable to find the location.\"");
+            sb.append("\nWhen determining the answer, if there are multiple candidates, choose the one that took place most recently.");
+            sb.append("\nIf the answer is implicit, such as 'office', '회사', 'home' or '집', exact coordinate could be inferred from the context.");
+            sb.append("\nIf the location is found, it MUST be on a new single line and formatted exactly as 'latitude, longitude'.");
+            sb.append("\nDo not include any further lines and if no suitable location is found, respond with \"Unable to find the location.\"");
         }
         return sb.toString();
     }
