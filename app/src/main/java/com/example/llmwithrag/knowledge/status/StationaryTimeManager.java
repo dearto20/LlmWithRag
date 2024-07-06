@@ -1,9 +1,10 @@
 package com.example.llmwithrag.knowledge.status;
 
-import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PERIOD;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_STATIONARY;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PERIOD;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.llmwithrag.MonitoringService;
@@ -131,25 +132,12 @@ public class StationaryTimeManager implements IKnowledgeComponent {
     @Override
     public void update(int type, MonitoringService.EmbeddingResultListener listener) {
         String latest = getLatestPeriod(type);
+        if (TextUtils.isEmpty(latest)) listener.onSuccess();
 
         Entity periodEntity = new Entity(UUID.randomUUID().toString(),
                 ENTITY_TYPE_PERIOD, getName(type));
         periodEntity.addAttribute("period", latest);
-
-        Entity oldPeriodEntity = mKnowledgeManager.getEntity(periodEntity);
-        Log.i(TAG, "iterating entity : " + periodEntity);
-        Log.i(TAG, "has entity ?" + mKnowledgeManager.equals(oldPeriodEntity, periodEntity));
-
-        //if (mKnowledgeManager.equals(oldPeriodEntity, periodEntity)) return;
-        if (oldPeriodEntity != null) {
-            mKnowledgeManager.removeEntity(oldPeriodEntity);
-            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldPeriodEntity);
-        }
-        mKnowledgeManager.addEntity(periodEntity);
-        mKnowledgeManager.removeEmbedding(mEmbeddingManager, periodEntity);
-        mKnowledgeManager.addEmbedding(mEmbeddingManager, periodEntity, System.currentTimeMillis(),
-                listener);
-        Log.i(TAG, "added " + periodEntity);
+        mKnowledgeManager.addEntity(mEmbeddingManager, periodEntity, listener);
     }
 
     private String getLatestPeriod(int type) {
@@ -163,7 +151,7 @@ public class StationaryTimeManager implements IKnowledgeComponent {
                 break;
             }
         }
-        return (results != null && !results.isEmpty()) ? results.get(0) : "not yet found";
+        return (results != null && !results.isEmpty()) ? results.get(0) : "";
     }
 
     private String getName(int type) {

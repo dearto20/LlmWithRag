@@ -7,6 +7,7 @@ import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION_DU
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.llmwithrag.MonitoringService;
@@ -145,26 +146,13 @@ public class PersistentLocationManager implements IKnowledgeComponent {
     @Override
     public void update(int type, MonitoringService.EmbeddingResultListener listener) {
         String latest = getLatestLocation(type);
+        if (TextUtils.isEmpty(latest)) listener.onSuccess();
 
         Entity locationEntity = new Entity(UUID.randomUUID().toString(),
                 ENTITY_TYPE_LOCATION, getName(type));
         locationEntity.addAttribute("coordinate", latest);
         locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, latest));
-
-        Entity oldLocationEntity = mKnowledgeManager.getEntity(locationEntity);
-        Log.i(TAG, "iterating entity : " + locationEntity);
-        Log.i(TAG, "has entity ?" + mKnowledgeManager.equals(oldLocationEntity, locationEntity));
-
-        //if (mKnowledgeManager.equals(oldLocationEntity, locationEntity)) return;
-        if (oldLocationEntity != null) {
-            mKnowledgeManager.removeEntity(oldLocationEntity);
-            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldLocationEntity);
-        }
-        mKnowledgeManager.addEntity(locationEntity);
-        mKnowledgeManager.removeEmbedding(mEmbeddingManager, locationEntity);
-        mKnowledgeManager.addEmbedding(mEmbeddingManager, locationEntity, System.currentTimeMillis(),
-                listener);
-        Log.i(TAG, "added " + locationEntity);
+        mKnowledgeManager.addEntity(mEmbeddingManager, locationEntity, listener);
     }
 
     private String getLatestLocation(int type) {
@@ -186,7 +174,7 @@ public class PersistentLocationManager implements IKnowledgeComponent {
                 break;
             }
         }
-        return (results != null && !results.isEmpty()) ? results.get(0) : "not yet found";
+        return (results != null && !results.isEmpty()) ? results.get(0) : "";
     }
 
     private String getName(int type) {

@@ -1,6 +1,15 @@
 package com.example.llmwithrag.knowledge.apps;
 
+import static com.example.llmwithrag.Utils.getDate;
+import static com.example.llmwithrag.Utils.getFileName;
+import static com.example.llmwithrag.Utils.getReadableAddressFromCoordinates;
+import static com.example.llmwithrag.Utils.getTime;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_DATE;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PHOTO;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_ATTACHED_IN;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_TAKEN_AT_LOCATION;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_TAKEN_ON_DATE;
 
 import android.content.Context;
 import android.os.Environment;
@@ -44,28 +53,43 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
                 + fileName;
         if (!new File(path).exists()) return;
 
-        String title = getFileName(path);
+        String name = getFileName(path);
         Date dateTaken = new Date(getDateTakenFromExif(path));
         String location = getLocationFromExif(path);
-        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(dateTaken);
-        String time = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(dateTaken);
+        String date = getDate(dateTaken.getTime());
+        String time = getTime(dateTaken.getTime());
 
-        Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, title);
+        Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, name);
         photoEntity.addAttribute("filePath", path);
         photoEntity.addAttribute("date", date);
         photoEntity.addAttribute("time", time);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
+        if (!mKnowledgeManager.addEntity(mEmbeddingManager, photoEntity)) return;
 
-        Entity oldPhotoEntity = mKnowledgeManager.getEntity(photoEntity);
-        if (mKnowledgeManager.equals(oldPhotoEntity, photoEntity)) return;
-        if (oldPhotoEntity != null) {
-            mKnowledgeManager.removeEntity(oldPhotoEntity);
-            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldPhotoEntity);
+        Entity dateEntity = null;
+        if (photoEntity.hasAttribute("date")) {
+            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, date);
+            dateEntity.addAttribute("date", date);
+            mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
         }
-        mKnowledgeManager.addEntity(photoEntity);
-        mKnowledgeManager.removeEmbedding(mEmbeddingManager, photoEntity);
-        mKnowledgeManager.addEmbedding(mEmbeddingManager, photoEntity, dateTaken.getTime());
-        Log.i(TAG, "added " + photoEntity);
+
+        Entity locationEntity = null;
+        if (photoEntity.hasAttribute("location")) {
+            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION, location);
+            locationEntity.addAttribute("coordinate", location);
+            locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
+        }
+
+        if (dateEntity != null) {
+            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                    photoEntity, RELATIONSHIP_TAKEN_ON_DATE, dateEntity);
+        }
+        if (locationEntity != null) {
+            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                    photoEntity, RELATIONSHIP_TAKEN_AT_LOCATION, locationEntity);
+        }
+        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                photoEntity, RELATIONSHIP_ATTACHED_IN, photoEntity);
     }
 
     @Override
@@ -124,9 +148,5 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
         }
         Log.i(TAG, "failed to find creation time");
         return System.currentTimeMillis();
-    }
-
-    private String getFileName(String filePath) {
-        return new File(filePath).getName();
     }
 }

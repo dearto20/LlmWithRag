@@ -277,6 +277,7 @@ public class PerformQueryFragment extends Fragment {
                         public void onResponse(Call<CompletionResponse> call, Response<CompletionResponse> response) {
                             if (response.isSuccessful() && response.body() != null) {
                                 String completion = response.body().choices.get(0).message.content;
+                                completion = adjustResponse(completion);
                                 Log.i(TAG, "response from the llm: " + completion);
 
                                 mResultDisplay.setText(runNaviApp(extractGeoLocation(completion)));
@@ -309,6 +310,7 @@ public class PerformQueryFragment extends Fragment {
             sb.append("\nAnd here's schema : ").append(schema);
             sb.append("\nGo through the user's query and just rebuild it in the form of given schema and don't try to answer or take any other action.");
             sb.append("\nOn writing the \"time\" attribute in any entities, if the value is implicit like \"오늘\" or \"today\", adjust it with explicit value");
+            sb.append("\nAssume 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I stay while not working, and they have to be recognized as entities.");
             sb.append("\nEnsure you provide only json-formatted string, and do not add any other comments");
             sb.append("\nIn the bracket, 'entities' MUST be at the top level of the hierarchy as the schema indicates.");
         } else {
@@ -320,6 +322,8 @@ public class PerformQueryFragment extends Fragment {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             sb.append("\nToday is ").append(sdf.format(new Date()));
             sb.append("\nIdentify and correlate all the entities based on the given context.");
+            sb.append("\nAssume that 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I stay while not working.");
+            sb.append("\nThe location associated with date A MUST not be correlated to an event on date B during inference.");
             sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event.");
 
             if (SHOW_LLM_PROCESS) {
@@ -328,7 +332,6 @@ public class PerformQueryFragment extends Fragment {
                 sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
             }
 
-            sb.append("\nAssume that 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I stay while not working.");
             sb.append("\nIn determining the answer, if there are multiple candidates, prioritize the later one based on the timeline.");
             sb.append("\nIf a location is found, it MUST be on a new single line and formatted either exactly as 'latitude, longitude' or name of the location if coordinate is unavailable.");
             sb.append("\nDo not include any further lines.");

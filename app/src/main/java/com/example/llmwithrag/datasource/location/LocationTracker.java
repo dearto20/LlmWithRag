@@ -23,7 +23,7 @@ import java.util.List;
 public class LocationTracker implements IDataSourceComponent {
     private static final String TAG = LocationTracker.class.getSimpleName();
     private static final boolean DEBUG = false;
-    private static final long INTERVAL = 1000 * 60 * 10;
+    private static final long INTERVAL = 1000 * 10;
     private final Context mContext;
     private final Handler mHandler;
     private final LocationManager mLocationManager;
@@ -43,6 +43,8 @@ public class LocationTracker implements IDataSourceComponent {
             mLocationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER, INTERVAL, 0, mLocationListener,
                     mHandler.getLooper());
+            Location gpsLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (gpsLocation != null) mLocationListener.onLocationChanged(gpsLocation);
         } else {
             Log.e(TAG, "permission ACCESS_COARSE_LOCATION not granted");
         }
@@ -52,6 +54,8 @@ public class LocationTracker implements IDataSourceComponent {
             mLocationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, INTERVAL, 0, mLocationListener,
                     mHandler.getLooper());
+            Location networkLocation = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            if (networkLocation != null) mLocationListener.onLocationChanged(networkLocation);
         } else {
             Log.e(TAG, "permission ACCESS_FINE_LOCATION not granted");
         }

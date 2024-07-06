@@ -1,12 +1,22 @@
 package com.example.llmwithrag.knowledge.apps;
 
 import static com.example.llmwithrag.Utils.getContactNameByPhoneNumber;
+import static com.example.llmwithrag.Utils.getDate;
+import static com.example.llmwithrag.Utils.getFileName;
+import static com.example.llmwithrag.Utils.getReadableAddressFromCoordinates;
 import static com.example.llmwithrag.Utils.getSharedPreferenceLong;
+import static com.example.llmwithrag.Utils.getTime;
 import static com.example.llmwithrag.Utils.setSharedPreferenceLong;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_DATE;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_MESSAGE;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_PHOTO;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_USER;
-import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_ATTACHED_IN;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_SENT_BY_USER;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_SENT_ON_DATE;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_TAKEN_AT_LOCATION;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_TAKEN_ON_DATE;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -145,47 +155,33 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
 
     private void handleMessage(String messageId, String address, String body, long date) {
         String sender = getContactNameByPhoneNumber(mContext, address);
-        String dateString = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                .format(date);
-        String timeString = new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-                .format(date);
+        String name = TextUtils.isEmpty(sender) ? address : sender;
+        String dateString = getDate(date);
+        String timeString = getTime(date);
 
-        Entity messageEntity = new Entity(UUID.randomUUID().toString(),
-                ENTITY_TYPE_MESSAGE, ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP);
+        Entity messageEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_MESSAGE, body);
         messageEntity.addAttribute("address", address);
         messageEntity.addAttribute("sender", sender);
         messageEntity.addAttribute("body", body);
         messageEntity.addAttribute("date", dateString);
         messageEntity.addAttribute("time", timeString);
+        if (!mKnowledgeManager.addEntity(mEmbeddingManager, messageEntity)) return;
 
-        Entity oldMessageEntity = mKnowledgeManager.getEntity(messageEntity);
-        if (mKnowledgeManager.equals(oldMessageEntity, messageEntity)) return;
-        if (oldMessageEntity != null) {
-            mKnowledgeManager.removeEntity(oldMessageEntity);
-            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldMessageEntity);
-        }
-        mKnowledgeManager.addEntity(messageEntity);
-        mKnowledgeManager.removeEmbedding(mEmbeddingManager, messageEntity);
-        mKnowledgeManager.addEmbedding(mEmbeddingManager, messageEntity, date);
-        Log.i(TAG, "added " + messageEntity);
+        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER, name);
+        userEntity.addAttribute("name", name);
+        mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
 
-        Entity userEntity = new Entity(UUID.randomUUID().toString(),
-                ENTITY_TYPE_USER, sender);
-        userEntity.addAttribute("name", TextUtils.isEmpty(sender) ? address : sender);
+        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, dateString);
+        dateEntity.addAttribute("date", dateString);
+        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
 
-        Entity oldUserEntity = mKnowledgeManager.getEntity(userEntity);
-        if (mKnowledgeManager.equals(oldUserEntity, userEntity)) return;
-        if (oldUserEntity != null) {
-            mKnowledgeManager.removeEntity(oldUserEntity);
-            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldUserEntity);
-        }
-        mKnowledgeManager.addEntity(userEntity);
-        mKnowledgeManager.removeEmbedding(mEmbeddingManager, userEntity);
-        mKnowledgeManager.addEmbedding(mEmbeddingManager, userEntity, date);
-        Log.i(TAG, "added " + userEntity);
+        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                messageEntity, RELATIONSHIP_SENT_BY_USER, userEntity);
+        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                messageEntity, RELATIONSHIP_SENT_ON_DATE, dateEntity);
+
         if (date > mLastUpdated) mLastUpdated = date;
-
-        if (messageId != null) handleImage(messageId, userEntity.getId(), body, date);
+        if (messageId != null) handleImage(messageId, messageEntity);
     }
 
     private String getMmsAddress(String id) {
@@ -205,8 +201,7 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         return null;
     }
 
-    private void extractPhotoMetadata(Context context, Uri dataUri, String sender, String body,
-                                      long timestamp) {
+    private void extractPhotoMetadata(Context context, Uri dataUri, Entity messageEntity) {
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(dataUri);
             if (inputStream != null) {
@@ -221,7 +216,7 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
                 outputStream.close();
                 inputStream.close();
 
-                handlePhoto(tempFile.getAbsolutePath(), sender, body, timestamp);
+                handlePhoto(tempFile.getAbsolutePath(), messageEntity);
 
                 // Delete the temporary file
                 tempFile.delete();
@@ -231,7 +226,7 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         }
     }
 
-    private void handleImage(String id, String sender, String body, long timestamp) {
+    private void handleImage(String id, Entity messageEntity) {
         Uri partUri = Telephony.Mms.CONTENT_URI.buildUpon().appendPath(id).appendPath("part").build();
         Cursor cursor = mContentResolver.query(partUri, null, null, null, null);
         if (cursor == null) return;
@@ -246,7 +241,7 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
                     if (index < 0) return;
                     String partId = cursor.getString(index);
                     Uri dataUri = Uri.parse("content://mms/part/" + partId);
-                    extractPhotoMetadata(mContext, dataUri, sender, body, timestamp);
+                    extractPhotoMetadata(mContext, dataUri, messageEntity);
                 }
             }
         } finally {
@@ -292,35 +287,48 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         return System.currentTimeMillis();
     }
 
-    private String getFileName(String filePath) {
-        return new File(filePath).getName();
-    }
-
-    private void handlePhoto(String path, String sender, String body, long timestamp) {
-        String title = getFileName(path);
+    private void handlePhoto(String path, Entity messageEntity) {
         Date dateTaken = new Date(getDateTakenFromExif(path));
+        String name = getFileName(path);
+        String sender = messageEntity.getAttributes().get("sender");
+        String body = messageEntity.getAttributes().get("body");
         String location = getLocationFromExif(path);
-        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(timestamp);
-        String time = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(timestamp);
+        String dateString = getDate(dateTaken.getTime());
+        String timeString = getTime(dateTaken.getTime());
 
-        Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, title);
+        Entity photoEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_PHOTO, name);
         photoEntity.addAttribute("sender", sender);
         photoEntity.addAttribute("body", body);
         photoEntity.addAttribute("filePath", path);
-        photoEntity.addAttribute("date", date);
-        photoEntity.addAttribute("time", time);
+        photoEntity.addAttribute("date", dateString);
+        photoEntity.addAttribute("time", timeString);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
+        if (!mKnowledgeManager.addEntity(mEmbeddingManager, photoEntity)) return;
 
-        Entity oldPhotoEntity = mKnowledgeManager.getEntity(photoEntity);
-        if (mKnowledgeManager.equals(oldPhotoEntity, photoEntity)) return;
-        if (oldPhotoEntity != null) {
-            mKnowledgeManager.removeEntity(oldPhotoEntity);
-            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldPhotoEntity);
+        Entity dateEntity = null;
+        if (photoEntity.hasAttribute("date")) {
+            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, dateString);
+            dateEntity.addAttribute("date", dateString);
+            mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
         }
-        mKnowledgeManager.addEntity(photoEntity);
-        mKnowledgeManager.removeEmbedding(mEmbeddingManager, photoEntity);
-        mKnowledgeManager.addEmbedding(mEmbeddingManager, photoEntity, timestamp);
-        Log.i(TAG, "added " + photoEntity);
+
+        Entity locationEntity = null;
+        if (photoEntity.hasAttribute("location")) {
+            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION, location);
+            locationEntity.addAttribute("coordinate", location);
+            locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
+        }
+
+        if (dateEntity != null) {
+            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                    photoEntity, RELATIONSHIP_TAKEN_ON_DATE, dateEntity);
+        }
+        if (locationEntity != null) {
+            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                    photoEntity, RELATIONSHIP_TAKEN_AT_LOCATION, locationEntity);
+        }
+        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                photoEntity, RELATIONSHIP_ATTACHED_IN, messageEntity);
     }
 
     private String getMmsText(String id) {

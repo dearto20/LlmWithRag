@@ -3,13 +3,18 @@ package com.example.llmwithrag.knowledge.apps;
 import static com.example.llmwithrag.BuildConfig.EMAIL_ADDRESS;
 import static com.example.llmwithrag.BuildConfig.EMAIL_PASSWORD;
 import static com.example.llmwithrag.Utils.getContactNameByEmail;
+import static com.example.llmwithrag.Utils.getDate;
+import static com.example.llmwithrag.Utils.getTime;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_DATE;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_EMAIL;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_USER;
-import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_SENT_BY_USER;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_SENT_ON_DATE;
 
 import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.llmwithrag.MonitoringService;
@@ -23,9 +28,7 @@ import com.sun.mail.imap.IMAPStore;
 import org.jsoup.Jsoup;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -140,56 +143,33 @@ public class EmailAppManager implements IKnowledgeComponent {
                     try {
                         String address = ((InternetAddress) message.getFrom()[0]).getAddress();
                         String sender = getContactNameByEmail(mContext, address);
+                        String name = TextUtils.isEmpty(sender) ? address : sender;
                         Date date = message.getReceivedDate();
-                        String dateString = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                .format(date);
-                        String timeString = new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-                                .format(date);
+                        String dateString = getDate(date.getTime());
                         String subject = message.getSubject();
                         String body = getBody(message);
 
-                        Log.i(TAG, "address : " + address);
-                        Log.i(TAG, "sender : " + sender);
-                        Log.i(TAG, "subject : " + subject);
-                        Log.i(TAG, "body : " + body);
-                        Log.i(TAG, "date : " + dateString);
-                        Log.i(TAG, "time : " + timeString);
-
-
-                        Entity emailEntity = new Entity(UUID.randomUUID().toString(),
-                                ENTITY_TYPE_EMAIL, ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP);
+                        Entity emailEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_EMAIL, subject);
                         emailEntity.addAttribute("address", address);
                         emailEntity.addAttribute("sender", sender);
                         emailEntity.addAttribute("subject", subject);
                         emailEntity.addAttribute("body", body);
-                        emailEntity.addAttribute("date", dateString);
-                        emailEntity.addAttribute("time", timeString);
+                        emailEntity.addAttribute("date", getDate(date.getTime()));
+                        emailEntity.addAttribute("time", getTime(date.getTime()));
+                        if (!mKnowledgeManager.addEntity(mEmbeddingManager, emailEntity)) continue;
 
-                        Entity oldEmailEntity = mKnowledgeManager.getEntity(emailEntity);
-                        if (mKnowledgeManager.equals(oldEmailEntity, emailEntity)) continue;
-                        if (oldEmailEntity != null) {
-                            mKnowledgeManager.removeEntity(oldEmailEntity);
-                            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldEmailEntity);
-                        }
-                        mKnowledgeManager.addEntity(emailEntity);
-                        mKnowledgeManager.removeEmbedding(mEmbeddingManager, emailEntity);
-                        mKnowledgeManager.addEmbedding(mEmbeddingManager, emailEntity, date.getTime());
-                        Log.i(TAG, "added " + emailEntity);
+                        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER, name);
+                        userEntity.addAttribute("name", name);
+                        mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
 
-                        Entity userEntity = new Entity(UUID.randomUUID().toString(),
-                                ENTITY_TYPE_USER, address);
-                        userEntity.addAttribute("name", sender);
+                        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, dateString);
+                        dateEntity.addAttribute("date", dateString);
+                        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
 
-                        Entity oldUserEntity = mKnowledgeManager.getEntity(userEntity);
-                        if (mKnowledgeManager.equals(oldUserEntity, userEntity)) continue;
-                        if (oldUserEntity != null) {
-                            mKnowledgeManager.removeEntity(oldUserEntity);
-                            mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldUserEntity);
-                        }
-                        mKnowledgeManager.addEntity(userEntity);
-                        mKnowledgeManager.removeEmbedding(mEmbeddingManager, userEntity);
-                        mKnowledgeManager.addEmbedding(mEmbeddingManager, userEntity, date.getTime());
-                        Log.i(TAG, "added " + userEntity);
+                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                emailEntity, RELATIONSHIP_SENT_BY_USER, userEntity);
+                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                emailEntity, RELATIONSHIP_SENT_ON_DATE, dateEntity);
                     } catch (Throwable e) {
                         Log.e(TAG, e.toString());
                         e.printStackTrace();

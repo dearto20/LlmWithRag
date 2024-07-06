@@ -1,8 +1,13 @@
 package com.example.llmwithrag.knowledge.apps;
 
 import static com.example.llmwithrag.Utils.getCoordinatesFromReadableAddress;
+import static com.example.llmwithrag.Utils.getDate;
+import static com.example.llmwithrag.Utils.getReadableAddressFromCoordinates;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_DATE;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_EVENT;
-import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP;
+import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_TYPE_LOCATION;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_HELD_AT_LOCATION;
+import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_HELD_ON_DATE;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -22,8 +27,6 @@ import com.example.llmwithrag.kg.KnowledgeManager;
 import com.example.llmwithrag.knowledge.IKnowledgeComponent;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 import java.util.UUID;
 
 public class CalendarAppManager extends ContentObserver implements IKnowledgeComponent {
@@ -98,34 +101,41 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                     int locationIndex = cursor.getColumnIndex(CalendarContract.Events.EVENT_LOCATION);
                     String location = getCoordinatesFromReadableAddress(mContext,
                             (locationIndex >= 0) ? cursor.getString(locationIndex) : "");
-                    String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                            .format(startDate);
-                    String time = new SimpleDateFormat("HH:mm", Locale.getDefault())
-                            .format(startDate);
+                    String startDateString = getDate(startDate);
+                    String endDateString = getDate(endDate);
 
-                    Entity eventEntity = new Entity(UUID.randomUUID().toString(),
-                            ENTITY_TYPE_EVENT, ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP);
+                    Entity eventEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_EVENT, title);
                     eventEntity.addAttribute("eventId", id);
                     eventEntity.addAttribute("title", title);
-                    eventEntity.addAttribute("date", date);
-                    eventEntity.addAttribute("time", time);
+                    eventEntity.addAttribute("date", startDateString);
+                    eventEntity.addAttribute("time", startDateString);
                     if (!location.isEmpty()) eventEntity.addAttribute("location", location);
-                    eventEntity.addAttribute("startDate", String.valueOf(startDate));
-                    eventEntity.addAttribute("endDate", String.valueOf(endDate));
+                    eventEntity.addAttribute("startDate", startDateString);
+                    eventEntity.addAttribute("endDate", endDateString);
+                    if (!mKnowledgeManager.addEntity(mEmbeddingManager, eventEntity)) continue;
 
-                    Entity oldEventEntity = mKnowledgeManager.getEntity(eventEntity);
-                    Log.i(TAG, "iterating entity : " + eventEntity);
-                    Log.i(TAG, "has entity ?" + mKnowledgeManager.equals(oldEventEntity, eventEntity));
-
-                    if (mKnowledgeManager.equals(oldEventEntity, eventEntity)) continue;
-                    if (oldEventEntity != null) {
-                        mKnowledgeManager.removeEntity(oldEventEntity);
-                        mKnowledgeManager.removeEmbedding(mEmbeddingManager, oldEventEntity);
+                    Entity dateEntity = null;
+                    if (eventEntity.hasAttribute("date")) {
+                        dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE, startDateString);
+                        dateEntity.addAttribute("date", startDateString);
+                        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
                     }
-                    mKnowledgeManager.addEntity(eventEntity);
-                    mKnowledgeManager.removeEmbedding(mEmbeddingManager, eventEntity);
-                    mKnowledgeManager.addEmbedding(mEmbeddingManager, eventEntity, startDate);
-                    Log.i(TAG, "added " + eventEntity);
+
+                    Entity locationEntity = null;
+                    if (eventEntity.hasAttribute("location")) {
+                        locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION, location);
+                        locationEntity.addAttribute("coordinate", location);
+                        locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
+                    }
+
+                    if (dateEntity != null) {
+                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                eventEntity, RELATIONSHIP_HELD_ON_DATE, dateEntity);
+                    }
+                    if (locationEntity != null) {
+                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                eventEntity, RELATIONSHIP_HELD_AT_LOCATION, locationEntity);
+                    }
                 }
             }
         } catch (Throwable e) {

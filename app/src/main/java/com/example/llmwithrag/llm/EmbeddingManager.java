@@ -64,10 +64,6 @@ public class EmbeddingManager {
         public double distance;
     }
 
-    public List<String> findSimilarOnes(String query) {
-        return findSimilarOnes(query, 1);
-    }
-
     public List<String> findSimilarOnes(String query, int type) {
         Embedding embedding = fetchEmbeddings(query);
         List<String> result = new ArrayList<>();
@@ -87,20 +83,9 @@ public class EmbeddingManager {
         int count = 0;
         for (Element element : elements) {
             Log.i(TAG, "* " + element.distance + " : " + element.embedding.text);
-            result.add(type == 0 ? element.embedding.text : element.embedding.description);
-            if (++count == 32) break;
+            result.add(element.embedding.description + ":" + element.embedding.text);
+            if (++count == 48) break;
         }
-
-        /* TODO : yong4531 Test Result [
-        result.clear();
-        result.add("Location During the Day is 37.2582, 127.0554");
-        result.add("Location During the Night is 37.3861, 127.071");
-        result.add("Location During the Weekend is Unavailable");
-        result.add("Time for Not Using the Phone is from 00:56 to 07:20");
-        //result.add("Time for Using Enterprise Wi-Fi is 09:25 to 16:38");
-        result.add("Time for Using Enterprise Wi-Fi is Unavailable");
-        result.add("Time for Using Personal Wi-Fi is Unavailable");
-         */
         return result;
     }
 
@@ -147,8 +132,9 @@ public class EmbeddingManager {
                     insert(new Embedding(text, description, category, embedding));
                     Log.i(TAG, "[" + getAll().size() + "] embeddings added for " + category);
                     listener.onSuccess();
+                } else {
+                    listener.onError();
                 }
-                listener.onError();
             }
 
             @Override

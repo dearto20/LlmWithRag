@@ -9,13 +9,14 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 
-import com.example.llmwithrag.kg.Entity;
+import com.example.llmwithrag.kg.IElement;
 import com.example.llmwithrag.llm.CompletionMessage;
 import com.example.llmwithrag.llm.CompletionRequest;
 import com.example.llmwithrag.llm.CompletionResponse;
 import com.example.llmwithrag.llm.OpenAiService;
 import com.example.llmwithrag.llm.RetrofitClient;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,8 +68,7 @@ public class Utils {
                 }
                 return result;
             }
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (Throwable ignored) {
         }
         return location;
     }
@@ -131,11 +131,6 @@ public class Utils {
         });
     }
 
-    public static String getDate(long timestamp) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss", Locale.getDefault());
-        return sdf.format(timestamp);
-    }
-
     public static long getSharedPreferenceLong(Context context, String name, String key,
                                                long defaultValue) {
         SharedPreferences prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE);
@@ -149,9 +144,9 @@ public class Utils {
         editor.apply();
     }
 
-    public static String generateTimeDeterministicQuery(String target, long currentTimestamp) {
+    public static String generateTimeDeterministicQuery(String target) {
         StringBuilder sb = new StringBuilder();
-        sb.append("\nCurrent time is ").append(getDate(currentTimestamp));
+        sb.append("\nCurrent time is ").append(getDate(System.currentTimeMillis()));
         sb.append("\nHere's the target sentence : \"").append(target).append("\"");
         sb.append("\nIf the sentence includes implicit day like \"오늘\", \"내일\", \"today\" or " +
                 "\"tomorrow\" or any other similar ones as well, adjust it with explicit value to look like a natural sentence.");
@@ -162,10 +157,10 @@ public class Utils {
         return sb.toString();
     }
 
-    public static String generateDescriptiveQuery(Entity entity, long currentTimestamp) {
+    public static String generateDescriptiveQuery(IElement element) {
         StringBuilder sb = new StringBuilder();
-        sb.append("\nCurrent time is ").append(getDate(currentTimestamp));
-        sb.append("\nHere's the target entity : \"").append(entity.getDescription()).append("\"");
+        sb.append("\nCurrent time is ").append(getDate(System.currentTimeMillis()));
+        sb.append("\nHere's the target entity : \"").append(element.getDescription()).append("\"");
         sb.append("\nFlatten the entity with all including attributes to the natural one single sentence in Korean.");
         sb.append("\nMake sure NOT to omit any single attribute in generating the sentence.");
         sb.append("\nIf the sentence includes implicit day like \"오늘\", \"내일\", \"today\" or " +
@@ -175,5 +170,19 @@ public class Utils {
                 "or something like that to look like a natural sentence.");
         sb.append("\nReturn only the sentence in a informative and declarative form, not in a interrogative or exclamatory either adjusted or not.");
         return sb.toString();
+    }
+
+    public static String getDate(long timestamp) {
+        return (timestamp == -1) ? "" :
+                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(timestamp);
+    }
+
+    public static String getTime(long timestamp) {
+        return (timestamp == -1) ? "" :
+                new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(timestamp);
+    }
+
+    public static String getFileName(String path) {
+        return new File(path).getName();
     }
 }

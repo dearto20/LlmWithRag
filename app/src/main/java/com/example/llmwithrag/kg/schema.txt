@@ -1,67 +1,111 @@
 {
-    "entities":[
+    "entities": [
         {
-            "type":"Photo",
-            "attributes":{
-                "sender":"",
-                "body:"",
-                "filePath":"",
-                "date":"",
-                "time":"",
-                "location":"",
+            "type": "Photo",
+            "attributes": {
+                "filePath": "",
+                "date": "",
+                "time": ""
             },
         },
         {
-            "type":"Event",
-            "attributes":{
-                "eventId":"",
-                "title":"",
-                "date":"",
-                "time":"",
-                "location":"",
-                "startDate":"",
-                "endDate":"",
+            "type": "Event",
+            "attributes": {
+                "eventId": "",
+                "title": "",
+                "date": "",
+                "time": "",
+                "location": "",
+                "startDate": "",
+                "endDate": ""
             },
         },
         {
-            "type":"Message",
-            "attributes":{
-                "address",
-                "sender":"",
-                "body":"",
-                "date":"",
-                "time":"",
+            "type": "Message",
+            "attributes": {
+                "address": "",
+                "sender": "",
+                "body": "",
+                "date": "",
+                "time": ""
             },
         },
         {
-            "type":"Email",
-            "attributes":{
-                "address":"",
-                "sender":"",
-                "subject":"",
-                "body":"",
-                "date":"",
-                "time":"",
+            "type": "Email",
+            "attributes": {
+                "address": "",
+                "sender": "",
+                "subject": "",
+                "body": "",
+                "date": "",
+                "time": ""
             },
         },
         {
-            "type":"User",
-            "attributes":{
-                "name":"",
+            "type": "User",
+            "attributes": {
+                "name": ""
             },
         },
         {
-            "type":"Location",
-            "attributes":{
-                "coordinate":"",
-                "location":"",
-            }
+            "type": "Location",
+            "attributes": {
+                "coordinate": "",
+                "location": ""
+            },
         },
         {
-            "type":"Period",
-            "attributes":{
-                "period",
-            }
+            "type": "Date",
+            "attributes": {
+                "date": ""
+            },
         },
     ],
+    "relationships": [
+        {
+            "from": "Message",
+            "type": "was sent by user",
+            "to": "User"
+        },
+        {
+            "from": "Message",
+            "type": "was sent on date",
+            "to": "Date"
+        },
+        {
+            "from": "Email",
+            "type": "was sent by user",
+            "to": "User"
+        },
+        {
+            "from": "Email",
+            "type": "was sent on date",
+            "to": "Date"
+        },
+        {
+            "type": "was taken on date",
+            "from": "Photo",
+            "to": "Date"
+        },
+        {
+            "type": "was taken at location",
+            "from": "Photo",
+            "to": "Location"
+        },
+        {
+            "type": "was attached in",
+            "from": "Photo",
+            "to": "Message"
+        },
+        {
+            "type": "held on date",
+            "from": "Event",
+            "to": "Date"
+        },
+        {
+            "type": "held at location",
+            "from": "Event",
+            "to": "Location"
+        }
+    ]
 }

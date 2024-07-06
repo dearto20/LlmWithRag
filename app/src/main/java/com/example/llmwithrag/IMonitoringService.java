@@ -7,8 +7,6 @@ import java.util.List;
 public interface IMonitoringService {
     void deleteAll();
 
-    List<String> findSimilarOnes(String query);
-
     List<String> findSimilarOnes(String query, String response);
 
     String getSchema();

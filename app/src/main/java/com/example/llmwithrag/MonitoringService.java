@@ -70,7 +70,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private static final String KEY_MESSAGES_APP_MESSAGE = "messages_app_message";
     private static final long MIN_DELAY_PERIODIC_UPDATE = 5000L;
     private static final long MAX_DELAY_PERIODIC_UPDATE = 600000L;
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final int ID_NOTIFICATION = 1;
     private static final String ID_MAIN_CHANNEL = "001";
     private final IBinder mBinder = new LocalBinder();
@@ -224,11 +224,6 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public List<String> findSimilarOnes(String query) {
-        return mEmbeddingManager.findSimilarOnes(query);
-    }
-
-    @Override
     public List<String> findSimilarOnes(String query, String response) {
         Log.i(TAG, "find similar ones : " + query + ", " + response);
 
@@ -236,9 +231,6 @@ public class MonitoringService extends Service implements IMonitoringService {
         if (IS_SENTENCE_BASED) {
             flattened = response;
         } else {
-            /*
-            flattened = response;
-            */
             Map<String, Entity> entities =
                     mKnowledgeManager.parseEntitiesFromResponse(response);
             Log.i(TAG, "entities : " + entities);

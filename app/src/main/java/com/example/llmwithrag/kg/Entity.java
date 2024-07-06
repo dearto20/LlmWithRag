@@ -10,7 +10,7 @@ import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Entity {
+public class Entity implements IElement {
     private final Map<String, String> attributes;
     private final String id;
     private final String type;
@@ -23,18 +23,22 @@ public class Entity {
         attributes = new HashMap<>();
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public String getContentId() {
         return String.valueOf(hash(getDescription().toString()));
     }
 
+    @Override
     public String getType() {
         return type;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -43,10 +47,15 @@ public class Entity {
         attributes.put(key, value);
     }
 
+    public boolean hasAttribute(String key) {
+        return attributes.containsKey(key);
+    }
+
     public Map<String, String> getAttributes() {
         return attributes;
     }
 
+    @Override
     public Map<String, String> getDescription() {
         Map<String, String> description = new HashMap<>(attributes);
         if (ENTITY_TYPE_LOCATION.equals(type)) description.remove("coordinate");
@@ -71,7 +80,7 @@ public class Entity {
     @Override
     public String toString() {
         Map<String, String> description = new HashMap<>(getDescription());
-        description.put("id", id);
+        description.put("id", getId());
         return description.toString();
     }
 }
