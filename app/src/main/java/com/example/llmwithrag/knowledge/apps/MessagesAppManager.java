@@ -37,6 +37,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.example.llmwithrag.IKnowledgeListener;
 import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
@@ -62,15 +63,17 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
     private final Context mContext;
     private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
+    private final IKnowledgeListener mListener;
     private long mLastUpdated;
 
     public MessagesAppManager(Context context, KnowledgeManager knowledgeManager,
-                              EmbeddingManager embeddingManager) {
+                              EmbeddingManager embeddingManager, IKnowledgeListener listener) {
         super(new Handler(Looper.getMainLooper()));
         mContentResolver = context.getApplicationContext().getContentResolver();
         mContext = context;
         mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
+        mListener = listener;
         mLastUpdated = getSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED,
                 System.currentTimeMillis());
     }
@@ -190,6 +193,8 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
 
         if (date > mLastUpdated) mLastUpdated = date;
         if (messageId != null) handleImage(messageId, messageEntity);
+
+        mListener.onUpdate();
     }
 
     private String getMmsAddress(String id) {
@@ -340,6 +345,8 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         }
         mKnowledgeManager.addRelationship(mEmbeddingManager,
                 photoEntity, RELATIONSHIP_ATTACHED_IN, messageEntity);
+
+        mListener.onUpdate();
     }
 
     private String getMmsText(String id) {

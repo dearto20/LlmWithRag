@@ -20,6 +20,7 @@ import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.example.llmwithrag.IKnowledgeListener;
 import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
@@ -55,6 +56,7 @@ public class EmailAppManager implements IKnowledgeComponent {
     private final Context mContext;
     private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
+    private final IKnowledgeListener mListener;
     private final Handler mHandler;
 
     private boolean mRunning = false;
@@ -62,10 +64,11 @@ public class EmailAppManager implements IKnowledgeComponent {
     private IMAPStore mStore;
 
     public EmailAppManager(Context context, KnowledgeManager knowledgeManager,
-                           EmbeddingManager embeddingManager) {
+                           EmbeddingManager embeddingManager, IKnowledgeListener listener) {
         mContext = context;
         mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
+        mListener = listener;
         HandlerThread handlerThread = new HandlerThread(EmailAppManager.class.getSimpleName());
         handlerThread.start();
         mHandler = new Handler(handlerThread.getLooper());
@@ -176,6 +179,8 @@ public class EmailAppManager implements IKnowledgeComponent {
                                 emailEntity, RELATIONSHIP_SENT_BY_USER, userEntity);
                         mKnowledgeManager.addRelationship(mEmbeddingManager,
                                 emailEntity, RELATIONSHIP_SENT_ON_DATE, dateEntity);
+
+                        mListener.onUpdate();
                     } catch (Throwable e) {
                         Log.e(TAG, e.toString());
                         e.printStackTrace();

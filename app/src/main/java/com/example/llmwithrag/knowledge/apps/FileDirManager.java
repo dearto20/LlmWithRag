@@ -22,6 +22,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.example.llmwithrag.IKnowledgeListener;
 import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
@@ -39,14 +40,16 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
     private final Context mContext;
     private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
+    private final IKnowledgeListener mListener;
 
     public FileDirManager(Context context, KnowledgeManager knowledgeManager,
-                          EmbeddingManager embeddingManager) {
+                          EmbeddingManager embeddingManager, IKnowledgeListener listener) {
         super(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/",
                 FileObserver.ALL_EVENTS);
         mContext = context;
         mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
+        mListener = listener;
     }
 
     @Override
@@ -96,6 +99,8 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
         }
         mKnowledgeManager.addRelationship(mEmbeddingManager,
                 photoEntity, RELATIONSHIP_ATTACHED_IN, photoEntity);
+
+        mListener.onUpdate();
     }
 
     @Override

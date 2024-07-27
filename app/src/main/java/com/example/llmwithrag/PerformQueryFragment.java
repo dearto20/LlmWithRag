@@ -302,12 +302,11 @@ public class PerformQueryFragment extends Fragment {
 
     private String generateQuery(String query, String schema, List<String> results) {
         StringBuilder sb = new StringBuilder("My query is \"" + query + "\".");
-        sb.append("\nToday is ").append(getDate(System.currentTimeMillis()));
+        sb.append("\nAssume 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I rest and take sleep until I go to work the next day, and they have to be recognized as entities.");
         if (results == null) {
             sb.append("\nAnd here's schema : ").append(schema);
             sb.append("\nGo through the user's query and just rebuild it in the form of given schema and don't try to answer or take any other action.");
             sb.append("\nOn writing the \"time\" attribute in any entities, if the value is implicit like \"오늘\" or \"today\", adjust it with explicit value");
-            sb.append("\nAssume 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I stay while not working, and they have to be recognized as entities.");
             sb.append("\nEnsure you provide only json-formatted string, and do not add any other comments");
             sb.append("\nIn the bracket, 'entities' MUST be at the top level of the hierarchy as the schema indicates.");
         } else {
@@ -317,18 +316,19 @@ public class PerformQueryFragment extends Fragment {
             }
             sb.append("\nIdentify and correlate all the entities based on the given context.");
             sb.append("\nThe location associated with date A MUST not be correlated to an event on date B during inference.");
-            sb.append("\nAssume that 'office' or '회사' refers to the location where I work and 'home' or '집' refers to the location where I spend time while not working.");
             sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event.");
 
             if (SHOW_LLM_PROCESS) {
-                sb.append("\nyou MUST provide a step-by-step explanation of your reasoning in determining the location.");
+                sb.append("\nYou MUST provide a step-by-step explanation of your reasoning in determining the location.");
                 sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
                 sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
             }
 
-            sb.append("\nWhen determining the answer, if there are multiple candidates, choose the one that took place most recently.");
+            sb.append("\nFind the one most probable location which meets user's query out of all the coordinates.");
+            sb.append("\nIf there are multiple candidates for the answer, give the higher priority to the recent one.");
             sb.append("\nIf the answer is implicit, such as 'office', '회사', 'home' or '집', exact coordinate could be inferred from the context.");
             sb.append("\nIf the location is found, it MUST be on a new single line and formatted exactly as 'latitude, longitude'.");
+            sb.append("\nIn determining the location, do not consider the textual representation of addresses, and only consider coordinates.");
             sb.append("\nDo not include any further lines and if no suitable location is found, respond with \"Unable to find the location.\"");
         }
         return sb.toString();

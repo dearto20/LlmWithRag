@@ -24,6 +24,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.example.llmwithrag.IKnowledgeListener;
 import com.example.llmwithrag.MonitoringService;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
@@ -38,16 +39,18 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
     private final Context mContext;
     private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
+    private final IKnowledgeListener mListener;
     private long mStartDate;
     private long mEndDate;
 
     public CalendarAppManager(Context context, KnowledgeManager kgManager,
-                              EmbeddingManager embeddingManager) {
+                              EmbeddingManager embeddingManager, IKnowledgeListener listener) {
         super(new Handler(Looper.getMainLooper()));
         mContentResolver = context.getApplicationContext().getContentResolver();
         mContext = context;
         mKnowledgeManager = kgManager;
         mEmbeddingManager = embeddingManager;
+        mListener = listener;
 
         try {
             mStartDate = System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 16;
@@ -142,6 +145,8 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                         mKnowledgeManager.addRelationship(mEmbeddingManager,
                                 eventEntity, RELATIONSHIP_HELD_AT_LOCATION, locationEntity);
                     }
+
+                    mListener.onUpdate();
                 }
             }
         } catch (Throwable e) {

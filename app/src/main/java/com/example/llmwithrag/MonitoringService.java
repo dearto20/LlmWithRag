@@ -133,11 +133,14 @@ public class MonitoringService extends Service implements IMonitoringService {
         mKnowledgeManager = new KnowledgeManager(context);
         mEmbeddingManager = new EmbeddingManager(context);
         mCalendarAppManager = new CalendarAppManager(context,
-                mKnowledgeManager, mEmbeddingManager);
+                mKnowledgeManager, mEmbeddingManager,
+                () -> updateCalendarAppEvent(isCalendarAppEventEnabled()));
         mEmailAppManager = new EmailAppManager(context,
-                mKnowledgeManager, mEmbeddingManager);
+                mKnowledgeManager, mEmbeddingManager,
+                () -> updateEmailAppMessage(isEmailAppMessageEnabled()));
         mMessagesAppManager = new MessagesAppManager(context,
-                mKnowledgeManager, mEmbeddingManager);
+                mKnowledgeManager, mEmbeddingManager,
+                () -> updateMessagesAppMessage(isMessagesAppMessageEnabled()));
         mPersistentLocationManager = new PersistentLocationManager(context,
                 mKnowledgeManager, mEmbeddingManager,
                 new PersistentLocationRepository(context), new LocationTracker(context, looper));
