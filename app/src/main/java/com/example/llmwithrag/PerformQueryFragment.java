@@ -326,8 +326,7 @@ public class PerformQueryFragment extends Fragment {
 
             sb.append("\nFind the one most probable location which meets user's query out of all the coordinates.");
             sb.append("\nIf there are multiple candidates for the answer, give the higher priority to the recent one.");
-            sb.append("\nIf the answer is implicit, such as 'office', '회사', 'home' or '집', exact coordinate could be inferred from the context.");
-            sb.append("\nIf the location is found, it MUST be on a new single line and formatted exactly as 'latitude, longitude'.");
+            sb.append("\nIf the location is found, it MUST be on a new single line and formatted to coordinate exactly as 'latitude, longitude'.");
             sb.append("\nIn determining the location, do not consider the textual representation of addresses, and only consider coordinates.");
             sb.append("\nDo not include any further lines and if no suitable location is found, respond with \"Unable to find the location.\"");
         }
