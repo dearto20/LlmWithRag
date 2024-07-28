@@ -163,24 +163,28 @@ public class EmailAppManager implements IKnowledgeComponent {
                         emailEntity.addAttribute("body", body);
                         emailEntity.addAttribute("date", getDate(date.getTime()));
                         emailEntity.addAttribute("time", getTime(date.getTime()));
-                        if (!mKnowledgeManager.addEntity(mEmbeddingManager, emailEntity)) continue;
+                        mKnowledgeManager.addEntity(mEmbeddingManager, emailEntity,
+                                new MonitoringService.EmbeddingResultListener() {
+                                    @Override
+                                    public void onSuccess() {
 
-                        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER,
-                                ENTITY_NAME_USER);
-                        userEntity.addAttribute("name", name);
-                        mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
+                                        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER,
+                                                ENTITY_NAME_USER);
+                                        userEntity.addAttribute("name", name);
+                                        mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
 
-                        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
-                                ENTITY_NAME_DATE);
-                        dateEntity.addAttribute("date", dateString);
-                        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
+                                        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                                                ENTITY_NAME_DATE);
+                                        dateEntity.addAttribute("date", dateString);
+                                        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
 
-                        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                                emailEntity, RELATIONSHIP_SENT_BY_USER, userEntity);
-                        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                                emailEntity, RELATIONSHIP_SENT_ON_DATE, dateEntity);
-
-                        mListener.onUpdate();
+                                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                                emailEntity, RELATIONSHIP_SENT_BY_USER, userEntity);
+                                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                                emailEntity, RELATIONSHIP_SENT_ON_DATE, dateEntity);
+                                        mListener.onUpdate();
+                                    }
+                                });
                     } catch (Throwable e) {
                         Log.e(TAG, e.toString());
                         e.printStackTrace();
@@ -211,13 +215,13 @@ public class EmailAppManager implements IKnowledgeComponent {
     private String getBody(Message message) {
         try {
             if (message.isMimeType("text/plain")) {
-                Log.i(TAG, "1");
+                Log.i(TAG, "type 1");
                 return message.getContent().toString();
             } else if (message.isMimeType("text/html")) {
-                Log.i(TAG, "2");
+                Log.i(TAG, "type 2");
                 return Jsoup.parse((String) message.getContent()).text();
             } else if (message.isMimeType("multipart/*")) {
-                Log.i(TAG, "3");
+                Log.i(TAG, "type 3");
                 MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
                 return getTextFromMimeMultipart(mimeMultipart);
             }

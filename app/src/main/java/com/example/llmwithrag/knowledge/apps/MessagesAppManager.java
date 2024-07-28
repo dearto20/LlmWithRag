@@ -174,27 +174,31 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         messageEntity.addAttribute("body", body);
         messageEntity.addAttribute("date", dateString);
         messageEntity.addAttribute("time", timeString);
-        if (!mKnowledgeManager.addEntity(mEmbeddingManager, messageEntity)) return;
+        mKnowledgeManager.addEntity(mEmbeddingManager, messageEntity,
+                new MonitoringService.EmbeddingResultListener() {
+                    @Override
+                    public void onSuccess() {
+                        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER,
+                                ENTITY_NAME_USER);
+                        userEntity.addAttribute("name", name);
+                        mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
 
-        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER,
-                ENTITY_NAME_USER);
-        userEntity.addAttribute("name", name);
-        mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
+                        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                                ENTITY_NAME_DATE);
+                        dateEntity.addAttribute("date", dateString);
+                        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
 
-        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
-                ENTITY_NAME_DATE);
-        dateEntity.addAttribute("date", dateString);
-        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
+                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                messageEntity, RELATIONSHIP_SENT_BY_USER, userEntity);
+                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                messageEntity, RELATIONSHIP_SENT_ON_DATE, dateEntity);
 
-        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                messageEntity, RELATIONSHIP_SENT_BY_USER, userEntity);
-        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                messageEntity, RELATIONSHIP_SENT_ON_DATE, dateEntity);
+                        if (date > mLastUpdated) mLastUpdated = date;
+                        if (messageId != null) handleImage(messageId, messageEntity);
 
-        if (date > mLastUpdated) mLastUpdated = date;
-        if (messageId != null) handleImage(messageId, messageEntity);
-
-        mListener.onUpdate();
+                        mListener.onUpdate();
+                    }
+                });
     }
 
     private String getMmsAddress(String id) {
@@ -317,36 +321,41 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         photoEntity.addAttribute("date", dateString);
         photoEntity.addAttribute("time", timeString);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
-        if (!mKnowledgeManager.addEntity(mEmbeddingManager, photoEntity)) return;
+        mKnowledgeManager.addEntity(mEmbeddingManager, photoEntity,
+                new MonitoringService.EmbeddingResultListener() {
+                    @Override
+                    public void onSuccess() {
+                        Entity dateEntity = null;
+                        if (photoEntity.hasAttribute("date")) {
+                            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                                    ENTITY_NAME_DATE);
+                            dateEntity.addAttribute("date", dateString);
+                            mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
+                        }
 
-        Entity dateEntity = null;
-        if (photoEntity.hasAttribute("date")) {
-            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
-                    ENTITY_NAME_DATE);
-            dateEntity.addAttribute("date", dateString);
-            mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
-        }
+                        Entity locationEntity = null;
+                        if (photoEntity.hasAttribute("location")) {
+                            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION,
+                                    ENTITY_NAME_LOCATION);
+                            locationEntity.addAttribute("coordinate", location);
+                            locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
+                            mKnowledgeManager.addEntity(mEmbeddingManager, locationEntity);
+                        }
 
-        Entity locationEntity = null;
-        if (photoEntity.hasAttribute("location")) {
-            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION,
-                    ENTITY_NAME_LOCATION);
-            locationEntity.addAttribute("coordinate", location);
-            locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
-        }
+                        if (dateEntity != null) {
+                            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                    photoEntity, RELATIONSHIP_TAKEN_ON_DATE, dateEntity);
+                        }
+                        if (locationEntity != null) {
+                            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                    photoEntity, RELATIONSHIP_TAKEN_AT_LOCATION, locationEntity);
+                        }
+                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                photoEntity, RELATIONSHIP_ATTACHED_IN, messageEntity);
 
-        if (dateEntity != null) {
-            mKnowledgeManager.addRelationship(mEmbeddingManager,
-                    photoEntity, RELATIONSHIP_TAKEN_ON_DATE, dateEntity);
-        }
-        if (locationEntity != null) {
-            mKnowledgeManager.addRelationship(mEmbeddingManager,
-                    photoEntity, RELATIONSHIP_TAKEN_AT_LOCATION, locationEntity);
-        }
-        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                photoEntity, RELATIONSHIP_ATTACHED_IN, messageEntity);
-
-        mListener.onUpdate();
+                        mListener.onUpdate();
+                    }
+                });
     }
 
     private String getMmsText(String id) {

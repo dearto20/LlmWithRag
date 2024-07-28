@@ -71,36 +71,41 @@ public class FileDirManager extends FileObserver implements IKnowledgeComponent 
         photoEntity.addAttribute("date", date);
         photoEntity.addAttribute("time", time);
         if (!location.isEmpty()) photoEntity.addAttribute("location", location);
-        if (!mKnowledgeManager.addEntity(mEmbeddingManager, photoEntity)) return;
+        mKnowledgeManager.addEntity(mEmbeddingManager, photoEntity,
+                new MonitoringService.EmbeddingResultListener() {
+                    @Override
+                    public void onSuccess() {
+                        Entity dateEntity = null;
+                        if (photoEntity.hasAttribute("date")) {
+                            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                                    ENTITY_NAME_DATE);
+                            dateEntity.addAttribute("date", date);
+                            mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
+                        }
 
-        Entity dateEntity = null;
-        if (photoEntity.hasAttribute("date")) {
-            dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
-                    ENTITY_NAME_DATE);
-            dateEntity.addAttribute("date", date);
-            mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
-        }
+                        Entity locationEntity = null;
+                        if (photoEntity.hasAttribute("location")) {
+                            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION,
+                                    ENTITY_NAME_LOCATION);
+                            locationEntity.addAttribute("coordinate", location);
+                            locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
+                            mKnowledgeManager.addEntity(mEmbeddingManager, locationEntity);
+                        }
 
-        Entity locationEntity = null;
-        if (photoEntity.hasAttribute("location")) {
-            locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION,
-                    ENTITY_NAME_LOCATION);
-            locationEntity.addAttribute("coordinate", location);
-            locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
-        }
+                        if (dateEntity != null) {
+                            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                    photoEntity, RELATIONSHIP_TAKEN_ON_DATE, dateEntity);
+                        }
+                        if (locationEntity != null) {
+                            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                    photoEntity, RELATIONSHIP_TAKEN_AT_LOCATION, locationEntity);
+                        }
+                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                photoEntity, RELATIONSHIP_ATTACHED_IN, photoEntity);
 
-        if (dateEntity != null) {
-            mKnowledgeManager.addRelationship(mEmbeddingManager,
-                    photoEntity, RELATIONSHIP_TAKEN_ON_DATE, dateEntity);
-        }
-        if (locationEntity != null) {
-            mKnowledgeManager.addRelationship(mEmbeddingManager,
-                    photoEntity, RELATIONSHIP_TAKEN_AT_LOCATION, locationEntity);
-        }
-        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                photoEntity, RELATIONSHIP_ATTACHED_IN, photoEntity);
-
-        mListener.onUpdate();
+                        mListener.onUpdate();
+                    }
+                });
     }
 
     @Override

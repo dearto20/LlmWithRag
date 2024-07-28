@@ -119,34 +119,39 @@ public class CalendarAppManager extends ContentObserver implements IKnowledgeCom
                     if (!location.isEmpty()) eventEntity.addAttribute("location", location);
                     eventEntity.addAttribute("startDate", startDateString);
                     eventEntity.addAttribute("endDate", endDateString);
-                    if (!mKnowledgeManager.addEntity(mEmbeddingManager, eventEntity)) continue;
+                    mKnowledgeManager.addEntity(mEmbeddingManager, eventEntity,
+                            new MonitoringService.EmbeddingResultListener() {
+                                @Override
+                                public void onSuccess() {
+                                    Entity dateEntity = null;
+                                    if (eventEntity.hasAttribute("date")) {
+                                        dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                                                ENTITY_NAME_DATE);
+                                        dateEntity.addAttribute("date", startDateString);
+                                        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
+                                    }
 
-                    Entity dateEntity = null;
-                    if (eventEntity.hasAttribute("date")) {
-                        dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
-                                ENTITY_NAME_DATE);
-                        dateEntity.addAttribute("date", startDateString);
-                        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
-                    }
+                                    Entity locationEntity = null;
+                                    if (eventEntity.hasAttribute("location")) {
+                                        locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION,
+                                                ENTITY_NAME_LOCATION);
+                                        locationEntity.addAttribute("coordinate", location);
+                                        locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
+                                        mKnowledgeManager.addEntity(mEmbeddingManager, locationEntity);
+                                    }
 
-                    Entity locationEntity = null;
-                    if (eventEntity.hasAttribute("location")) {
-                        locationEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_LOCATION,
-                                ENTITY_NAME_LOCATION);
-                        locationEntity.addAttribute("coordinate", location);
-                        locationEntity.addAttribute("location", getReadableAddressFromCoordinates(mContext, location));
-                    }
+                                    if (dateEntity != null) {
+                                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                                eventEntity, RELATIONSHIP_HELD_ON_DATE, dateEntity);
+                                    }
+                                    if (locationEntity != null) {
+                                        mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                                eventEntity, RELATIONSHIP_HELD_AT_LOCATION, locationEntity);
+                                    }
 
-                    if (dateEntity != null) {
-                        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                                eventEntity, RELATIONSHIP_HELD_ON_DATE, dateEntity);
-                    }
-                    if (locationEntity != null) {
-                        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                                eventEntity, RELATIONSHIP_HELD_AT_LOCATION, locationEntity);
-                    }
-
-                    mListener.onUpdate();
+                                    mListener.onUpdate();
+                                }
+                            });
                 }
             }
         } catch (Throwable e) {
