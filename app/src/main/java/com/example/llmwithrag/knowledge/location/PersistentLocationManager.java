@@ -90,10 +90,6 @@ public class PersistentLocationManager implements IKnowledgeComponent {
             frequencyMap.put(key, (value != null ? value : 0) + 1);
         }
 
-        // TODO : remove (yong4531)
-        String[] coordinates = {"37.2582, 127.0555", "37.3861, 127.0711", "37.3861, 127.0711"};
-        frequencyMap.put(coordinates[type], 1000000 + type);
-
         // Add last top value to the candidate list.
         mRepository.updateCandidateList(frequencyMap,
                 KEY_LOCATION_COORDINATES[type], KEY_LOCATION_COUNT[type]);
