@@ -4,7 +4,6 @@ import static android.Manifest.permission.RECORD_AUDIO;
 import static com.example.llmwithrag.BuildConfig.IS_SENTENCE_BASED;
 import static com.example.llmwithrag.BuildConfig.SHOW_LLM_PROCESS;
 import static com.example.llmwithrag.Utils.getCoordinatesFromReadableAddress;
-import static com.example.llmwithrag.Utils.getDate;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
