@@ -368,7 +368,10 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setDayLocationEnabled(boolean enabled) {
+        Log.i(TAG, "set day location enabled to " + enabled);
         if (setSharedPreferences(KEY_DAY_LOCATION, enabled)) {
+            if (!enabled) mPersistentLocationManager.deleteAll();
+            updateDayLocation(isDayLocationEnabled());
             return true;
         }
         return false;
@@ -376,7 +379,10 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setNightLocationEnabled(boolean enabled) {
+        Log.i(TAG, "set night location enabled to " + enabled);
         if (setSharedPreferences(KEY_NIGHT_LOCATION, enabled)) {
+            if (!enabled) mPersistentLocationManager.deleteAll();
+            updateNightLocation(isNightLocationEnabled());
             return true;
         }
         return false;
@@ -384,7 +390,10 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setWeekendLocationEnabled(boolean enabled) {
+        Log.i(TAG, "set weekend location enabled to " + enabled);
         if (setSharedPreferences(KEY_WEEKEND_LOCATION, enabled)) {
+            if (!enabled) mPersistentLocationManager.deleteAll();
+            updateWeekendLocation(isWeekendLocationEnabled());
             return true;
         }
         return false;
@@ -392,7 +401,10 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setStationaryTimeEnabled(boolean enabled) {
+        Log.i(TAG, "set stationary time enabled to " + enabled);
         if (setSharedPreferences(KEY_STATIONARY_TIME, enabled)) {
+            if (!enabled) mStationaryTimeManager.deleteAll();
+            updateStationaryTime(isStationaryTimeEnabled());
             return true;
         }
         return false;
@@ -400,7 +412,10 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setEnterpriseWifiTimeEnabled(boolean enabled) {
+        Log.i(TAG, "set enterprise wifi time enabled to " + enabled);
         if (setSharedPreferences(KEY_ENTERPRISE_WIFI_TIME, enabled)) {
+            if (!enabled) mWifiConnectionTimeManager.deleteAll();
+            updateEnterpriseWifiTime(isEnterpriseWifiTimeEnabled());
             return true;
         }
         return false;
@@ -408,7 +423,10 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setPersonalWifiTimeEnabled(boolean enabled) {
+        Log.i(TAG, "set personal wifi time enabled to " + enabled);
         if (setSharedPreferences(KEY_PERSONAL_WIFI_TIME, enabled)) {
+            if (!enabled) mWifiConnectionTimeManager.deleteAll();
+            updatePersonalWifiTime(isPersonalWifiTimeEnabled());
             return true;
         }
         return false;
@@ -416,7 +434,10 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setCalendarAppEventEnabled(boolean enabled) {
+        Log.i(TAG, "set calendar app event enabled to " + enabled);
         if (setSharedPreferences(KEY_CALENDAR_APP_EVENT, enabled)) {
+            if (!enabled) mCalendarAppManager.deleteAll();
+            updateCalendarAppEvent(isCalendarAppEventEnabled());
             return true;
         }
         return false;
@@ -424,7 +445,10 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setEmailAppMessageEnabled(boolean enabled) {
+        Log.i(TAG, "set email app message enabled to " + enabled);
         if (setSharedPreferences(KEY_EMAIL_APP_MESSAGE, enabled)) {
+            if (!enabled) mEmailAppManager.deleteAll();
+            updateEmailAppMessage(isEmailAppMessageEnabled());
             return true;
         }
         return false;
@@ -432,7 +456,10 @@ public class MonitoringService extends Service implements IMonitoringService {
 
     @Override
     public boolean setMessagesAppMessageEnabled(boolean enabled) {
+        Log.i(TAG, "set messages app message enabled to " + enabled);
         if (setSharedPreferences(KEY_MESSAGES_APP_MESSAGE, enabled)) {
+            if (!enabled) mMessagesAppManager.deleteAll();
+            updateMessagesAppMessage(isMessagesAppMessageEnabled());
             return true;
         }
         return false;
