@@ -80,8 +80,6 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
 
     @Override
     public void deleteAll() {
-        mKnowledgeManager.removeEntity(mEmbeddingManager, ENTITY_TYPE_MESSAGE);
-        mKnowledgeManager.removeEntity(mEmbeddingManager, ENTITY_TYPE_PHOTO);
     }
 
     @Override

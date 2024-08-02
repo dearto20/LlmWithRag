@@ -17,7 +17,6 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -214,15 +213,11 @@ public class KnowledgeManager {
 
         if (oldEntity != null) {
             removeEntity(embeddingManager, oldEntity);
-            if (listener != null) removeEmbedding(embeddingManager, oldEntity);
+            removeEmbedding(embeddingManager, oldEntity);
         }
-
         addEntity(newEntity);
-
-        if (listener != null) {
-            removeEmbedding(embeddingManager, newEntity);
-            addEmbedding(embeddingManager, newEntity, listener);
-        }
+        removeEmbedding(embeddingManager, newEntity);
+        addEmbedding(embeddingManager, newEntity, listener);
         Log.i(TAG, "added " + newEntity);
         return true;
     }
@@ -233,18 +228,12 @@ public class KnowledgeManager {
     }
 
     public void removeEntity(EmbeddingManager embeddingManager, Entity entity) {
-        removeRelationships(entity);
         mEntities.remove(entity.getId());
-    }
-
-    public void removeEntity(EmbeddingManager embeddingManager, String type) {
-        Iterator<Entity> iterator = mEntities.values().iterator();
-        while (iterator.hasNext()) {
-            Entity entity = iterator.next();
-            if (TextUtils.equals(entity.getType(), type)) {
-                removeRelationships(entity);
-                iterator.remove();
-                removeEmbedding(embeddingManager, entity);
+        for (Relationship relationship : mRelationships) {
+            if (relationship.getFromEntityId().equals(entity.getId()) ||
+                    relationship.getToEntityId().equals(entity.getId())) {
+                mRelationships.remove(relationship);
+                removeEmbedding(embeddingManager, relationship);
             }
         }
     }
@@ -253,6 +242,8 @@ public class KnowledgeManager {
         if (getRelationship(fromEntity.getId(), RELATIONSHIP_SENT_BY_USER, toEntity.getId()) == null) {
             Relationship relationship = new Relationship(fromEntity, type, toEntity);
             mRelationships.add(relationship);
+            removeEmbedding(embeddingManager, relationship);
+            addEmbedding(embeddingManager, relationship, null);
             Log.i(TAG, "added " + relationship);
         }
     }
@@ -266,17 +257,6 @@ public class KnowledgeManager {
             }
         }
         return null;
-    }
-
-    private void removeRelationships(Entity entity) {
-        Iterator<Relationship> iterator = mRelationships.iterator();
-        while (iterator.hasNext()) {
-            Relationship relationship = iterator.next();
-            if (relationship.getFromEntityId().equals(entity.getId()) ||
-                    relationship.getToEntityId().equals(entity.getId())) {
-                iterator.remove();
-            }
-        }
     }
 
     public void deleteAll() {
@@ -377,6 +357,10 @@ public class KnowledgeManager {
     }
 
     private void removeEmbedding(EmbeddingManager embeddingManager, Entity entity) {
-        embeddingManager.removeEmbedding(entity.getContentId());
+        embeddingManager.removeEmbeddings(entity.getContentId());
+    }
+
+    private void removeEmbedding(EmbeddingManager embeddingManager, Relationship relationship) {
+        embeddingManager.removeEmbeddings(relationship.getContentId());
     }
 }

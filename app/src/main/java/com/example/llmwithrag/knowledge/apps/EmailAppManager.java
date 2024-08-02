@@ -78,7 +78,7 @@ public class EmailAppManager implements IKnowledgeComponent {
 
     @Override
     public void deleteAll() {
-        mKnowledgeManager.removeEntity(mEmbeddingManager, ENTITY_TYPE_EMAIL);
+
     }
 
     @Override
@@ -198,20 +198,11 @@ public class EmailAppManager implements IKnowledgeComponent {
         while (mRunning) {
             try {
                 connectToStore();
-                if (!mInbox.isOpen()) {
-                    Log.i(TAG, "open inbox");
-                    openInbox();
-                }
-                if (mInbox.isOpen()) {
-                    Log.i(TAG, "inbox is opened");
-                    mInbox.idle();
-                } else {
-                    Log.i(TAG, "inbox not opened");
-                }
-                Thread.sleep(1000 * 60 * 10);
-            } catch (MessagingException e2) {
+                if (!mInbox.isOpen()) openInbox();
+                mInbox.idle();
+            } catch (MessagingException e1) {
                 if (mRunning) {
-                    Log.e(TAG, e2.toString());
+                    Log.e(TAG, e1.toString());
                     Thread.sleep(10000);
                 }
             } catch (Throwable e2) {

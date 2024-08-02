@@ -109,7 +109,6 @@ public class StationaryTimeManager implements IKnowledgeComponent {
 
     @Override
     public void deleteAll() {
-        mKnowledgeManager.removeEntity(mEmbeddingManager, ENTITY_TYPE_PERIOD);
         mRepository.deleteLastResult();
         mMovementTracker.deleteAllData();
     }

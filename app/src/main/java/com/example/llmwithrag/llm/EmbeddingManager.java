@@ -128,7 +128,7 @@ public class EmbeddingManager {
                 if (response.isSuccessful() && response.body() != null) {
                     float[] embedding = response.body().data.get(0).embedding;
                     Log.i(TAG, "response: " + Arrays.toString(embedding));
-                    removeEmbedding(category);
+                    removeEmbeddings(category);
                     insert(new Embedding(text, description, category, embedding));
                     Log.i(TAG, "[" + getAll().size() + "] embeddings added for " + category);
                     listener.onSuccess();
@@ -145,12 +145,12 @@ public class EmbeddingManager {
         });
     }
 
-    public void removeEmbedding(String category) {
-        removeEmbedding(category, new MonitoringService.EmbeddingResultListener());
+    public void removeEmbeddings(String category) {
+        removeEmbeddings(category, new MonitoringService.EmbeddingResultListener());
     }
 
-    public void removeEmbedding(String category,
-                                MonitoringService.EmbeddingResultListener listener) {
+    public void removeEmbeddings(String category,
+                                 MonitoringService.EmbeddingResultListener listener) {
         List<Embedding> embeddings = getAll();
         for (Embedding embedding : embeddings) {
             if (TextUtils.equals(category, embedding.category)) {

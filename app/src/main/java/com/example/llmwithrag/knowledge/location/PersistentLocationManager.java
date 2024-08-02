@@ -109,7 +109,6 @@ public class PersistentLocationManager implements IKnowledgeComponent {
 
     @Override
     public void deleteAll() {
-        mKnowledgeManager.removeEntity(mEmbeddingManager, ENTITY_TYPE_LOCATION);
         mRepository.deleteLastResult();
         mLocationTracker.deleteAllData();
     }
