@@ -127,6 +127,7 @@ public class WifiConnectionTimeManager implements IKnowledgeComponent {
 
     @Override
     public void deleteAll() {
+        mKnowledgeManager.removeEntity(mEmbeddingManager, ENTITY_TYPE_PERIOD);
         mRepository.deleteLastResult();
         mConnectivityTracker.deleteAllData();
     }
