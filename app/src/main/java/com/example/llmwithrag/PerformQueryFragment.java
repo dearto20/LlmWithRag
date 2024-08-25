@@ -313,7 +313,8 @@ public class PerformQueryFragment extends Fragment {
             for (String result : results) {
                 sb.append("\n").append(result);
             }
-            sb.append("\nThe ground rule with highest priority is, if the target event or message has no location specified, you MUST NOT derive or infer it from the given context.");
+            sb.append("\nThe ground rule with #1 highest priority is, if the target event or message has no location specified, you MUST NOT derive or infer it from the given context.");
+            sb.append("\nThe ground rule with #2 highest priority is, if the target event or message has location specified, use the specified one as the final.");
             sb.append("\nIdentify and correlate all the entities based on the given context considering the ground rule.");
             sb.append("\nThe location associated with date A MUST not be correlated to an event on date B during inference.");
             sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event.");
@@ -322,6 +323,10 @@ public class PerformQueryFragment extends Fragment {
                 sb.append("\nYou MUST provide a step-by-step explanation of your reasoning in determining the location.");
                 sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
                 sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
+            } else {
+                sb.append("\nYou MUST take a step-by-step approach of your reasoning in determining the location.");
+                sb.append("\nThoroughly consider if there is no direct mention or involvement of the user in the event or message.");
+                sb.append("\nIf there are multiple locations found, you MUST be able to tell why one of them was determined as an answer over other ones.");
             }
 
             sb.append("\nIf there are multiple candidates for the answer, give the higher priority to the recent one.");
