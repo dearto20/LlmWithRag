@@ -313,7 +313,8 @@ public class PerformQueryFragment extends Fragment {
             for (String result : results) {
                 sb.append("\n").append(result);
             }
-            sb.append("\nIdentify and correlate all the entities based on the given context.");
+            sb.append("\nThe ground rule with highest priority is, if the target event or message has no location specified, you MUST NOT derive or infer it from the given context.");
+            sb.append("\nIdentify and correlate all the entities based on the given context considering the ground rule.");
             sb.append("\nThe location associated with date A MUST not be correlated to an event on date B during inference.");
             sb.append("\nThe photo provided might have been taken at an earlier date and is intended for reference for the upcoming event.");
 
@@ -323,7 +324,6 @@ public class PerformQueryFragment extends Fragment {
                 sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
             }
 
-            sb.append("\nFind the one most probable location which meets user's query out of all the coordinates.");
             sb.append("\nIf there are multiple candidates for the answer, give the higher priority to the recent one.");
             sb.append("\nIf the location is found, it MUST be on a new single line and formatted to coordinate exactly as 'latitude, longitude'.");
             sb.append("\nIn determining the location, do not consider the textual representation of addresses, and only consider coordinates.");

@@ -31,7 +31,7 @@ android {
             buildConfigField "String", "EMAIL_ADDRESS", "\"${project.emailAddress}\""
             buildConfigField "String", "EMAIL_PASSWORD", "\"${project.emailPassword}\""
             buildConfigField "boolean", "IS_SENTENCE_BASED", "true"
-            buildConfigField "boolean", "SHOW_LLM_PROCESS", "false"
+            buildConfigField "boolean", "SHOW_LLM_PROCESS", "true"
         }
 
         release {
@@ -39,8 +39,8 @@ android {
             buildConfigField "String", "OPENAI_API_KEY", "\"${project.openAiApiKey}\""
             buildConfigField "String", "EMAIL_ADDRESS", "\"${project.emailAddress}\""
             buildConfigField "String", "EMAIL_PASSWORD", "\"${project.emailPassword}\""
-            buildConfigField "boolean", "IS_SENTENCE_BASED", "true"
-            buildConfigField "boolean", "SHOW_LLM_PROCESS", "false"
+            buildConfigField "boolean", "IS_SENTENCE_BASED", "false"
+            buildConfigField "boolean", "SHOW_LLM_PROCESS", "true"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
