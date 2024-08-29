@@ -22,6 +22,7 @@ import androidx.lifecycle.ViewModelProvider;
 @SuppressLint("UseSwitchCompatOrMaterialCode")
 public class StoreEmbeddingsFragment extends Fragment {
     private static final String TAG = StoreEmbeddingsFragment.class.getSimpleName();
+    private boolean DEBUG = false;
 
     private ServiceViewModel mViewModel;
     private IMonitoringService mService;
@@ -139,63 +140,63 @@ public class StoreEmbeddingsFragment extends Fragment {
                 mService = service;
                 updateViewModel();
 
-                mService.getTheMostFrequentlyVisitedPlaceDuringTheDay().observe(
+                mViewModel.getTheMostFrequentlyVisitedPlaceDuringTheDay().observe(
                         getViewLifecycleOwner(),
                         result -> {
                             mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheDay(result);
                             updateEmbeddingsList();
                         });
 
-                mService.getTheMostFrequentlyVisitedPlaceDuringTheNight().observe(
+                mViewModel.getTheMostFrequentlyVisitedPlaceDuringTheNight().observe(
                         getViewLifecycleOwner(),
                         result -> {
                             mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheNight(result);
                             updateEmbeddingsList();
                         });
 
-                mService.getTheMostFrequentlyVisitedPlaceDuringTheWeekend().observe(
+                mViewModel.getTheMostFrequentlyVisitedPlaceDuringTheWeekend().observe(
                         getViewLifecycleOwner(),
                         result -> {
                             mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheWeekend(result);
                             updateEmbeddingsList();
                         });
 
-                mService.getTheMostFrequentStationaryTime().observe(
+                mViewModel.getTheMostFrequentStationaryTime().observe(
                         getViewLifecycleOwner(),
                         result -> {
                             mViewModel.setLastTheMostFrequentStationaryTime(result);
                             updateEmbeddingsList();
                         });
 
-                mService.getTheMostFrequentEnterpriseWifiConnectionTime().observe(
+                mViewModel.getTheMostFrequentEnterpriseWifiConnectionTime().observe(
                         getViewLifecycleOwner(),
                         result -> {
                             mViewModel.setLastTheMostFrequentEnterpriseWifiConnectionTime(result);
                             updateEmbeddingsList();
                         });
 
-                mService.getTheMostFrequentPersonalWifiConnectionTime().observe(
+                mViewModel.getTheMostFrequentPersonalWifiConnectionTime().observe(
                         getViewLifecycleOwner(),
                         result -> {
                             mViewModel.setLastTheMostFrequentPersonalWifiConnectionTime(result);
                             updateEmbeddingsList();
                         });
 
-                mService.getTheMostRecentCalendarAppEvent().observe(
+                mViewModel.getTheMostRecentCalendarAppEvent().observe(
                         getViewLifecycleOwner(),
                         result -> {
                             mViewModel.setLastTheMostRecentCalendarAppEvent(result);
                             updateEmbeddingsList();
                         });
 
-                mService.getTheMostRecentEmailAppMessage().observe(
+                mViewModel.getTheMostRecentEmailAppMessage().observe(
                         getViewLifecycleOwner(),
                         result -> {
                             mViewModel.setLastTheMostRecentEmailAppMessage(result);
                             updateEmbeddingsList();
                         });
 
-                mService.getTheMostRecentMessagesAppMessage().observe(
+                mViewModel.getTheMostRecentMessagesAppMessage().observe(
                         getViewLifecycleOwner(),
                         result -> {
                             mViewModel.setLastTheMostRecentMessagesAppMessage(result);
@@ -225,7 +226,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setServiceEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -233,7 +234,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setDayLocationEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -241,7 +242,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setNightLocationEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -249,7 +250,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setWeekendLocationEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -257,7 +258,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setStationaryTimeEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -265,7 +266,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setEnterpriseWifiTimeEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -273,7 +274,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setPersonalWifiTimeEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -281,7 +282,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setCalendarAppEventEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -289,7 +290,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setEmailAppMessageEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -297,7 +298,7 @@ public class StoreEmbeddingsFragment extends Fragment {
             if (setMessagesAppMessageEnabled(isChecked)) {
                 updateViews();
             } else {
-                Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
+                if (DEBUG) Toast.makeText(getContext(), "Try Again", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -311,25 +312,25 @@ public class StoreEmbeddingsFragment extends Fragment {
     }
 
     private void updateViewModel() {
-        if (mService == null) return;
+        if (mViewModel == null) return;
         mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheDay(
-                mService.getTheMostFrequentlyVisitedPlaceDuringTheDay().getValue());
+                mViewModel.getTheMostFrequentlyVisitedPlaceDuringTheDay().getValue());
         mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheWeekend(
-                mService.getTheMostFrequentlyVisitedPlaceDuringTheNight().getValue());
+                mViewModel.getTheMostFrequentlyVisitedPlaceDuringTheNight().getValue());
         mViewModel.setLastTheMostFrequentlyVisitedPlaceDuringTheWeekend(
-                mService.getTheMostFrequentlyVisitedPlaceDuringTheWeekend().getValue());
+                mViewModel.getTheMostFrequentlyVisitedPlaceDuringTheWeekend().getValue());
         mViewModel.setLastTheMostFrequentStationaryTime(
-                mService.getTheMostFrequentStationaryTime().getValue());
+                mViewModel.getTheMostFrequentStationaryTime().getValue());
         mViewModel.setLastTheMostFrequentEnterpriseWifiConnectionTime(
-                mService.getTheMostFrequentEnterpriseWifiConnectionTime().getValue());
+                mViewModel.getTheMostFrequentEnterpriseWifiConnectionTime().getValue());
         mViewModel.setLastTheMostFrequentPersonalWifiConnectionTime(
-                mService.getTheMostFrequentPersonalWifiConnectionTime().getValue());
+                mViewModel.getTheMostFrequentPersonalWifiConnectionTime().getValue());
         mViewModel.setLastTheMostRecentCalendarAppEvent(
-                mService.getTheMostRecentCalendarAppEvent().getValue());
+                mViewModel.getTheMostRecentCalendarAppEvent().getValue());
         mViewModel.setLastTheMostRecentEmailAppMessage(
-                mService.getTheMostRecentEmailAppMessage().getValue());
+                mViewModel.getTheMostRecentEmailAppMessage().getValue());
         mViewModel.setLastTheMostRecentMessagesAppMessage(
-                mService.getTheMostRecentMessagesAppMessage().getValue());
+                mViewModel.getTheMostRecentMessagesAppMessage().getValue());
     }
 
     private void updateEmbeddingsList() {
@@ -374,82 +375,82 @@ public class StoreEmbeddingsFragment extends Fragment {
     }
 
     private boolean isServiceEnabled() {
-        return mService != null && mService.isServiceEnabled();
+        return mViewModel != null && mViewModel.isServiceEnabled();
     }
 
     private boolean isDayLocationEnabled() {
-        return mService != null && mService.isDayLocationEnabled();
+        return mViewModel != null && mViewModel.isDayLocationEnabled();
     }
 
     private boolean isNightLocationEnabled() {
-        return mService != null && mService.isNightLocationEnabled();
+        return mViewModel != null && mViewModel.isNightLocationEnabled();
     }
 
     private boolean isWeekendLocationEnabled() {
-        return mService != null && mService.isWeekendLocationEnabled();
+        return mViewModel != null && mViewModel.isWeekendLocationEnabled();
     }
 
     private boolean isStationaryTimeEnabled() {
-        return mService != null && mService.isStationaryTimeEnabled();
+        return mViewModel != null && mViewModel.isStationaryTimeEnabled();
     }
 
     private boolean isEnterpriseWifiTimeEnabled() {
-        return mService != null && mService.isEnterpriseWifiTimeEnabled();
+        return mViewModel != null && mViewModel.isEnterpriseWifiTimeEnabled();
     }
 
     private boolean isPersonalWifiTimeEnabled() {
-        return mService != null && mService.isPersonalWifiTimeEnabled();
+        return mViewModel != null && mViewModel.isPersonalWifiTimeEnabled();
     }
 
     private boolean isCalendarAppEventEnabled() {
-        return mService != null && mService.isCalendarAppEventEnabled();
+        return mViewModel != null && mViewModel.isCalendarAppEventEnabled();
     }
 
     private boolean isEmailAppMessageEnabled() {
-        return mService != null && mService.isEmailAppMessageEnabled();
+        return mViewModel != null && mViewModel.isEmailAppMessageEnabled();
     }
 
     private boolean isMessagesAppMessageEnabled() {
-        return mService != null && mService.isMessagesAppMessageEnabled();
+        return mViewModel != null && mViewModel.isMessagesAppMessageEnabled();
     }
 
     private boolean setServiceEnabled(boolean enabled) {
-        return mService != null && mService.setServiceEnabled(enabled);
+        return mViewModel != null && mViewModel.setServiceEnabled(enabled);
     }
 
     private boolean setDayLocationEnabled(boolean enabled) {
-        return mService != null && mService.setDayLocationEnabled(enabled);
+        return mViewModel != null && mViewModel.setDayLocationEnabled(enabled);
     }
 
     private boolean setNightLocationEnabled(boolean enabled) {
-        return mService != null && mService.setNightLocationEnabled(enabled);
+        return mViewModel != null && mViewModel.setNightLocationEnabled(enabled);
     }
 
     private boolean setWeekendLocationEnabled(boolean enabled) {
-        return mService != null && mService.setWeekendLocationEnabled(enabled);
+        return mViewModel != null && mViewModel.setWeekendLocationEnabled(enabled);
     }
 
     private boolean setStationaryTimeEnabled(boolean enabled) {
-        return mService != null && mService.setStationaryTimeEnabled(enabled);
+        return mViewModel != null && mViewModel.setStationaryTimeEnabled(enabled);
     }
 
     private boolean setEnterpriseWifiTimeEnabled(boolean enabled) {
-        return mService != null && mService.setEnterpriseWifiTimeEnabled(enabled);
+        return mViewModel != null && mViewModel.setEnterpriseWifiTimeEnabled(enabled);
     }
 
     private boolean setPersonalWifiTimeEnabled(boolean enabled) {
-        return mService != null && mService.setPersonalWifiTimeEnabled(enabled);
+        return mViewModel != null && mViewModel.setPersonalWifiTimeEnabled(enabled);
     }
 
     private boolean setCalendarAppEventEnabled(boolean enabled) {
-        return mService != null && mService.setCalendarAppEventEnabled(enabled);
+        return mViewModel != null && mViewModel.setCalendarAppEventEnabled(enabled);
     }
 
     private boolean setEmailAppMessageEnabled(boolean enabled) {
-        return mService != null && mService.setEmailAppMessageEnabled(enabled);
+        return mViewModel != null && mViewModel.setEmailAppMessageEnabled(enabled);
     }
 
     private boolean setMessagesAppMessageEnabled(boolean enabled) {
-        return mService != null && mService.setMessagesAppMessageEnabled(enabled);
+        return mViewModel != null && mViewModel.setMessagesAppMessageEnabled(enabled);
     }
 }

@@ -1,71 +1,34 @@
 package com.example.llmwithrag;
 
-import androidx.lifecycle.LiveData;
+import android.os.Looper;
+
+import com.example.llmwithrag.kg.KnowledgeManager;
+import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.util.List;
 
 public interface IMonitoringService {
+    IMonitoringService addKnowledge(String name, IKnowledgeComponent component);
+
+    void delete(String name);
+
     void deleteAll();
 
     List<String> findSimilarOnes(String query, String response);
 
     String getSchema();
 
-    LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheDay();
+    IMonitoringService setEmbeddingManager(EmbeddingManager embeddingManager);
 
-    LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheNight();
+    IMonitoringService setKnowledgeManager(KnowledgeManager knowledgeManager);
+    IMonitoringService setLooper(Looper looper);
 
-    LiveData<String> getTheMostFrequentlyVisitedPlaceDuringTheWeekend();
+    IMonitoringService setViewModel(ServiceViewModel viewModel);
 
-    LiveData<String> getTheMostFrequentStationaryTime();
+    void startMonitoring();
 
-    LiveData<String> getTheMostFrequentEnterpriseWifiConnectionTime();
+    void stopMonitoring();
 
-    LiveData<String> getTheMostFrequentPersonalWifiConnectionTime();
-
-    LiveData<String> getTheMostRecentCalendarAppEvent();
-
-    LiveData<String> getTheMostRecentEmailAppMessage();
-
-    LiveData<String> getTheMostRecentMessagesAppMessage();
-
-    boolean isServiceEnabled();
-
-    boolean isDayLocationEnabled();
-
-    boolean isNightLocationEnabled();
-
-    boolean isWeekendLocationEnabled();
-
-    boolean isStationaryTimeEnabled();
-
-    boolean isEnterpriseWifiTimeEnabled();
-
-    boolean isPersonalWifiTimeEnabled();
-
-    boolean isCalendarAppEventEnabled();
-
-    boolean isEmailAppMessageEnabled();
-
-    boolean isMessagesAppMessageEnabled();
-
-    boolean setServiceEnabled(boolean enabled);
-
-    boolean setDayLocationEnabled(boolean enabled);
-
-    boolean setNightLocationEnabled(boolean enabled);
-
-    boolean setWeekendLocationEnabled(boolean enabled);
-
-    boolean setStationaryTimeEnabled(boolean enabled);
-
-    boolean setEnterpriseWifiTimeEnabled(boolean enabled);
-
-    boolean setPersonalWifiTimeEnabled(boolean enabled);
-
-    boolean setCalendarAppEventEnabled(boolean enabled);
-
-    boolean setEmailAppMessageEnabled(boolean enabled);
-
-    boolean setMessagesAppMessageEnabled(boolean enabled);
+    void update(String name, int type, boolean enabled, ServiceViewModel.IResultListener listener);
 }

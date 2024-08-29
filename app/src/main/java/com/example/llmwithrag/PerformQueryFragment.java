@@ -267,7 +267,7 @@ public class PerformQueryFragment extends Fragment {
                         private String extractGeoLocation(String answer) {
                             String[] lines = answer.split("\n");
                             String line = lines[lines.length - 1];
-                            return line != null ? line.trim().replaceAll("^`+|`+$", "") : "";
+                            return line != null ? line.trim().replaceAll("(^`+|`+$)|(^\\*+|\\*+$)", "") : "";
                         }
 
                         @Override
@@ -324,15 +324,14 @@ public class PerformQueryFragment extends Fragment {
                 sb.append("\nClearly state if there is no direct mention or involvement of the user in the event or message.");
                 sb.append("\nIf there are multiple locations found, you MUST clearly mention why one of them was determined as an answer over other ones.");
             } else {
-                sb.append("\nYou MUST take a step-by-step approach of your reasoning in determining the location.");
-                sb.append("\nThoroughly consider if there is no direct mention or involvement of the user in the event or message.");
+                sb.append("\nYou MUST take a step-by-step approach of your reasoning in determining the location, but do not provide or explain the reasoning as part of the answer.");
+                sb.append("\nClearly think if there is no direct mention or involvement of the user in the event or message.");
                 sb.append("\nIf there are multiple locations found, you MUST be able to tell why one of them was determined as an answer over other ones.");
             }
 
             sb.append("\nIf there are multiple candidates for the answer, give the higher priority to the recent one.");
             sb.append("\nIf the location is found, it MUST be on a new single line and formatted to coordinate exactly as 'latitude, longitude'.");
             sb.append("\nIn determining the location, do not consider the textual representation of addresses, and only consider coordinates.");
-            sb.append("\nDo not include any further lines and if no suitable location is found, respond with \"Unable to find the location.\"");
         }
         return sb.toString();
     }
