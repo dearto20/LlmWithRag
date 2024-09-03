@@ -3,13 +3,13 @@ package com.example.llmwithrag;
 import android.os.Looper;
 
 import com.example.llmwithrag.kg.KnowledgeManager;
-import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.knowledge.KnowledgeGenerator;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.util.List;
 
 public interface IMonitoringService {
-    IMonitoringService addKnowledge(String name, IKnowledgeComponent component);
+    IMonitoringService addKnowledge(String name, KnowledgeGenerator component);
 
     void delete(String name);
 

@@ -9,6 +9,12 @@ import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_ENTERPRISE_WIFI_CONNECTION;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_PERSONAL_WIFI_CONNECTION;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_PERIOD_STATIONARY;
+import static com.example.llmwithrag.knowledge.KnowledgeGenerator.TRACKER_CALENDAR;
+import static com.example.llmwithrag.knowledge.KnowledgeGenerator.TRACKER_CONNECTIVITY;
+import static com.example.llmwithrag.knowledge.KnowledgeGenerator.TRACKER_EMAIL;
+import static com.example.llmwithrag.knowledge.KnowledgeGenerator.TRACKER_LOCATION;
+import static com.example.llmwithrag.knowledge.KnowledgeGenerator.TRACKER_MESSAGES;
+import static com.example.llmwithrag.knowledge.KnowledgeGenerator.TRACKER_MOVEMENT;
 
 import android.app.Application;
 import android.content.Context;
@@ -22,6 +28,10 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.llmwithrag.datasource.IDataSourceTracker;
+import com.example.llmwithrag.datasource.apps.CalendarTracker;
+import com.example.llmwithrag.datasource.apps.EmailTracker;
+import com.example.llmwithrag.datasource.apps.MessagesTracker;
 import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
 import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
@@ -36,6 +46,9 @@ import com.example.llmwithrag.knowledge.location.PersistentLocationRepository;
 import com.example.llmwithrag.knowledge.status.StationaryTimeManager;
 import com.example.llmwithrag.knowledge.status.StationaryTimeRepository;
 import com.example.llmwithrag.llm.EmbeddingManager;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServiceViewModel extends AndroidViewModel {
     private static final String TAG = ServiceViewModel.class.getSimpleName();
@@ -111,40 +124,48 @@ public class ServiceViewModel extends AndroidViewModel {
             ConnectivityTracker connectivityTracker = new ConnectivityTracker(mContext, looper);
             MovementTracker movementTracker = new MovementTracker(mContext, looper);
 
+            Map<String, IDataSourceTracker> trackers = new HashMap<>();
+            trackers.put(TRACKER_CALENDAR, new CalendarTracker(mContext));
+            trackers.put(TRACKER_EMAIL, new EmailTracker(mContext));
+            trackers.put(TRACKER_MESSAGES, new MessagesTracker(mContext));
+            trackers.put(TRACKER_LOCATION, new LocationTracker(mContext, looper));
+            trackers.put(TRACKER_CONNECTIVITY, new ConnectivityTracker(mContext, looper));
+            trackers.put(TRACKER_MOVEMENT, new MovementTracker(mContext, looper));
+
             service.addKnowledge(ENTITY_NAME_EVENT_IN_THE_CALENDAR_APP,
-                    new CalendarAppManager(mContext,
+                    new CalendarAppManager(trackers, mContext,
                             knowledgeManager, embeddingManager,
                             () -> updateCalendarAppEvent(isCalendarAppEventEnabled())));
             service.addKnowledge(ENTITY_NAME_MESSAGE_IN_THE_EMAIL_APP,
-                    new EmailAppManager(mContext,
+                    new EmailAppManager(trackers, mContext,
                             knowledgeManager, embeddingManager,
                             () -> updateEmailAppMessage(isEmailAppMessageEnabled())));
             service.addKnowledge(ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP,
-                    new MessagesAppManager(mContext,
+                    new MessagesAppManager(trackers, mContext,
                             knowledgeManager, embeddingManager,
                             () -> updateMessagesAppMessage(isMessagesAppMessageEnabled())));
             service.addKnowledge(ENTITY_NAME_LOCATION_DURING_THE_DAY,
-                    new PersistentLocationManager(mContext,
+                    new PersistentLocationManager(trackers, mContext,
                             knowledgeManager, embeddingManager,
-                            persistentLocationRepository, locationTracker));
+                            persistentLocationRepository));
             service.addKnowledge(ENTITY_NAME_LOCATION_DURING_THE_NIGHT,
-                    new PersistentLocationManager(mContext,
+                    new PersistentLocationManager(trackers, mContext,
                             knowledgeManager, embeddingManager,
-                            persistentLocationRepository, locationTracker));
+                            persistentLocationRepository));
             service.addKnowledge(ENTITY_NAME_LOCATION_DURING_THE_WEEKEND,
-                    new PersistentLocationManager(mContext,
+                    new PersistentLocationManager(trackers, mContext,
                             knowledgeManager, embeddingManager,
-                            persistentLocationRepository, locationTracker));
+                            persistentLocationRepository));
             service.addKnowledge(ENTITY_NAME_PERIOD_ENTERPRISE_WIFI_CONNECTION,
-                    new WifiConnectionTimeManager(mContext,
+                    new WifiConnectionTimeManager(trackers, mContext,
                             knowledgeManager, embeddingManager,
-                            wifiConnectionTimeRepository, connectivityTracker));
+                            wifiConnectionTimeRepository));
             service.addKnowledge(ENTITY_NAME_PERIOD_PERSONAL_WIFI_CONNECTION,
-                    new WifiConnectionTimeManager(mContext,
+                    new WifiConnectionTimeManager(trackers, mContext,
                             knowledgeManager, embeddingManager,
-                            wifiConnectionTimeRepository, connectivityTracker));
+                            wifiConnectionTimeRepository));
             service.addKnowledge(ENTITY_NAME_PERIOD_STATIONARY,
-                    new StationaryTimeManager(mContext,
+                    new StationaryTimeManager(trackers, mContext,
                             knowledgeManager, embeddingManager,
                             stationaryTimeRepository, movementTracker));
 

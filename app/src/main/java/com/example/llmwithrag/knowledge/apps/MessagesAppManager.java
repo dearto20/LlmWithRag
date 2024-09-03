@@ -1,12 +1,17 @@
 package com.example.llmwithrag.knowledge.apps;
 
-import static com.example.llmwithrag.Utils.getContactNameByPhoneNumber;
 import static com.example.llmwithrag.Utils.getDate;
 import static com.example.llmwithrag.Utils.getFileName;
 import static com.example.llmwithrag.Utils.getReadableAddressFromCoordinates;
 import static com.example.llmwithrag.Utils.getSharedPreferenceLong;
 import static com.example.llmwithrag.Utils.getTime;
-import static com.example.llmwithrag.Utils.setSharedPreferenceLong;
+import static com.example.llmwithrag.datasource.IDataSourceTracker.KEY_ADDRESS;
+import static com.example.llmwithrag.datasource.IDataSourceTracker.KEY_BODY;
+import static com.example.llmwithrag.datasource.IDataSourceTracker.KEY_DATE;
+import static com.example.llmwithrag.datasource.IDataSourceTracker.KEY_ID;
+import static com.example.llmwithrag.datasource.IDataSourceTracker.KEY_NAME;
+import static com.example.llmwithrag.datasource.IDataSourceTracker.KEY_SENDER;
+import static com.example.llmwithrag.datasource.IDataSourceTracker.KEY_TIME;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_DATE;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_LOCATION;
 import static com.example.llmwithrag.kg.KnowledgeManager.ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP;
@@ -25,23 +30,20 @@ import static com.example.llmwithrag.kg.KnowledgeManager.RELATIONSHIP_TAKEN_ON_D
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.Telephony;
-import android.text.TextUtils;
 import android.util.Log;
 
-import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.example.llmwithrag.IKnowledgeListener;
 import com.example.llmwithrag.MonitoringService;
+import com.example.llmwithrag.datasource.IDataSourceListener;
+import com.example.llmwithrag.datasource.IDataSourceTracker;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
-import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.knowledge.KnowledgeGenerator;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.io.File;
@@ -53,9 +55,11 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
-public class MessagesAppManager extends ContentObserver implements IKnowledgeComponent {
+public class MessagesAppManager extends KnowledgeGenerator {
     private static final String TAG = MessagesAppManager.class.getSimpleName();
     private static final String NAME_SHARED_PREFS = "msg_shared_prefs";
     private static final String KEY_LAST_UPDATED = "key_last_updated";
@@ -64,11 +68,13 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
     private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
     private final IKnowledgeListener mListener;
+    private final IDataSourceTracker mMessagesTracker;
     private long mLastUpdated;
 
-    public MessagesAppManager(Context context, KnowledgeManager knowledgeManager,
+    public MessagesAppManager(Map<String, IDataSourceTracker> trackers,
+                              Context context, KnowledgeManager knowledgeManager,
                               EmbeddingManager embeddingManager, IKnowledgeListener listener) {
-        super(new Handler(Looper.getMainLooper()));
+        super(trackers);
         mContentResolver = context.getApplicationContext().getContentResolver();
         mContext = context;
         mKnowledgeManager = knowledgeManager;
@@ -76,6 +82,7 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         mListener = listener;
         mLastUpdated = getSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED,
                 System.currentTimeMillis());
+        mMessagesTracker = Objects.requireNonNull(trackers.get(TRACKER_MESSAGES));
     }
 
     @Override
@@ -87,17 +94,16 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
     @Override
     public void startMonitoring() {
         Log.i(TAG, "started");
-        mContentResolver.registerContentObserver(Telephony.Sms.CONTENT_URI, true, this);
-        mContentResolver.registerContentObserver(Telephony.Mms.CONTENT_URI, true, this);
-        mLastUpdated = getSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED,
-                System.currentTimeMillis());
-
+        mMessagesTracker.startMonitoring();
+        ;
+        mMessagesTracker.registerListener(mMessagesListener);
     }
 
     @Override
     public void stopMonitoring() {
         Log.i(TAG, "stopped");
-        mContentResolver.unregisterContentObserver(this);
+        mMessagesTracker.unregisterListener(mMessagesListener);
+        mMessagesTracker.stopMonitoring();
     }
 
     @Override
@@ -105,120 +111,50 @@ public class MessagesAppManager extends ContentObserver implements IKnowledgeCom
         listener.onSuccess();
     }
 
-    @Override
-    public void onChange(boolean selfChange, @Nullable Uri uri) {
-        super.onChange(selfChange, uri);
-        Log.i(TAG, "change observed : " + uri);
-        if (uri == null) return;
-        handleSms();
-        handleMms();
-    }
+    private final IDataSourceListener mMessagesListener = new IDataSourceListener() {
+        @Override
+        public void onUpdate(Map<String, Object> data) {
+            String messageId = (String) data.get(KEY_ID);
+            String name = (String) data.get(KEY_NAME);
+            String address = (String) data.get(KEY_ADDRESS);
+            String sender = (String) data.get(KEY_SENDER);
+            String body = (String) data.get(KEY_BODY);
+            String date = (String) data.get(KEY_DATE);
+            String time = (String) data.get(KEY_TIME);
 
-    private void handleSms() {
-        try (Cursor cursor = mContentResolver.query(Telephony.Sms.CONTENT_URI,
-                null,
-                Telephony.Sms.DATE + " > ?",
-                new String[]{String.valueOf(mLastUpdated)},
-                null)) {
-            if (cursor != null) {
-                while (cursor.moveToNext()) {
-                    String address = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.ADDRESS));
-                    String body = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.BODY));
-                    long date = cursor.getLong(cursor.getColumnIndexOrThrow(Telephony.Sms.DATE));
-                    if (date < mLastUpdated) continue;
-                    handleMessage(address, body, date);
-                    mLastUpdated = date;
-                }
-                setSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED, mLastUpdated);
-            }
-        } catch (Throwable e) {
-            Log.e(TAG, e.toString());
+            Entity messageEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_MESSAGE,
+                    ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP);
+            messageEntity.addAttribute("address", address);
+            messageEntity.addAttribute("sender", sender);
+            messageEntity.addAttribute("body", body);
+            messageEntity.addAttribute("date", date);
+            messageEntity.addAttribute("time", time);
+            mKnowledgeManager.addEntity(mEmbeddingManager, messageEntity,
+                    new MonitoringService.EmbeddingResultListener() {
+                        @Override
+                        public void onSuccess() {
+                            Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER,
+                                    ENTITY_NAME_USER);
+                            userEntity.addAttribute("name", name);
+                            mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
+
+                            Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
+                                    ENTITY_NAME_DATE);
+                            dateEntity.addAttribute("date", date);
+                            mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
+
+                            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                    messageEntity, RELATIONSHIP_SENT_BY_USER, userEntity);
+                            mKnowledgeManager.addRelationship(mEmbeddingManager,
+                                    messageEntity, RELATIONSHIP_SENT_ON_DATE, dateEntity);
+
+                            if (messageId != null) handleImage(messageId, messageEntity);
+
+                            mListener.onUpdate();
+                        }
+                    });
         }
-    }
-
-    private void handleMms() {
-        try (Cursor cursor = mContentResolver.query(Telephony.Mms.CONTENT_URI,
-                null,
-                Telephony.Mms.DATE + " > ?",
-                new String[]{String.valueOf(mLastUpdated / 1000)},
-                null)) {
-            if (cursor != null) {
-                while (cursor.moveToNext()) {
-                    String messageId = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Mms._ID));
-                    String address = getMmsAddress(messageId);
-                    String body = getMmsText(messageId);
-                    long date = cursor.getLong(cursor.getColumnIndexOrThrow(Telephony.Mms.DATE)) * 1000L;
-                    if (date < mLastUpdated) continue;
-                    handleMessage(messageId, address, body, date);
-                    mLastUpdated = date;
-                }
-                setSharedPreferenceLong(mContext, NAME_SHARED_PREFS, KEY_LAST_UPDATED, mLastUpdated);
-            }
-        } catch (Throwable e) {
-            Log.e(TAG, e.toString());
-        }
-    }
-
-    private void handleMessage(String address, String body, long date) {
-        handleMessage(null, address, body, date);
-    }
-
-    private void handleMessage(String messageId, String address, String body, long date) {
-        String sender = getContactNameByPhoneNumber(mContext, address);
-        String name = TextUtils.isEmpty(sender) ? address : sender;
-        String dateString = getDate(date);
-        String timeString = getTime(date);
-
-        Entity messageEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_MESSAGE,
-                ENTITY_NAME_MESSAGE_IN_THE_MESSAGES_APP);
-        messageEntity.addAttribute("address", address);
-        messageEntity.addAttribute("sender", sender);
-        messageEntity.addAttribute("body", body);
-        messageEntity.addAttribute("date", dateString);
-        messageEntity.addAttribute("time", timeString);
-        mKnowledgeManager.addEntity(mEmbeddingManager, messageEntity,
-                new MonitoringService.EmbeddingResultListener() {
-                    @Override
-                    public void onSuccess() {
-                        Entity userEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_USER,
-                                ENTITY_NAME_USER);
-                        userEntity.addAttribute("name", name);
-                        mKnowledgeManager.addEntity(mEmbeddingManager, userEntity);
-
-                        Entity dateEntity = new Entity(UUID.randomUUID().toString(), ENTITY_TYPE_DATE,
-                                ENTITY_NAME_DATE);
-                        dateEntity.addAttribute("date", dateString);
-                        mKnowledgeManager.addEntity(mEmbeddingManager, dateEntity);
-
-                        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                                messageEntity, RELATIONSHIP_SENT_BY_USER, userEntity);
-                        mKnowledgeManager.addRelationship(mEmbeddingManager,
-                                messageEntity, RELATIONSHIP_SENT_ON_DATE, dateEntity);
-
-                        if (date > mLastUpdated) mLastUpdated = date;
-                        if (messageId != null) handleImage(messageId, messageEntity);
-
-                        mListener.onUpdate();
-                    }
-                });
-    }
-
-    private String getMmsAddress(String id) {
-        Uri uri = Uri.withAppendedPath(Telephony.Mms.CONTENT_URI, id + "/addr");
-        Cursor cursor = mContentResolver.query(uri, null, null, null, null);
-        if (cursor == null) return null;
-        try {
-            while (cursor.moveToNext()) {
-                String address = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Mms.Addr.ADDRESS));
-                if (!TextUtils.isEmpty(address)) {
-                    return address;
-                }
-            }
-        } finally {
-            cursor.close();
-        }
-        return null;
-    }
+    };
 
     private void extractPhotoMetadata(Context context, Uri dataUri, Entity messageEntity) {
         try {

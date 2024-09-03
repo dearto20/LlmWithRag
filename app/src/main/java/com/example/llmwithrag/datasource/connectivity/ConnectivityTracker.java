@@ -11,11 +11,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.example.llmwithrag.datasource.IDataSourceComponent;
+import com.example.llmwithrag.datasource.IDataSourceListener;
+import com.example.llmwithrag.datasource.IDataSourceTracker;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class ConnectivityTracker implements IDataSourceComponent {
+public class ConnectivityTracker implements IDataSourceTracker {
     private static final String TAG = ConnectivityTracker.class.getSimpleName();
     private static final boolean DEBUG = false;
     private final ConnectivityManager mConnectivityManager;
@@ -24,6 +26,7 @@ public class ConnectivityTracker implements IDataSourceComponent {
     private final Handler mHandler;
     private final WifiManager mWifiManager;
     private ConnectivityManager.NetworkCallback mNetworkCallback;
+    private boolean mStarted;
 
     public ConnectivityTracker(Context context, Looper looper) {
         mContext = context;
@@ -33,23 +36,40 @@ public class ConnectivityTracker implements IDataSourceComponent {
                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
         mWifiManager = (WifiManager)
                 context.getSystemService(Context.WIFI_SERVICE);
+        mStarted = false;
     }
 
     @Override
     public void startMonitoring() {
+        if (mStarted) return;
+        Log.i(TAG, "started");
         registerNetworkCallback();
+        mStarted = true;
     }
 
     @Override
     public void stopMonitoring() {
+        if (!mStarted) return;
+        Log.i(TAG, "stopped");
         unregisterNetworkCallback();
         mHandler.removeCallbacksAndMessages(null);
+        mStarted = false;
     }
 
-    public List<ConnectivityData> getAllData() {
-        return mRepository.getAllData();
+    @Override
+    public void registerListener(IDataSourceListener listener) {
     }
 
+    @Override
+    public void unregisterListener(IDataSourceListener listener) {
+    }
+
+    @Override
+    public List<Object> getAllData() {
+        return new ArrayList<>(mRepository.getAllData());
+    }
+
+    @Override
     public void deleteAllData() {
         mRepository.deleteAllData();
     }

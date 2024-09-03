@@ -11,11 +11,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.example.llmwithrag.datasource.IDataSourceComponent;
+import com.example.llmwithrag.datasource.IDataSourceListener;
+import com.example.llmwithrag.datasource.IDataSourceTracker;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class MovementTracker implements SensorEventListener, IDataSourceComponent {
+public class MovementTracker implements SensorEventListener, IDataSourceTracker {
     private static final String TAG = MovementTracker.class.getSimpleName();
     private static final boolean DEBUG = false;
     private static final long INTERVAL = 1000L;
@@ -24,6 +26,7 @@ public class MovementTracker implements SensorEventListener, IDataSourceComponen
     private final Sensor mAccelerometerSensor;
     private final MovementRepository mRepository;
     private long lastTime;
+    private boolean mStarted;
 
     public MovementTracker(Context context, Looper looper) {
         mHandler = new Handler(looper);
@@ -31,18 +34,33 @@ public class MovementTracker implements SensorEventListener, IDataSourceComponen
         mAccelerometerSensor = mSensorManager.getDefaultSensor(TYPE_ACCELEROMETER);
         mRepository = new MovementRepository(context);
         lastTime = 0;
+        mStarted = false;
     }
 
     @Override
     public void startMonitoring() {
+        if (mStarted) return;
+        Log.i(TAG, "started");
         mSensorManager.registerListener(this, mAccelerometerSensor,
                 mAccelerometerSensor.getMaxDelay(), mHandler);
+        mStarted = true;
     }
 
     @Override
     public void stopMonitoring() {
+        if (!mStarted) return;
+        Log.i(TAG, "stopped");
         mSensorManager.unregisterListener(this);
         mHandler.removeCallbacksAndMessages(null);
+        mStarted = false;
+    }
+
+    @Override
+    public void registerListener(IDataSourceListener listener) {
+    }
+
+    @Override
+    public void unregisterListener(IDataSourceListener listener) {
     }
 
     @Override
@@ -65,10 +83,12 @@ public class MovementTracker implements SensorEventListener, IDataSourceComponen
 
     }
 
-    public List<MovementData> getAllData() {
-        return mRepository.getAllData();
+    @Override
+    public List<Object> getAllData() {
+        return new ArrayList<>(mRepository.getAllData());
     }
 
+    @Override
     public void deleteAllData() {
         mRepository.deleteAllData();
     }

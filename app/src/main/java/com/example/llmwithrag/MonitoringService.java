@@ -22,7 +22,7 @@ import androidx.annotation.Nullable;
 
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
-import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.knowledge.KnowledgeGenerator;
 import com.example.llmwithrag.llm.EmbeddingManager;
 import com.google.gson.Gson;
 
@@ -46,7 +46,7 @@ public class MonitoringService extends Service implements IMonitoringService {
     private KnowledgeManager mKnowledgeManager;
     private EmbeddingManager mEmbeddingManager;
     private ServiceViewModel mViewModel;
-    private final Map<String, IKnowledgeComponent> mKnowledgeComponents = new HashMap<>();
+    private final Map<String, KnowledgeGenerator> mKnowledgeGenerators = new HashMap<>();
     private boolean mStarted;
 
     public class LocalBinder extends Binder {
@@ -155,21 +155,21 @@ public class MonitoringService extends Service implements IMonitoringService {
     }
 
     @Override
-    public IMonitoringService addKnowledge(String name, IKnowledgeComponent component) {
-        mKnowledgeComponents.put(name, component);
+    public IMonitoringService addKnowledge(String name, KnowledgeGenerator component) {
+        mKnowledgeGenerators.put(name, component);
         return this;
     }
 
     @Override
     public void delete(String name) {
-        Objects.requireNonNull(mKnowledgeComponents.get(name)).deleteAll();
+        Objects.requireNonNull(mKnowledgeGenerators.get(name)).deleteAll();
     }
 
     @Override
     public void deleteAll() {
         mKnowledgeManager.deleteAll();
         mEmbeddingManager.deleteAll();
-        for (Map.Entry<String, IKnowledgeComponent> entry : mKnowledgeComponents.entrySet()) {
+        for (Map.Entry<String, KnowledgeGenerator> entry : mKnowledgeGenerators.entrySet()) {
             entry.getValue().deleteAll();
         }
 
@@ -218,7 +218,7 @@ public class MonitoringService extends Service implements IMonitoringService {
                 }
             };
             Objects.requireNonNull(
-                    mKnowledgeComponents.get(name)).update(type, listener);
+                    mKnowledgeGenerators.get(name)).update(type, listener);
         } else {
             resultListener.postValue("");
         }
@@ -234,7 +234,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             Toast.makeText(getApplicationContext(), "Service Started", Toast.LENGTH_SHORT).show();
         }
 
-        for (Map.Entry<String, IKnowledgeComponent> entry : mKnowledgeComponents.entrySet()) {
+        for (Map.Entry<String, KnowledgeGenerator> entry : mKnowledgeGenerators.entrySet()) {
             entry.getValue().startMonitoring();
         }
 
@@ -252,7 +252,7 @@ public class MonitoringService extends Service implements IMonitoringService {
             Toast.makeText(getApplicationContext(), "Service Stopped", Toast.LENGTH_SHORT).show();
         }
 
-        for (Map.Entry<String, IKnowledgeComponent> entry : mKnowledgeComponents.entrySet()) {
+        for (Map.Entry<String, KnowledgeGenerator> entry : mKnowledgeGenerators.entrySet()) {
             entry.getValue().stopMonitoring();
         }
 

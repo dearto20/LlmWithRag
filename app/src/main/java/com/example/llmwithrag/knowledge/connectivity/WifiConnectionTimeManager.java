@@ -9,11 +9,11 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.llmwithrag.MonitoringService;
+import com.example.llmwithrag.datasource.IDataSourceTracker;
 import com.example.llmwithrag.datasource.connectivity.ConnectivityData;
-import com.example.llmwithrag.datasource.connectivity.ConnectivityTracker;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
-import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.knowledge.KnowledgeGenerator;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.text.SimpleDateFormat;
@@ -22,11 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class WifiConnectionTimeManager implements IKnowledgeComponent {
+public class WifiConnectionTimeManager extends KnowledgeGenerator {
     private static final String TAG = WifiConnectionTimeManager.class.getSimpleName();
     private static final boolean DEBUG = false;
     private static final int NUMBER_OF_TYPES = 2;
@@ -38,21 +39,22 @@ public class WifiConnectionTimeManager implements IKnowledgeComponent {
     private final EmbeddingManager mEmbeddingManager;
     private final WifiConnectionTimeRepository mRepository;
 
-    private final ConnectivityTracker mConnectivityTracker;
+    private final IDataSourceTracker mConnectivityTracker;
     private boolean[] mIsConnected;
     private long[] mStartTime;
     private long[] mCheckTime;
 
-    public WifiConnectionTimeManager(Context context,
+    public WifiConnectionTimeManager(Map<String, IDataSourceTracker> trackers,
+                                     Context context,
                                      KnowledgeManager knowledgeManager,
                                      EmbeddingManager embeddingManager,
-                                     WifiConnectionTimeRepository wifiConnectionTimeRepository,
-                                     ConnectivityTracker connectivityTracker) {
+                                     WifiConnectionTimeRepository wifiConnectionTimeRepository) {
+        super(trackers);
         mContext = context;
         mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
         mRepository = wifiConnectionTimeRepository;
-        mConnectivityTracker = connectivityTracker;
+        mConnectivityTracker = Objects.requireNonNull(trackers.get(TRACKER_CONNECTIVITY));
     }
 
     private void initialize() {
@@ -78,11 +80,13 @@ public class WifiConnectionTimeManager implements IKnowledgeComponent {
     }
 
     private List<String> getMostFrequentWifiConnectionTimes(int type, Predicate<ConnectivityData> condition, int topN) {
-        List<ConnectivityData> allData = mConnectivityTracker.getAllData();
+        List<Object> allData = mConnectivityTracker.getAllData();
         Map<String, Long> durationMap = new HashMap<>();
         long currentTime = System.currentTimeMillis();
 
-        for (ConnectivityData data : allData) {
+        for (Object _data : allData) {
+            if (!(_data instanceof ConnectivityData)) continue;
+            ConnectivityData data = (ConnectivityData) _data;
             if (data.timestamp < mCheckTime[type] || !condition.test(data)) continue;
             boolean isNewConnected = data.connected;
             long timestamp = data.timestamp;

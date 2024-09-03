@@ -16,11 +16,13 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
-import com.example.llmwithrag.datasource.IDataSourceComponent;
+import com.example.llmwithrag.datasource.IDataSourceListener;
+import com.example.llmwithrag.datasource.IDataSourceTracker;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class LocationTracker implements IDataSourceComponent {
+public class LocationTracker implements IDataSourceTracker {
     private static final String TAG = LocationTracker.class.getSimpleName();
     private static final boolean DEBUG = false;
     private static final long INTERVAL = 1000 * 60;
@@ -28,16 +30,20 @@ public class LocationTracker implements IDataSourceComponent {
     private final Handler mHandler;
     private final LocationManager mLocationManager;
     private final LocationRepository mRepository;
+    private boolean mStarted;
 
     public LocationTracker(Context context, Looper looper) {
         mContext = context;
         mHandler = new Handler(looper);
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         mRepository = new LocationRepository(context);
+        mStarted = false;
     }
 
     @Override
     public void startMonitoring() {
+        if (mStarted) return;
+        Log.i(TAG, "started");
         if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION)
                 == PERMISSION_GRANTED) {
             mLocationManager.requestLocationUpdates(
@@ -59,10 +65,13 @@ public class LocationTracker implements IDataSourceComponent {
         } else {
             Log.e(TAG, "permission ACCESS_FINE_LOCATION not granted");
         }
+        mStarted = true;
     }
 
     @Override
     public void stopMonitoring() {
+        if (!mStarted) return;
+        Log.i(TAG, "stopped");
         if (ContextCompat.checkSelfPermission(mContext, ACCESS_COARSE_LOCATION)
                 == PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(mContext, ACCESS_FINE_LOCATION)
@@ -70,12 +79,23 @@ public class LocationTracker implements IDataSourceComponent {
             mLocationManager.removeUpdates(mLocationListener);
             mHandler.removeCallbacksAndMessages(null);
         }
+        mStarted = false;
     }
 
-    public List<LocationData> getAllData() {
-        return mRepository.getAllData();
+    @Override
+    public void registerListener(IDataSourceListener listener) {
     }
 
+    @Override
+    public void unregisterListener(IDataSourceListener listener) {
+    }
+
+    @Override
+    public List<Object> getAllData() {
+        return new ArrayList<>(mRepository.getAllData());
+    }
+
+    @Override
     public void deleteAllData() {
         mRepository.deleteAllData();
     }

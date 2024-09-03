@@ -8,11 +8,12 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.llmwithrag.MonitoringService;
+import com.example.llmwithrag.datasource.IDataSourceTracker;
 import com.example.llmwithrag.datasource.movement.MovementData;
 import com.example.llmwithrag.datasource.movement.MovementTracker;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
-import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.knowledge.KnowledgeGenerator;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.text.SimpleDateFormat;
@@ -21,10 +22,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class StationaryTimeManager implements IKnowledgeComponent {
+public class StationaryTimeManager extends KnowledgeGenerator {
     private static final String TAG = StationaryTimeManager.class.getSimpleName();
     private final boolean DEBUG = true;
     private static final String KEY_STATIONARY_TIME = "stationary_time";
@@ -36,21 +38,23 @@ public class StationaryTimeManager implements IKnowledgeComponent {
     private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
     private final StationaryTimeRepository mRepository;
-    private final MovementTracker mMovementTracker;
+    private final IDataSourceTracker mMovementTracker;
     private boolean mIsStationary;
     private long mStartTime;
     private long mCheckTime;
 
-    public StationaryTimeManager(Context context,
+    public StationaryTimeManager(Map<String, IDataSourceTracker> trackers,
+                                 Context context,
                                  KnowledgeManager knowledgeManager,
                                  EmbeddingManager embeddingManager,
                                  StationaryTimeRepository stationaryTimeRepository,
                                  MovementTracker movementTracker) {
+        super(trackers);
         mContext = context;
         mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
         mRepository = stationaryTimeRepository;
-        mMovementTracker = movementTracker;
+        mMovementTracker = Objects.requireNonNull(trackers.get(TRACKER_MOVEMENT));
     }
 
     private void initialize() {
@@ -60,11 +64,13 @@ public class StationaryTimeManager implements IKnowledgeComponent {
     }
 
     public List<String> getMostFrequentStationaryTimes(int topN) {
-        List<MovementData> movements = mMovementTracker.getAllData();
+        List<Object> movements = mMovementTracker.getAllData();
         Map<String, Long> durationMap = new HashMap<>();
         long currentTime = System.currentTimeMillis();
 
-        for (MovementData movement : movements) {
+        for (Object _movement : movements) {
+            if (!(_movement instanceof MovementData)) continue;
+            MovementData movement = (MovementData) _movement;
             if (movement.timestamp < mCheckTime) continue;
             double magnitude = Math.sqrt(movement.x * movement.x + movement.y * movement.y +
                     movement.z * movement.z);

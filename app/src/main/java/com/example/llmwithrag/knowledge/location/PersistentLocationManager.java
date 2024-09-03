@@ -11,22 +11,23 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.llmwithrag.MonitoringService;
+import com.example.llmwithrag.datasource.IDataSourceTracker;
 import com.example.llmwithrag.datasource.location.LocationData;
-import com.example.llmwithrag.datasource.location.LocationTracker;
 import com.example.llmwithrag.kg.Entity;
 import com.example.llmwithrag.kg.KnowledgeManager;
-import com.example.llmwithrag.knowledge.IKnowledgeComponent;
+import com.example.llmwithrag.knowledge.KnowledgeGenerator;
 import com.example.llmwithrag.llm.EmbeddingManager;
 
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class PersistentLocationManager implements IKnowledgeComponent {
+public class PersistentLocationManager extends KnowledgeGenerator {
     private static final String TAG = PersistentLocationManager.class.getSimpleName();
     private static final boolean DEBUG = false;
     private static final int NUMBER_OF_TYPE = 3;
@@ -38,18 +39,19 @@ public class PersistentLocationManager implements IKnowledgeComponent {
     private final KnowledgeManager mKnowledgeManager;
     private final EmbeddingManager mEmbeddingManager;
     private final PersistentLocationRepository mRepository;
-    private final LocationTracker mLocationTracker;
+    private final IDataSourceTracker mLocationTracker;
 
-    public PersistentLocationManager(Context context,
+    public PersistentLocationManager(Map<String, IDataSourceTracker> trackers,
+                                     Context context,
                                      KnowledgeManager knowledgeManager,
                                      EmbeddingManager embeddingManager,
-                                     PersistentLocationRepository persistentLocationRepository,
-                                     LocationTracker locationTracker) {
+                                     PersistentLocationRepository persistentLocationRepository) {
+        super(trackers);
         mContext = context;
         mKnowledgeManager = knowledgeManager;
         mEmbeddingManager = embeddingManager;
         mRepository = persistentLocationRepository;
-        mLocationTracker = locationTracker;
+        mLocationTracker = Objects.requireNonNull(trackers.get(TRACKER_LOCATION));
     }
 
     private void initialize() {
@@ -77,10 +79,12 @@ public class PersistentLocationManager implements IKnowledgeComponent {
     }
 
     private List<String> getMostFrequentlyVisitedPlaces(int type, Predicate<LocationData> condition, int topN) {
-        List<LocationData> locations = mLocationTracker.getAllData();
+        List<Object> locations = mLocationTracker.getAllData();
         Map<String, Integer> frequencyMap = new HashMap<>();
 
-        for (LocationData location : locations) {
+        for (Object _location : locations) {
+            if (!(_location instanceof LocationData)) continue;
+            LocationData location = (LocationData) _location;
             if (DEBUG) Log.d(TAG, "location " + type + " : " + location.latitude + ", " +
                     location.longitude + " at " + timeOf(location.timestamp));
             if (!condition.test(location)) continue;
